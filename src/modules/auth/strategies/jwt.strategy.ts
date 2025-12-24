@@ -21,7 +21,6 @@ class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    console.log('JWT Payload:', payload);
     const staff = await this.staff.findById(payload.sub);
 
     if (!staff) {

@@ -24,8 +24,6 @@ class StaffDBRepository extends StaffRepository {
       return null;
     }
       
-      console.log('record: ', record)
-
     return this.toDomain(record);
   }
 

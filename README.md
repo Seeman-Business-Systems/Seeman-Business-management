@@ -1,4 +1,4 @@
-# Seeman Auto & Agro Industries - Digital Business Management System
+# Seeman Management System
 ## UP2151393 Final Year Project
 ### Author: Paschal Kenechukwu Ezenwobi
 

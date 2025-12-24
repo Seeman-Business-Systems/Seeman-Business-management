@@ -72,12 +72,9 @@ class AuthService {
     refreshToken: string;
     staff: Staff;
   } | void> {
-    console.log('Login attempt for identifier:', identifier, password);
     const staff =
       (await this.staff.findByPhoneNumber(identifier)) ||
       (await this.staff.findByEmail(identifier));
-
-    console.log('Found staff during login:', staff);
 
     if (!staff) {
       throw new UnauthorizedException('Staff not found');
@@ -161,7 +158,6 @@ class AuthService {
 
   async resetPassword(staffId: number, newPassword: string): Promise<Staff> {
     const staff = await this.staff.findById(staffId);
-    console.log('staff: ', staff);
 
     if (!staff) throw new NotFoundException('Staff not found');
 
