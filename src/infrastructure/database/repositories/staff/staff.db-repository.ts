@@ -50,6 +50,12 @@ class StaffDBRepository extends StaffRepository {
     return this.toDomain(record);
   }
 
+  async findForBranch(branchId: number): Promise<Staff[]> {
+    const records = await this.repository.find({ where: { branchId } });
+
+    return records.map((entity: StaffEntity) => this.toDomain(entity));
+  }
+
   async findAll(): Promise<Staff[]> {
     const records = await this.repository.find();
 
