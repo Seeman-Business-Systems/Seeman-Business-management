@@ -9,6 +9,7 @@ import UpdateBranchHandler from 'src/application/branch/commands/update/update-b
 import DeleteBranchHandler from 'src/application/branch/commands/delete/delete-branch';
 import BranchRepository from 'src/infrastructure/database/repositories/branch/branch.repository';
 import { BranchSeed } from 'src/infrastructure/database/seeds/branch.seed';
+import BranchQuery from 'src/application/branch/queries/branch.query';
 
 @Module({
   imports: [CqrsModule, TypeOrmModule.forFeature([BranchEntity])],
@@ -18,6 +19,7 @@ import { BranchSeed } from 'src/infrastructure/database/seeds/branch.seed';
       provide: BranchRepository,
       useClass: BranchDBRepository,
     },
+    BranchQuery,
     BranchSeed,
     CreateBranchHandler,
     UpdateBranchHandler,

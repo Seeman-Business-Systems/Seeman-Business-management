@@ -61,7 +61,7 @@ class BranchDBRepository extends BranchRepository {
     return this.toDomain(savedEntity);
   }
 
-  private toDomain(entity: BranchEntity): Branch {
+  toDomain(entity: BranchEntity): Branch {
     return new Branch(
       entity.id,
       entity.name,

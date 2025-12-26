@@ -23,7 +23,7 @@ class UpdateBranch implements ICommandHandler<UpdateBranchCommand> {
     branchToUpdate.setManagerId(command.managerId);
     branchToUpdate.setIsHeadOffice(command.isHeadOffice);
 
-    if (command.altPhoneNumber != undefined) {
+    if (command.altPhoneNumber) {
       branchToUpdate.setAltPhoneNumber(command.altPhoneNumber);
     }
 
