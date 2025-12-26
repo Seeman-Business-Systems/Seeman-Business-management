@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import BranchEntity from './branch.entity';
 import { Matches } from 'class-validator';
+import RoleEntity from './role.entity';
 
 @Entity({ name: 'staff' })
 class StaffEntity {
@@ -28,15 +29,19 @@ class StaffEntity {
   })
   phoneNumber: string;
 
-  @Column()
+  @Column({ name: 'role_id' })
   roleId: number;
+
+  @ManyToOne(() => RoleEntity)
+  @JoinColumn({ name: 'role_id' })
+  role: RoleEntity;
 
   @Column({ name: 'branch_id', nullable: true })
   branchId: number;
 
   @ManyToOne(() => BranchEntity, { nullable: true })
   @JoinColumn({ name: 'branch_id' })
-  branch?: BranchEntity;
+  branch: BranchEntity;
 
   @Column({ nullable: true })
   middleName?: string;
