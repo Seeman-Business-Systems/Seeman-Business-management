@@ -24,7 +24,7 @@ import Actor from 'src/modules/auth/decorators/actor.decorator';
 import JwtAuthGuard from 'src/modules/auth/guards/jwt-auth.guard';
 
 @Controller('roles')
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 class RoleController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -40,8 +40,7 @@ class RoleController {
     const command = new CreateRoleCommand(
       dto.name,
       dto.isManagement,
-      // actor.getId(),
-      1
+      actor.getId(),
     );
 
     return await this.commandBus.execute(command);
