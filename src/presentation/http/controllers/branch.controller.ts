@@ -27,22 +27,21 @@ import { ActorType } from 'src/domain/common/actor-type';
 import BranchRepository from 'src/infrastructure/database/repositories/branch/branch.repository';
 import BranchQuery from 'src/application/branch/queries/branch.query';
 import type { BranchFilters } from 'src/application/branch/queries/branch.filters';
+import BranchSerialiser from 'src/presentation/serialisers/branch.serialiser';
 
 @Controller('branches')
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 class BranchController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly branches: BranchRepository,
     private readonly branchQuery: BranchQuery,
+    private readonly branchSerialiser: BranchSerialiser,
   ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async create(
-    @Body() dto: CreateBranchValidator,
-    @Actor() actor: Staff,
-  ): Promise<Branch> {
+  async create(@Body() dto: CreateBranchValidator, @Actor() actor: Staff) {
     const command = new CreateBranchCommand(
       dto.name,
       dto.address,
@@ -57,7 +56,9 @@ class BranchController {
       dto.code,
     );
 
-    return await this.commandBus.execute(command);
+    const branch = await this.commandBus.execute(command);
+
+    return await this.branchSerialiser.serialise(branch);
   }
 
   @Put(':id')
@@ -65,7 +66,7 @@ class BranchController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateBranchValidator,
-  ): Promise<Branch> {
+  ) {
     const command = new UpdateBranchCommand(
       id,
       dto.name,
@@ -80,7 +81,9 @@ class BranchController {
       dto.altPhoneNumber,
     );
 
-    return await this.commandBus.execute(command);
+    const branch = await this.commandBus.execute(command);
+
+    return await this.branchSerialiser.serialise(branch);
   }
 
   @Delete(':id')
@@ -93,16 +96,20 @@ class BranchController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  async findOne(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<Branch | null> {
-    return await this.branches.findById(id);
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const branch = await this.branches.findById(id);
+
+    if (branch) {
+      return this.branchSerialiser.serialise(branch, true);
+    }
   }
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  async findAll(@Query() filters: BranchFilters): Promise<Branch[]> {
-    return await this.branchQuery.findBy(filters);
+  async findAll(@Query() filters: BranchFilters) {
+    const branches = await this.branchQuery.findBy(filters);
+
+    return this.branchSerialiser.serialiseMany(branches, true);
   }
 }
 

@@ -50,6 +50,12 @@ class StaffDBRepository extends StaffRepository {
     return this.toDomain(record);
   }
 
+  async findForBranch(branchId: number): Promise<Staff[]> {
+    const records = await this.repository.find({ where: { branchId } });
+
+    return records.map((entity: StaffEntity) => this.toDomain(entity));
+  }
+
   async findAll(): Promise<Staff[]> {
     const records = await this.repository.find();
 
@@ -63,7 +69,7 @@ class StaffDBRepository extends StaffRepository {
     return this.toDomain(savedEntity);
   }
 
-  private toDomain(entity: StaffEntity): Staff {
+  toDomain(entity: StaffEntity): Staff {
     return new Staff(
       entity.id,
       entity.firstName,

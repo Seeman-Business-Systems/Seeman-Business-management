@@ -19,7 +19,7 @@ class BranchQuery {
 
     // Handle dynamic relation loading
     if (filters.includeStaff) {
-      query.leftJoinAndSelect('branch.manager', 'manager');
+      query.leftJoinAndSelect('branch.staff', 'staff');
     }
 
     if (filters.includeInventory) {
@@ -67,9 +67,9 @@ class BranchQuery {
       }
     }
 
-      const records = await query.getMany();
-      
-      console.log('records: ', records)
+    const records = await query.getMany();
+
+    console.log('records: ', records);
 
     return records.map((entity) => this.branchRepo.toDomain(entity));
   }
