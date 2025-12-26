@@ -19,7 +19,7 @@ class BranchQuery {
 
     // Handle dynamic relation loading
     if (filters.includeStaff) {
-      query.leftJoinAndSelect('branch.manager', 'manager');
+      query.leftJoinAndSelect('branch.staff', 'staff');
     }
 
     if (filters.includeInventory) {

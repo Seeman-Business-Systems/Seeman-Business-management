@@ -63,7 +63,7 @@ class StaffDBRepository extends StaffRepository {
     return this.toDomain(savedEntity);
   }
 
-  private toDomain(entity: StaffEntity): Staff {
+  toDomain(entity: StaffEntity): Staff {
     return new Staff(
       entity.id,
       entity.firstName,

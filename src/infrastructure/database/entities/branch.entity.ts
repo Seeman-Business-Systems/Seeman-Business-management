@@ -39,9 +39,8 @@ class BranchEntity {
   @Column({ nullable: true })
   managerId: number;
 
-  @OneToMany(() => StaffEntity, (staff) => staff.id, {})
-  @JoinColumn()
-  manager: number;
+  @OneToMany(() => StaffEntity, (staff) => staff.branch)
+  staff: StaffEntity[];
 
   @Column()
   isHeadOffice: boolean;

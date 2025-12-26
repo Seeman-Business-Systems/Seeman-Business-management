@@ -10,7 +10,7 @@ abstract class BranchRepository {
   abstract delete(id: number): Promise<void>;
   abstract restore(id: number): Promise<Branch>;
   abstract commit(branch: Branch): Promise<Branch>;
-  abstract toDomain(entity: BranchEntity): Branch
+  abstract toDomain(entity: BranchEntity): Branch;
 }
 
 export default BranchRepository;

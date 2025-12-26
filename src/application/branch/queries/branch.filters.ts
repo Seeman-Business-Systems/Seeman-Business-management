@@ -7,7 +7,6 @@ export interface BranchFilters {
   managerId?: number;
   city?: string | string[];
   state?: string | string[];
-  staff?: Staff[];
   includeStaff?: boolean;
   includeInventory?: boolean;
 }

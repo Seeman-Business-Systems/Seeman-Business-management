@@ -10,9 +10,17 @@ import DeleteBranchHandler from 'src/application/branch/commands/delete/delete-b
 import BranchRepository from 'src/infrastructure/database/repositories/branch/branch.repository';
 import { BranchSeed } from 'src/infrastructure/database/seeds/branch.seed';
 import BranchQuery from 'src/application/branch/queries/branch.query';
+import BranchSerialiser from 'src/presentation/serialisers/branch.serialiser';
+import { StaffModule } from '../staff/staff.module';
+import { StaffSerialiser } from 'src/presentation/serialisers/staff.serialiser';
+import StaffEntity from 'src/infrastructure/database/entities/staff.entity';
 
 @Module({
-  imports: [CqrsModule, TypeOrmModule.forFeature([BranchEntity])],
+  imports: [
+    CqrsModule,
+    TypeOrmModule.forFeature([BranchEntity, StaffEntity]),
+    StaffModule,
+  ],
   controllers: [BranchController],
   providers: [
     {
@@ -20,6 +28,8 @@ import BranchQuery from 'src/application/branch/queries/branch.query';
       useClass: BranchDBRepository,
     },
     BranchQuery,
+    BranchSerialiser,
+    StaffSerialiser,
     BranchSeed,
     CreateBranchHandler,
     UpdateBranchHandler,
