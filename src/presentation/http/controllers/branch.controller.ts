@@ -100,7 +100,7 @@ class BranchController {
     const branch = await this.branches.findById(id);
 
     if (branch) {
-      return this.branchSerialiser.serialise(branch);
+      return this.branchSerialiser.serialise(branch, true);
     }
   }
 
@@ -109,7 +109,7 @@ class BranchController {
   async findAll(@Query() filters: BranchFilters) {
     const branches = await this.branchQuery.findBy(filters);
 
-    return this.branchSerialiser.serialiseMany(branches);
+    return this.branchSerialiser.serialiseMany(branches, true);
   }
 }
 

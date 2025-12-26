@@ -1,6 +1,7 @@
 import Staff from 'src/domain/staff/staff';
 
 export interface BranchFilters {
+  ids?: number | number[];
   name?: string;
   status?: string;
   isHeadOffice?: boolean;

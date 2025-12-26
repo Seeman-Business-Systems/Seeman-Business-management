@@ -67,9 +67,9 @@ class BranchQuery {
       }
     }
 
-      const records = await query.getMany();
-      
-      console.log('records: ', records)
+    const records = await query.getMany();
+
+    console.log('records: ', records);
 
     return records.map((entity) => this.branchRepo.toDomain(entity));
   }
