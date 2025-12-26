@@ -8,6 +8,10 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { AuthModule } from './modules/auth/auth.module';
 import { StaffModule } from './modules/staff/staff.module';
 import { BranchModule } from './modules/branch/branch.module';
+import { RoleModule } from './modules/role/role.module';
+import DatabaseSeedService from './infrastructure/database/seeds/database-seed.service';
+import AuthService from './modules/auth/auth.service';
+import { RefreshTokenModule } from './modules/tokens/refresh-token.module';
 
 @Module({
   imports: [
@@ -31,8 +35,11 @@ import { BranchModule } from './modules/branch/branch.module';
     AuthModule,
     StaffModule,
     BranchModule,
+    RoleModule,
+    RefreshTokenModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, DatabaseSeedService, AuthService],
 })
+  
 export class AppModule {}

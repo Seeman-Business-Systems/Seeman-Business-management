@@ -9,11 +9,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import Staff from 'src/domain/staff/staff';
-import RegisterStaffValidator from 'src/application/staff/registration/register-staff.validator';
+import RegisterStaffValidator from 'src/application/staff/commands/auth/register-staff.validator';
 import AuthService from './auth.service';
 import JwtAuthGuard from './guards/jwt-auth.guard';
 import Actor from './decorators/actor.decorator';
-import PasswordResetValidator from 'src/application/staff/registration/password-reset.validator';
+import PasswordResetValidator from 'src/application/staff/commands/auth/password-reset.validator';
 
 @Controller('auth')
 @UseGuards(JwtAuthGuard)

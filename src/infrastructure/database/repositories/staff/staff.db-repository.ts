@@ -17,14 +17,11 @@ class StaffDBRepository extends StaffRepository {
   async findById(id: number): Promise<Staff | null> {
     const record = await this.repository.findOne({
       where: { id },
-      //   relations: ['roles'], UNDO: when role entity is ready
     });
 
     if (!record) {
       return null;
     }
-      
-      console.log('record: ', record)
 
     return this.toDomain(record);
   }
@@ -32,7 +29,6 @@ class StaffDBRepository extends StaffRepository {
   async findByPhoneNumber(phoneNumber: string): Promise<Staff | null> {
     const record = await this.repository.findOne({
       where: { phoneNumber },
-      //   relations: ['roles'],
     });
 
     if (!record) {
@@ -45,7 +41,6 @@ class StaffDBRepository extends StaffRepository {
   async findByEmail(email: string): Promise<Staff | null> {
     const record = await this.repository.findOne({
       where: { email },
-      //   relations: ['roles'],
     });
 
     if (!record) {
@@ -53,6 +48,12 @@ class StaffDBRepository extends StaffRepository {
     }
 
     return this.toDomain(record);
+  }
+
+  async findAll(): Promise<Staff[]> {
+    const records = await this.repository.find();
+
+    return records.map((entity: StaffEntity) => this.toDomain(entity));
   }
 
   async commit(staff: Staff): Promise<Staff> {

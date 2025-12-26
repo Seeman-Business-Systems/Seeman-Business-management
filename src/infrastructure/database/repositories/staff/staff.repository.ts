@@ -6,6 +6,7 @@ abstract class StaffRepository {
     abstract findById(id: number): Promise<Staff | null>;
     abstract findByPhoneNumber(phoneNumber: string): Promise<Staff | null>;
     abstract findByEmail(email: string): Promise<Staff | null>;
+    abstract findAll(): Promise<Staff[]>;
     abstract commit(staff: Staff): Promise<Staff>;
 }
 
