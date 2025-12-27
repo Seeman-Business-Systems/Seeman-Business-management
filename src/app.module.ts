@@ -9,6 +9,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { StaffModule } from './modules/staff/staff.module';
 import { BranchModule } from './modules/branch/branch.module';
 import { RoleModule } from './modules/role/role.module';
+import { WarehouseModule } from './modules/warehouse/warehouse.module';
 import DatabaseSeedService from './infrastructure/database/seeds/database-seed.service';
 import AuthService from './modules/auth/auth.service';
 import { RefreshTokenModule } from './modules/tokens/refresh-token.module';
@@ -36,6 +37,7 @@ import { RefreshTokenModule } from './modules/tokens/refresh-token.module';
     StaffModule,
     BranchModule,
     RoleModule,
+    WarehouseModule,
     RefreshTokenModule,
   ],
   controllers: [AppController],

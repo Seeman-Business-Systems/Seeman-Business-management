@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import BranchStatus from 'src/domain/branch/branch-status';
 import StaffEntity from './staff.entity';
+import WarehouseEntity from './warehouse.entity';
 import { Matches } from 'class-validator';
 
 @Entity({ name: 'branches' })
@@ -41,6 +42,9 @@ class BranchEntity {
 
   @OneToMany(() => StaffEntity, (staff) => staff.branch)
   staff: StaffEntity[];
+
+  @OneToMany(() => WarehouseEntity, (warehouse) => warehouse.branch)
+  warehouses: WarehouseEntity[];
 
   @Column()
   isHeadOffice: boolean;
