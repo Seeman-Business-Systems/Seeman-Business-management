@@ -6,7 +6,7 @@ class UpdateProductVariantCommand extends Command<ProductVariant> {
     public readonly id: number,
     public readonly sku?: string,
     public readonly variantName?: string,
-    public readonly price?: number,
+    public readonly sellingPrice?: number,
     public readonly specifications?: Record<string, any> | null,
   ) {
     super();

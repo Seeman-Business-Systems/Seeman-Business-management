@@ -69,7 +69,7 @@ class ProductSerialiser {
       productId: variant.getProductId(),
       sku: variant.getSku(),
       variantName: variant.getVariantName(),
-      price: variant.getPrice(),
+      sellingPrice: variant.getSellingPrice(),
       specifications: variant.getSpecifications(),
       createdBy: creator ? this.staffSerialiser.serialise(creator) : null,
       createdAt: variant.getCreatedAt(),

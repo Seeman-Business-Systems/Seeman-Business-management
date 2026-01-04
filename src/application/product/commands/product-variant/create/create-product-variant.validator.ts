@@ -12,9 +12,9 @@ class CreateProductVariantValidator {
   variantName: string;
 
   @IsNumber()
-  @IsNotEmpty({ message: 'Price is required' })
-  @Min(0, { message: 'Price must be a positive number' })
-  price: number;
+  @IsNotEmpty({ message: 'Selling price is required' })
+  @Min(0, { message: 'Selling price must be a positive number' })
+  sellingPrice: number;
 
   @IsOptional()
   @IsObject()

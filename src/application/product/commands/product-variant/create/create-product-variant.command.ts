@@ -6,7 +6,7 @@ class CreateProductVariantCommand extends Command<ProductVariant> {
     public readonly productId: number,
     public readonly sku: string,
     public readonly variantName: string,
-    public readonly price: number,
+    public readonly sellingPrice: number,
     public readonly specifications: Record<string, any> | null,
     public readonly createdBy: number,
   ) {

@@ -50,7 +50,7 @@ export class ProductVariantSeed {
         productId: 1,
         sku: 'BRI-T005-195-65-15',
         variantName: '195/65 R15',
-        price: 45000,
+        sellingPrice: 45000,
         specifications: {
           width: 195,
           aspectRatio: 65,
@@ -68,7 +68,7 @@ export class ProductVariantSeed {
         productId: 1,
         sku: 'BRI-T005-205-55-16',
         variantName: '205/55 R16',
-        price: 52000,
+        sellingPrice: 52000,
         specifications: {
           width: 205,
           aspectRatio: 55,
@@ -86,7 +86,7 @@ export class ProductVariantSeed {
         productId: 1,
         sku: 'BRI-T005-225-45-17',
         variantName: '225/45 R17',
-        price: 62000,
+        sellingPrice: 62000,
         specifications: {
           width: 225,
           aspectRatio: 45,
@@ -105,7 +105,7 @@ export class ProductVariantSeed {
         productId: 2,
         sku: 'PRE-PS01-175-70-13',
         variantName: '175/70 R13',
-        price: 18000,
+        sellingPrice: 18000,
         specifications: {
           width: 175,
           aspectRatio: 70,
@@ -123,7 +123,7 @@ export class ProductVariantSeed {
         productId: 2,
         sku: 'PRE-PS01-185-65-14',
         variantName: '185/65 R14',
-        price: 22000,
+        sellingPrice: 22000,
         specifications: {
           width: 185,
           aspectRatio: 65,
@@ -141,7 +141,7 @@ export class ProductVariantSeed {
         productId: 2,
         sku: 'PRE-PS01-195-65-15',
         variantName: '195/65 R15',
-        price: 25000,
+        sellingPrice: 25000,
         specifications: {
           width: 195,
           aspectRatio: 65,
@@ -160,7 +160,7 @@ export class ProductVariantSeed {
         productId: 3,
         sku: 'MAX-MAP3-185-70-14',
         variantName: '185/70 R14',
-        price: 28000,
+        sellingPrice: 28000,
         specifications: {
           width: 185,
           aspectRatio: 70,
@@ -178,7 +178,7 @@ export class ProductVariantSeed {
         productId: 3,
         sku: 'MAX-MAP3-195-60-15',
         variantName: '195/60 R15',
-        price: 32000,
+        sellingPrice: 32000,
         specifications: {
           width: 195,
           aspectRatio: 60,
@@ -197,7 +197,7 @@ export class ProductVariantSeed {
         productId: 4,
         sku: 'MIC-PRI4-205-55-16',
         variantName: '205/55 R16',
-        price: 65000,
+        sellingPrice: 65000,
         specifications: {
           width: 205,
           aspectRatio: 55,
@@ -215,7 +215,7 @@ export class ProductVariantSeed {
         productId: 4,
         sku: 'MIC-PRI4-225-45-17',
         variantName: '225/45 R17',
-        price: 75000,
+        sellingPrice: 75000,
         specifications: {
           width: 225,
           aspectRatio: 45,
@@ -234,7 +234,7 @@ export class ProductVariantSeed {
         productId: 5,
         sku: 'BRI-DHT-225-65-17',
         variantName: '225/65 R17',
-        price: 68000,
+        sellingPrice: 68000,
         specifications: {
           width: 225,
           aspectRatio: 65,
@@ -253,7 +253,7 @@ export class ProductVariantSeed {
         productId: 5,
         sku: 'BRI-DHT-265-65-17',
         variantName: '265/65 R17',
-        price: 82000,
+        sellingPrice: 82000,
         specifications: {
           width: 265,
           aspectRatio: 65,
@@ -273,7 +273,7 @@ export class ProductVariantSeed {
         productId: 6,
         sku: 'MAX-AT771-265-70-16',
         variantName: '265/70 R16',
-        price: 55000,
+        sellingPrice: 55000,
         specifications: {
           width: 265,
           aspectRatio: 70,
@@ -292,7 +292,7 @@ export class ProductVariantSeed {
         productId: 6,
         sku: 'MAX-AT771-235-75-15',
         variantName: '235/75 R15',
-        price: 48000,
+        sellingPrice: 48000,
         specifications: {
           width: 235,
           aspectRatio: 75,
@@ -312,7 +312,7 @@ export class ProductVariantSeed {
         productId: 7,
         sku: 'AUS-TRI-400-8',
         variantName: '4.00-8',
-        price: 12000,
+        sellingPrice: 12000,
         specifications: {
           size: '4.00-8',
           plyRating: 8,
@@ -328,7 +328,7 @@ export class ProductVariantSeed {
         productId: 7,
         sku: 'AUS-TRI-450-12',
         variantName: '4.50-12',
-        price: 15000,
+        sellingPrice: 15000,
         specifications: {
           size: '4.50-12',
           plyRating: 8,
@@ -345,7 +345,7 @@ export class ProductVariantSeed {
         productId: 8,
         sku: 'HIF-KEKE-400-8',
         variantName: '4.00-8',
-        price: 11500,
+        sellingPrice: 11500,
         specifications: {
           size: '4.00-8',
           plyRating: 8,
@@ -362,7 +362,7 @@ export class ProductVariantSeed {
         productId: 9,
         sku: 'FIR-PERF-18.4-30',
         variantName: '18.4-30',
-        price: 180000,
+        sellingPrice: 180000,
         specifications: {
           size: '18.4-30',
           plyRating: 12,
@@ -378,7 +378,7 @@ export class ProductVariantSeed {
         productId: 9,
         sku: 'FIR-PERF-11.2-24',
         variantName: '11.2-24',
-        price: 120000,
+        sellingPrice: 120000,
         specifications: {
           size: '11.2-24',
           plyRating: 10,
@@ -395,7 +395,7 @@ export class ProductVariantSeed {
         productId: 10,
         sku: 'DUN-FARM-16.9-28',
         variantName: '16.9-28',
-        price: 155000,
+        sellingPrice: 155000,
         specifications: {
           size: '16.9-28',
           plyRating: 12,
@@ -412,7 +412,7 @@ export class ProductVariantSeed {
         productId: 11,
         sku: 'BRI-DUR-195-70-15C',
         variantName: '195/70 R15C',
-        price: 42000,
+        sellingPrice: 42000,
         specifications: {
           width: 195,
           aspectRatio: 70,
@@ -431,7 +431,7 @@ export class ProductVariantSeed {
         productId: 11,
         sku: 'BRI-DUR-215-75-16C',
         variantName: '215/75 R16C',
-        price: 52000,
+        sellingPrice: 52000,
         specifications: {
           width: 215,
           aspectRatio: 75,
@@ -451,7 +451,7 @@ export class ProductVariantSeed {
         productId: 12,
         sku: 'SEE-STD-NS40',
         variantName: 'NS40',
-        price: 35000,
+        sellingPrice: 35000,
         specifications: {
           voltage: 12,
           capacity: 35,
@@ -469,7 +469,7 @@ export class ProductVariantSeed {
         productId: 12,
         sku: 'SEE-STD-NS60',
         variantName: 'NS60',
-        price: 42000,
+        sellingPrice: 42000,
         specifications: {
           voltage: 12,
           capacity: 45,
@@ -487,7 +487,7 @@ export class ProductVariantSeed {
         productId: 12,
         sku: 'SEE-STD-N70',
         variantName: 'N70',
-        price: 55000,
+        sellingPrice: 55000,
         specifications: {
           voltage: 12,
           capacity: 70,
@@ -506,7 +506,7 @@ export class ProductVariantSeed {
         productId: 13,
         sku: 'VAR-BD-E11',
         variantName: 'E11 (74Ah)',
-        price: 68000,
+        sellingPrice: 68000,
         specifications: {
           voltage: 12,
           capacity: 74,
@@ -525,7 +525,7 @@ export class ProductVariantSeed {
         productId: 13,
         sku: 'VAR-BD-D59',
         variantName: 'D59 (60Ah)',
-        price: 58000,
+        sellingPrice: 58000,
         specifications: {
           voltage: 12,
           capacity: 60,
@@ -545,7 +545,7 @@ export class ProductVariantSeed {
         productId: 14,
         sku: 'BOS-S4-005',
         variantName: 'S4 005 (60Ah)',
-        price: 62000,
+        sellingPrice: 62000,
         specifications: {
           voltage: 12,
           capacity: 60,
@@ -563,7 +563,7 @@ export class ProductVariantSeed {
         productId: 14,
         sku: 'BOS-S4-007',
         variantName: 'S4 007 (72Ah)',
-        price: 72000,
+        sellingPrice: 72000,
         specifications: {
           voltage: 12,
           capacity: 72,
@@ -582,7 +582,7 @@ export class ProductVariantSeed {
         productId: 15,
         sku: 'SOL-SIL-65D23L',
         variantName: '65D23L',
-        price: 48000,
+        sellingPrice: 48000,
         specifications: {
           voltage: 12,
           capacity: 60,
@@ -600,7 +600,7 @@ export class ProductVariantSeed {
         productId: 15,
         sku: 'SOL-SIL-75D23L',
         variantName: '75D23L',
-        price: 56000,
+        sellingPrice: 56000,
         specifications: {
           voltage: 12,
           capacity: 65,
@@ -619,7 +619,7 @@ export class ProductVariantSeed {
         productId: 16,
         sku: 'SEE-HD-N100',
         variantName: 'N100',
-        price: 85000,
+        sellingPrice: 85000,
         specifications: {
           voltage: 12,
           capacity: 100,
@@ -638,7 +638,7 @@ export class ProductVariantSeed {
         productId: 16,
         sku: 'SEE-HD-N150',
         variantName: 'N150',
-        price: 120000,
+        sellingPrice: 120000,
         specifications: {
           voltage: 12,
           capacity: 150,
@@ -658,7 +658,7 @@ export class ProductVariantSeed {
         productId: 17,
         sku: 'VAR-PB-J1',
         variantName: 'J1 (125Ah)',
-        price: 145000,
+        sellingPrice: 145000,
         specifications: {
           voltage: 12,
           capacity: 125,
@@ -678,7 +678,7 @@ export class ProductVariantSeed {
         productId: 18,
         sku: 'SOL-BIKE-YTX7A',
         variantName: 'YTX7A-BS',
-        price: 12000,
+        sellingPrice: 12000,
         specifications: {
           voltage: 12,
           capacity: 6,
@@ -697,7 +697,7 @@ export class ProductVariantSeed {
         productId: 18,
         sku: 'SOL-BIKE-YTX9',
         variantName: 'YTX9-BS',
-        price: 15000,
+        sellingPrice: 15000,
         specifications: {
           voltage: 12,
           capacity: 8,
@@ -717,7 +717,7 @@ export class ProductVariantSeed {
         productId: 19,
         sku: 'SAC-SHOCK-TOY-CAM',
         variantName: 'Toyota Camry Front',
-        price: 28000,
+        sellingPrice: 28000,
         specifications: {
           vehicle: 'Toyota Camry 2007-2011',
           position: 'Front',
@@ -733,7 +733,7 @@ export class ProductVariantSeed {
         productId: 19,
         sku: 'SAC-SHOCK-HON-ACC',
         variantName: 'Honda Accord Rear',
-        price: 32000,
+        sellingPrice: 32000,
         specifications: {
           vehicle: 'Honda Accord 2008-2012',
           position: 'Rear',
@@ -750,7 +750,7 @@ export class ProductVariantSeed {
         productId: 20,
         sku: 'MON-OE-TOY-COR',
         variantName: 'Toyota Corolla Front',
-        price: 25000,
+        sellingPrice: 25000,
         specifications: {
           vehicle: 'Toyota Corolla 2009-2013',
           position: 'Front',
@@ -767,7 +767,7 @@ export class ProductVariantSeed {
         productId: 21,
         sku: 'TRW-TIE-TOY-CAM-L',
         variantName: 'Toyota Camry Left',
-        price: 8500,
+        sellingPrice: 8500,
         specifications: {
           vehicle: 'Toyota Camry 2007-2011',
           position: 'Left',
@@ -783,7 +783,7 @@ export class ProductVariantSeed {
         productId: 21,
         sku: 'TRW-TIE-TOY-CAM-R',
         variantName: 'Toyota Camry Right',
-        price: 8500,
+        sellingPrice: 8500,
         specifications: {
           vehicle: 'Toyota Camry 2007-2011',
           position: 'Right',
@@ -800,7 +800,7 @@ export class ProductVariantSeed {
         productId: 22,
         sku: 'LEM-BALL-MERC-W204-L',
         variantName: 'Mercedes W204 Lower Left',
-        price: 18000,
+        sellingPrice: 18000,
         specifications: {
           vehicle: 'Mercedes C-Class W204',
           position: 'Lower Left',
@@ -817,7 +817,7 @@ export class ProductVariantSeed {
         productId: 23,
         sku: 'TRW-RACK-HON-CIV-L',
         variantName: 'Honda Civic Left',
-        price: 12000,
+        sellingPrice: 12000,
         specifications: {
           vehicle: 'Honda Civic 2006-2011',
           position: 'Left',
@@ -834,7 +834,7 @@ export class ProductVariantSeed {
         productId: 24,
         sku: 'TRW-PAD-TOY-CAM-F',
         variantName: 'Toyota Camry Front',
-        price: 15000,
+        sellingPrice: 15000,
         specifications: {
           vehicle: 'Toyota Camry 2007-2011',
           position: 'Front',
@@ -851,7 +851,7 @@ export class ProductVariantSeed {
         productId: 24,
         sku: 'TRW-PAD-TOY-COR-F',
         variantName: 'Toyota Corolla Front',
-        price: 12000,
+        sellingPrice: 12000,
         specifications: {
           vehicle: 'Toyota Corolla 2009-2013',
           position: 'Front',
@@ -871,7 +871,7 @@ export class ProductVariantSeed {
         variantData.productId,
         variantData.sku,
         variantData.variantName,
-        variantData.price,
+        variantData.sellingPrice,
         variantData.specifications,
         variantData.createdBy,
         variantData.createdAt,

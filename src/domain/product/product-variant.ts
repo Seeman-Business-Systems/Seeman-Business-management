@@ -4,7 +4,7 @@ class ProductVariant {
     public productId: number,
     public sku: string,
     public variantName: string,
-    public price: number,
+    public sellingPrice: number,
     public specifications: Record<string, any> | null,
     public createdBy: number,
     public createdAt: Date,
@@ -40,12 +40,12 @@ class ProductVariant {
     this.variantName = variantName;
   }
 
-  getPrice(): number {
-    return this.price;
+  getSellingPrice(): number {
+    return this.sellingPrice;
   }
 
-  setPrice(price: number): void {
-    this.price = price;
+  setSellingPrice(sellingPrice: number): void {
+    this.sellingPrice = sellingPrice;
   }
 
   getSpecifications(): Record<string, any> | null {

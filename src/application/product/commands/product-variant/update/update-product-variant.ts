@@ -21,8 +21,8 @@ class UpdateProductVariant implements ICommandHandler<UpdateProductVariantComman
       variant.setVariantName(command.variantName);
     }
 
-    if (command.price !== undefined) {
-      variant.setPrice(command.price);
+    if (command.sellingPrice !== undefined) {
+      variant.setSellingPrice(command.sellingPrice);
     }
 
     if (command.specifications !== undefined) {
