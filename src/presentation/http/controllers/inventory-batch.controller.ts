@@ -10,6 +10,7 @@ import {
   ParseIntPipe,
   Body,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import Actor from 'src/modules/auth/decorators/actor.decorator';
@@ -29,8 +30,10 @@ import TransferBatchValidator from 'src/application/inventory/commands/inventory
 import AdjustBatchCommand from 'src/application/inventory/commands/inventory-batch/adjust/adjust-batch.command';
 import AdjustBatchValidator from 'src/application/inventory/commands/inventory-batch/adjust/adjust-batch.validator';
 import DeleteBatchCommand from 'src/application/inventory/commands/inventory-batch/delete/delete-batch.command';
+import JwtAuthGuard from 'src/modules/auth/guards/jwt-auth.guard';
 
 @Controller('inventory-batches')
+// @UseGuards(JwtAuthGuard)
 class InventoryBatchController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -75,10 +78,7 @@ class InventoryBatchController {
 
   @Post(':id/receive')
   @HttpCode(HttpStatus.OK)
-  async receive(
-    @Param('id', ParseIntPipe) id: number,
-    @Actor() actor: Staff,
-  ) {
+  async receive(@Param('id', ParseIntPipe) id: number, @Actor() actor: Staff) {
     const command = new ReceiveBatchCommand(
       id,
       actor?.getId() ?? ActorType.SYSTEM_ACTOR,

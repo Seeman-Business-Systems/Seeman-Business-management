@@ -9,6 +9,7 @@ import {
   Body,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import InventoryQuery from 'src/application/inventory/queries/inventory.query';
@@ -17,8 +18,10 @@ import SetReorderLevelsCommand from 'src/application/inventory/commands/inventor
 import SetReorderLevelsValidator from 'src/application/inventory/commands/inventory/set-reorder-levels/set-reorder-levels.validator';
 import ReserveStockCommand from 'src/application/inventory/commands/inventory/reserve-stock/reserve-stock.command';
 import ReserveStockValidator from 'src/application/inventory/commands/inventory/reserve-stock/reserve-stock.validator';
+import JwtAuthGuard from 'src/modules/auth/guards/jwt-auth.guard';
 
 @Controller('inventory')
+// @UseGuards(JwtAuthGuard)
 class InventoryController {
   constructor(
     private readonly commandBus: CommandBus,

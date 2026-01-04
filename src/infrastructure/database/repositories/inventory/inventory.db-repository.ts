@@ -117,8 +117,8 @@ class InventoryDBRepository extends InventoryRepository {
   toDomain(entity: InventoryEntity): Inventory {
     return new Inventory(
       entity.id,
-      entity.variant.id,
-      entity.warehouse.id,
+      entity.variantId,
+      entity.warehouseId,
       entity.totalQuantity,
       entity.minimumQuantity,
       entity.maximumQuantity,

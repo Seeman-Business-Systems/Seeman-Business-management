@@ -19,6 +19,12 @@ class InventoryEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ name: 'variant_id' })
+  variantId: number;
+
+  @Column({ name: 'warehouse_id' })
+  warehouseId: number;
+
   @ManyToOne(() => ProductVariantEntity)
   @JoinColumn({ name: 'variant_id' })
   variant: ProductVariantEntity;
