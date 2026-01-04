@@ -44,6 +44,6 @@ export class RoleSeed {
        this.roles.commit(defaultRole);
     })
 
-    console.log('Default roles seeded successfully');
+    console.log('✅ Default roles seeded successfully');
   }
 }

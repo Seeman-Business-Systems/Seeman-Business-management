@@ -31,6 +31,7 @@ import SetReorderLevels from 'src/application/inventory/commands/inventory/set-r
 import ReserveStock from 'src/application/inventory/commands/inventory/reserve-stock/reserve-stock';
 import { StaffModule } from '../staff/staff.module';
 import { StaffSerialiser } from 'src/presentation/serialisers/staff.serialiser';
+import { InventorySeed } from 'src/infrastructure/database/seeds/inventory.seed';
 
 @Module({
   imports: [
@@ -74,11 +75,13 @@ import { StaffSerialiser } from 'src/presentation/serialisers/staff.serialiser';
     DeleteBatch,
     SetReorderLevels,
     ReserveStock,
+    InventorySeed,
   ],
   exports: [
     InventoryRepository,
     InventoryBatchRepository,
     InventoryMovementRepository,
+    InventorySeed,
   ],
 })
 export class InventoryModule {}

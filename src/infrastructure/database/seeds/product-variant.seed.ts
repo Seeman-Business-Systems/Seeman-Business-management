@@ -880,6 +880,6 @@ export class ProductVariantSeed {
       await this.variants.commit(variant);
     }
 
-    console.log('Default product variants seeded successfully');
+    console.log('✅ Default product variants seeded successfully');
   }
 }
