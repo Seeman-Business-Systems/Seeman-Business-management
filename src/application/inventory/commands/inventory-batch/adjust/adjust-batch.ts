@@ -48,8 +48,9 @@ class AdjustBatch implements ICommandHandler<AdjustBatchCommand> {
       batch.getId()!,
       InventoryMovementType.ADJUST,
       command.adjustmentQuantity,
-      null,
-      null,
+      null, // orderId
+      null, // fromWarehouseId (no transfer)
+      batch.getWarehouseId(), // toWarehouseId (adjustment at this warehouse)
       command.notes,
       command.actorId,
       new Date(),

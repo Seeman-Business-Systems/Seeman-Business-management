@@ -101,7 +101,8 @@ class InventoryMovementDBRepository extends InventoryMovementRepository {
     entity.type = movement.getType();
     entity.quantity = movement.getQuantity();
     entity.orderId = movement.getOrderId();
-    entity.transferToWarehouseId = movement.getTransferToWarehouseId();
+    entity.fromWarehouseId = movement.getFromWarehouseId();
+    entity.toWarehouseId = movement.getToWarehouseId();
     entity.notes = movement.getNotes();
     entity.actorId = movement.getActorId();
     entity.createdAt = movement.getCreatedAt();
@@ -126,7 +127,8 @@ class InventoryMovementDBRepository extends InventoryMovementRepository {
       entity.type,
       entity.quantity,
       entity.orderId,
-      entity.transferToWarehouseId,
+      entity.fromWarehouseId,
+      entity.toWarehouseId,
       entity.notes,
       entity.actorId,
       entity.createdAt,

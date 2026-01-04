@@ -51,8 +51,9 @@ class ReceiveBatch implements ICommandHandler<ReceiveBatchCommand> {
       batch.getId()!,
       InventoryMovementType.IN,
       batch.getQuantityReceived(),
-      null,
-      null,
+      null, // orderId
+      null, // fromWarehouseId (no transfer)
+      batch.getWarehouseId(), // toWarehouseId (received at this warehouse)
       `Batch received at warehouse`,
       command.actorId,
       new Date(),

@@ -31,7 +31,10 @@ class InventoryMovementEntity {
   orderId: number | null;
 
   @Column({ type: 'int', nullable: true })
-  transferToWarehouseId: number | null;
+  fromWarehouseId: number | null;
+
+  @Column({ type: 'int', nullable: true })
+  toWarehouseId: number | null;
 
   @Column({ type: 'text', nullable: true })
   notes: string | null;

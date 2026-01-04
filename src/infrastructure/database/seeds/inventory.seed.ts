@@ -473,7 +473,8 @@ export class InventorySeed {
             InventoryMovementType.IN,
             batchData.quantityReceived,
             null, // No order ID
-            null, // No transfer warehouse
+            null, // fromWarehouseId (no transfer, initial stock)
+            invData.warehouseId, // toWarehouseId (received at this warehouse)
             `Initial stock received - Batch ${batchData.batchNumber}`,
             ActorType.SYSTEM_ACTOR,
             batchData.receivedDate!,

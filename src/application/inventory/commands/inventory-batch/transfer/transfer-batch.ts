@@ -62,7 +62,8 @@ class TransferBatch implements ICommandHandler<TransferBatchCommand> {
       InventoryMovementType.TRANSFER,
       -command.quantity,
       null,
-      command.destinationWarehouseId,
+      sourceBatch.getWarehouseId(), // fromWarehouseId
+      command.destinationWarehouseId, // toWarehouseId
       command.notes,
       command.actorId,
       new Date(),
@@ -123,8 +124,9 @@ class TransferBatch implements ICommandHandler<TransferBatchCommand> {
       savedDestBatch.getId()!,
       InventoryMovementType.IN,
       command.quantity,
-      null,
-      null,
+      null, // orderId
+      sourceBatch.getWarehouseId(), // fromWarehouseId
+      command.destinationWarehouseId, // toWarehouseId
       `Transfer from warehouse ${sourceBatch.getWarehouseId()}`,
       command.actorId,
       new Date(),

@@ -7,7 +7,8 @@ class InventoryMovement {
     private type: InventoryMovementType,
     private quantity: number,
     private orderId: number | null,
-    private transferToWarehouseId: number | null,
+    private fromWarehouseId: number | null,
+    private toWarehouseId: number | null,
     private notes: string | null,
     private actorId: number,
     private createdAt: Date,
@@ -49,12 +50,20 @@ class InventoryMovement {
     this.orderId = orderId;
   }
 
-  getTransferToWarehouseId(): number | null {
-    return this.transferToWarehouseId;
+  getFromWarehouseId(): number | null {
+    return this.fromWarehouseId;
   }
 
-  setTransferToWarehouseId(transferToWarehouseId: number | null): void {
-    this.transferToWarehouseId = transferToWarehouseId;
+  setFromWarehouseId(fromWarehouseId: number | null): void {
+    this.fromWarehouseId = fromWarehouseId;
+  }
+
+  getToWarehouseId(): number | null {
+    return this.toWarehouseId;
+  }
+
+  setToWarehouseId(toWarehouseId: number | null): void {
+    this.toWarehouseId = toWarehouseId;
   }
 
   getNotes(): string | null {
