@@ -23,7 +23,7 @@ class InventorySerialiser {
       variantId: inventory.getVariantId(),
       warehouseId: inventory.getWarehouseId(),
       variant: variant ? await this.productSerialiser.serialiseVariant(variant) : null,
-      warehouse: warehouse ? this.warehouseSerialiser.serialise(warehouse) : null,
+      warehouse: warehouse ? await this.warehouseSerialiser.serialise(warehouse) : null,
       totalQuantity: inventory.getTotalQuantity(),
       minimumQuantity: inventory.getMinimumQuantity(),
       maximumQuantity: inventory.getMaximumQuantity(),

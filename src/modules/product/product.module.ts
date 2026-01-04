@@ -136,6 +136,7 @@ import { ProductVariantSeed } from 'src/infrastructure/database/seeds/product-va
     CategoryRepository,
     ProductRepository,
     ProductVariantRepository,
+    ProductSerialiser,
     BrandSeed,
     CategorySeed,
     ProductSeed,

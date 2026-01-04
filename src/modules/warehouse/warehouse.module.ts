@@ -42,6 +42,6 @@ import { WarehouseSeed } from 'src/infrastructure/database/seeds/warehouse.seed'
     AssignWarehouseToStaffHandler,
     WarehouseSeed,
   ],
-  exports: [WarehouseRepository, WarehouseSeed],
+  exports: [WarehouseRepository, WarehouseSerialiser, WarehouseSeed],
 })
 export class WarehouseModule {}

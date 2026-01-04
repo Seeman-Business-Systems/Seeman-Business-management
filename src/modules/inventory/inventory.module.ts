@@ -30,6 +30,8 @@ import DeleteBatch from 'src/application/inventory/commands/inventory-batch/dele
 import SetReorderLevels from 'src/application/inventory/commands/inventory/set-reorder-levels/set-reorder-levels';
 import ReserveStock from 'src/application/inventory/commands/inventory/reserve-stock/reserve-stock';
 import { StaffModule } from '../staff/staff.module';
+import { ProductModule } from '../product/product.module';
+import { WarehouseModule } from '../warehouse/warehouse.module';
 import { StaffSerialiser } from 'src/presentation/serialisers/staff.serialiser';
 import { InventorySeed } from 'src/infrastructure/database/seeds/inventory.seed';
 
@@ -45,6 +47,8 @@ import { InventorySeed } from 'src/infrastructure/database/seeds/inventory.seed'
       StaffEntity,
     ]),
     StaffModule,
+    ProductModule,
+    WarehouseModule,
   ],
   controllers: [InventoryController, InventoryBatchController],
   providers: [
