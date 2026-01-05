@@ -1,7 +1,7 @@
 import Branch from 'src/domain/branch/branch';
 import BranchRepository from './branch.repository';
 import BranchEntity from 'src/infrastructure/database/entities/branch.entity';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
 
@@ -25,7 +25,11 @@ class BranchDBRepository extends BranchRepository {
   }
 
   async findByState(state: string): Promise<Branch[]> {
-    const records = await this.repository.find({ where: { state } });
+    const records = await this.repository.find({
+      where: {
+        state: Like(`%${state}%`),
+      },
+    });
 
     return records.map((entity: BranchEntity) => this.toDomain(entity));
   }
