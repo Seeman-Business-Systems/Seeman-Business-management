@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
@@ -17,16 +18,14 @@ class CustomerEntity {
   @Column({ type: 'varchar', length: 255 })
   name: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  email: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  notes: string | null;
+
   @Column({ type: 'varchar', length: 20, name: 'phone_number' })
   phoneNumber: string;
-
-  @Column({
-    type: 'varchar',
-    length: 20,
-    name: 'alt_phone_number',
-    nullable: true,
-  })
-  altPhoneNumber: string | null;
 
   @Column({
     type: 'varchar',
@@ -36,6 +35,14 @@ class CustomerEntity {
   })
   companyName: string | null;
 
+  @Column({
+    type: 'varchar',
+    length: 20,
+    name: 'alt_phone_number',
+    nullable: true,
+  })
+  altPhoneNumber: string | null;
+
   @Column({ type: 'int', name: 'created_by' })
   createdBy: number;
 
@@ -43,20 +50,14 @@ class CustomerEntity {
   @JoinColumn({ name: 'created_by' })
   createdByStaff: StaffEntity;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  email: string | null;
-
-  @Column({ type: 'text', nullable: true })
-  notes: string | null;
-
-  @Column({ type: 'timestamp', name: 'deleted_at', nullable: true })
-  deletedAt: Date | null;
-
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  deletedAt: Date | null;
 }
 
 export default CustomerEntity;

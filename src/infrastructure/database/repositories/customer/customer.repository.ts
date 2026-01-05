@@ -7,7 +7,6 @@ import { Injectable } from "@nestjs/common";
 abstract class CustomerRepository {
   abstract findById(id: number): Promise<Customer | null>;
   abstract findByName(name: string): Promise<Customer[]>;
-  abstract findReservations(customer: number): Promise<StockReservation[]>;
   abstract findAll(): Promise<Customer[]>;
   abstract delete(id: number): Promise<void>;
   abstract restore(id: number): Promise<Customer>;

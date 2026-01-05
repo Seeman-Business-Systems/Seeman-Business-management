@@ -2,14 +2,14 @@ class Customer {
   constructor(
     public id: number | undefined,
     public name: string,
+    public email: string | null,
+    public notes: string | null,
     public phoneNumber: string,
-    public notes: string,
+    public companyName: string | null,
+    public altPhoneNumber: string | null,
+    public createdBy: number,
     public createdAt: Date,
     public updatedAt: Date,
-    public createdBy: number,
-    public companyName?: string,
-    public altPhoneNumber?: string,
-    public email?: string,
     public deletedAt?: Date,
   ) {}
 
@@ -25,7 +25,7 @@ class Customer {
     return this.phoneNumber;
   }
 
-  getAltPhoneNumber(): string | undefined {
+  getAltPhoneNumber(): string | null {
     return this.altPhoneNumber;
   }
 
@@ -37,15 +37,15 @@ class Customer {
     return this.updatedAt;
   }
 
-  getNotes(): string {
+  getNotes(): string | null {
     return this.notes;
   }
 
-  getCompanyName(): string | undefined {
+  getCompanyName(): string | null {
     return this.companyName;
   }
 
-  getEmail(): string | undefined {
+  getEmail(): string | null {
     return this.email;
   }
 
@@ -69,15 +69,15 @@ class Customer {
     this.notes = notes;
   }
 
-  setCompanyName(companyName?: string): void {
+  setCompanyName(companyName: string): void {
     this.companyName = companyName;
   }
 
-  setEmail(email?: string): void {
+  setEmail(email: string): void {
     this.email = email;
   }
 
-  setDeletedAt(deletedAt?: Date): void {
+  setDeletedAt(deletedAt: Date): void {
     this.deletedAt = deletedAt;
   }
 

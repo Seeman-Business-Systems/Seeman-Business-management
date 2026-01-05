@@ -13,7 +13,7 @@ class UpdateRole implements ICommandHandler<UpdateRoleCommand> {
         const role = await this.roles.findByIdOrName(command.id, undefined);
 
         if (!role) {
-            throw new Error(`Role with id ${command.id} nto found`);
+            throw new Error(`Role with id ${command.id} not found`);
         }
 
         role.setName(command.name);
