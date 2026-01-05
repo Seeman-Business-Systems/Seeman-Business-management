@@ -43,6 +43,12 @@ class CustomerEntity {
   })
   altPhoneNumber: string | null;
 
+  @Column({ type: 'decimal', precision: 15, scale: 2, name: 'credit_limit', default: 0 })
+  creditLimit: number;
+
+  @Column({ type: 'decimal', precision: 15, scale: 2, name: 'outstanding_balance', default: 0 })
+  outstandingBalance: number;
+
   @Column({ type: 'int', name: 'created_by' })
   createdBy: number;
 

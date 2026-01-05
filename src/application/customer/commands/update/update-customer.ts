@@ -1,12 +1,17 @@
 import { CommandHandler, ICommandHandler } from "@nestjs/cqrs";
+import { CommandBus } from "@nestjs/cqrs";
 import UpdateCustomerCommand from "./update-customer.command";
+import SetCreditLimitCommand from "../set-credit-limit/set-credit-limit.command";
 import CustomerRepository from "src/infrastructure/database/repositories/customer/customer.repository";
 import Customer from "src/domain/customer/customer";
 
 @CommandHandler(UpdateCustomerCommand)
 class UpdateCustomer implements ICommandHandler<UpdateCustomerCommand> {
-    constructor(private customers: CustomerRepository) { }
-    
+    constructor(
+        private customers: CustomerRepository,
+        private commandBus: CommandBus,
+    ) { }
+
     async execute(command: UpdateCustomerCommand): Promise<Customer> {
         const customer = await this.customers.findById(command.id);
 
@@ -33,7 +38,25 @@ class UpdateCustomer implements ICommandHandler<UpdateCustomerCommand> {
             customer.setAltPhoneNumber(command.altPhoneNumber);
         }
 
-        return await this.customers.commit(customer);
+        if (command.outstandingBalance !== null) {
+            customer.setOutstandingBalance(command.outstandingBalance);
+        }
+
+        // Save basic updates first
+        const updatedCustomer = await this.customers.commit(customer);
+
+        // Handle credit limit change separately via SetCreditLimit command
+        // This ensures CEO authorization is enforced
+        if (command.creditLimit !== null && command.creditLimit !== customer.getCreditLimit()) {
+            const setCreditLimitCommand = new SetCreditLimitCommand(
+                command.id,
+                command.creditLimit,
+                command.actorId,
+            );
+            return await this.commandBus.execute(setCreditLimitCommand);
+        }
+
+        return updatedCustomer;
     }
 }
 

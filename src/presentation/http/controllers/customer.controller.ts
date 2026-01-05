@@ -18,6 +18,8 @@ import CreateCustomerValidator from 'src/application/customer/commands/create/cr
 import UpdateCustomerCommand from 'src/application/customer/commands/update/update-customer.command';
 import UpdateCustomerValidator from 'src/application/customer/commands/update/update-customer.validator';
 import DeleteCustomerCommand from 'src/application/customer/commands/delete/delete-customer.command';
+import SetCreditLimitCommand from 'src/application/customer/commands/set-credit-limit/set-credit-limit.command';
+import SetCreditLimitValidator from 'src/application/customer/commands/set-credit-limit/set-credit-limit.validator';
 import Customer from 'src/domain/customer/customer';
 import Staff from 'src/domain/staff/staff';
 import CustomerRepository from 'src/infrastructure/database/repositories/customer/customer.repository';
@@ -62,7 +64,8 @@ class CustomerController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateCustomerValidator,
-  ): Promise<Customer> {
+    @Actor() actor: Staff,
+  ) {
     const command = new UpdateCustomerCommand(
       id,
       dto.name,
@@ -71,9 +74,13 @@ class CustomerController {
       dto.email,
       dto.companyName,
       dto.altPhoneNumber,
+      dto.creditLimit ?? null,
+      dto.outstandingBalance ?? null,
+      actor.getId() ?? 1,
     );
 
-    return await this.commandBus.execute(command);
+    const customer = await this.commandBus.execute(command);
+    return this.customerSerialiser.serialise(customer);
   }
 
   @Delete(':id')
@@ -102,6 +109,24 @@ class CustomerController {
     const customers = await this.customerQuery.findBy(filters);
 
     return this.customerSerialiser.serialiseMany(customers);
+  }
+
+  @Put(':id/credit-limit')
+  @HttpCode(HttpStatus.OK)
+  async setCreditLimit(
+    @Param('id', ParseIntPipe) customerId: number,
+    @Body() dto: SetCreditLimitValidator,
+    @Actor() actor: Staff,
+  ) {
+    const command = new SetCreditLimitCommand(
+      customerId,
+      dto.creditLimit,
+        // actor.getId() ??
+        1,
+    );
+
+    const customer = await this.commandBus.execute(command);
+    return this.customerSerialiser.serialise(customer);
   }
 }
 
