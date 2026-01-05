@@ -8,24 +8,38 @@ class SetReorderLevels implements ICommandHandler<SetReorderLevelsCommand> {
   constructor(private inventories: InventoryRepository) {}
 
   async execute(command: SetReorderLevelsCommand): Promise<Inventory> {
-    const inventory = await this.inventories.findById(command.inventoryId);
+    let inventory = await this.inventories.findByVariantAndWarehouse(
+      command.variantId,
+      command.warehouseId,
+    );
 
     if (!inventory) {
-      throw new Error(`Inventory with id ${command.inventoryId} not found`);
-    }
-
-    if (
-      command.maximumQuantity !== null &&
-      command.maximumQuantity < command.minimumQuantity
-    ) {
-      throw new Error(
-        `Maximum quantity cannot be less than minimum quantity`,
+      // Create new inventory record if it doesn't exist
+      inventory = new Inventory(
+        undefined,
+        command.variantId,
+        command.warehouseId,
+        0, // totalQuantity
+        command.minimumQuantity,
+        command.maximumQuantity,
+        0, // reservedQuantity
+        new Date(),
+        new Date(),
       );
-    }
+    } else {
+      if (
+        command.maximumQuantity !== null &&
+        command.maximumQuantity < command.minimumQuantity
+      ) {
+        throw new Error(
+          `Maximum quantity cannot be less than minimum quantity`,
+        );
+      }
 
-    inventory.setMinimumQuantity(command.minimumQuantity);
-    inventory.setMaximumQuantity(command.maximumQuantity);
-    inventory.setUpdatedAt(new Date());
+      inventory.setMinimumQuantity(command.minimumQuantity);
+      inventory.setMaximumQuantity(command.maximumQuantity);
+      inventory.setUpdatedAt(new Date());
+    }
 
     return await this.inventories.commit(inventory);
   }
