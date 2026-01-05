@@ -15,6 +15,7 @@ import { InventoryModule } from './modules/inventory/inventory.module';
 import DatabaseSeedService from './infrastructure/database/seeds/database-seed.service';
 import AuthService from './modules/auth/auth.service';
 import { RefreshTokenModule } from './modules/tokens/refresh-token.module';
+import { CustomerModule } from './modules/customer/customer.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { RefreshTokenModule } from './modules/tokens/refresh-token.module';
     ProductModule,
     InventoryModule,
     RefreshTokenModule,
+    CustomerModule,
   ],
   controllers: [AppController],
   providers: [AppService, DatabaseSeedService, AuthService],
