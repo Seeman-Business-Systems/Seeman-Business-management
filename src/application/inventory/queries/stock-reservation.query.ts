@@ -1,58 +1,175 @@
 import { Injectable } from '@nestjs/common';
-import StockReservationRepository from 'src/infrastructure/database/repositories/inventory/stock-reservation.repository';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import StockReservation from 'src/domain/inventory/stock-reservation';
+import StockReservationEntity from 'src/infrastructure/database/entities/stock-reservation.entity';
+import StockReservationRepository from 'src/infrastructure/database/repositories/inventory/stock-reservation.repository';
+import { StockReservationFilters } from './stock-reservation.filters';
 import ReservationStatus from 'src/domain/inventory/reservation-status';
 
 @Injectable()
 class StockReservationQuery {
-  constructor(private reservations: StockReservationRepository) {}
+  constructor(
+    @InjectRepository(StockReservationEntity)
+    public readonly reservations: Repository<StockReservationEntity>,
+    public readonly reservationRepo: StockReservationRepository,
+  ) {}
 
-  async findById(id: number): Promise<StockReservation | null> {
-    return await this.reservations.findById(id);
-  }
+  async findBy(filters: StockReservationFilters): Promise<StockReservation[]> {
+    const query = this.reservations.createQueryBuilder('reservation');
 
-  async findByOrderId(orderId: number): Promise<StockReservation[]> {
-    return await this.reservations.findByOrderId(orderId);
-  }
+    // Handle dynamic relation loading
+    if (filters.includeVariant) {
+      query.leftJoinAndSelect('reservation.variant', 'variant');
+    }
 
-  async findByCustomerId(customerId: number): Promise<StockReservation[]> {
-    return await this.reservations.findByCustomerId(customerId);
-  }
+    if (filters.includeWarehouse) {
+      query.leftJoinAndSelect('reservation.warehouse', 'warehouse');
+    }
 
-  async findByVariantAndWarehouse(
-    variantId: number,
-    warehouseId: number,
-  ): Promise<StockReservation[]> {
-    return await this.reservations.findByVariantAndWarehouse(
-      variantId,
-      warehouseId,
-    );
-  }
+    if (filters.includeReservedByStaff) {
+      query.leftJoinAndSelect('reservation.reservedByStaff', 'staff');
+    }
 
-  async findActiveReservations(): Promise<StockReservation[]> {
-    return await this.reservations.findActiveReservations();
+    // Handle ID filters
+    if (filters.ids) {
+      if (Array.isArray(filters.ids)) {
+        query.andWhere('reservation.id IN (:...ids)', { ids: filters.ids });
+      } else {
+        query.andWhere('reservation.id = :id', { id: filters.ids });
+      }
+    }
+
+    // Handle variantId filters
+    if (filters.variantId) {
+      if (Array.isArray(filters.variantId)) {
+        query.andWhere('reservation.variantId IN (:...variantIds)', {
+          variantIds: filters.variantId,
+        });
+      } else {
+        query.andWhere('reservation.variantId = :variantId', {
+          variantId: filters.variantId,
+        });
+      }
+    }
+
+    // Handle warehouseId filters
+    if (filters.warehouseId) {
+      if (Array.isArray(filters.warehouseId)) {
+        query.andWhere('reservation.warehouseId IN (:...warehouseIds)', {
+          warehouseIds: filters.warehouseId,
+        });
+      } else {
+        query.andWhere('reservation.warehouseId = :warehouseId', {
+          warehouseId: filters.warehouseId,
+        });
+      }
+    }
+
+    // Handle orderId filters
+    if (filters.orderId) {
+      if (Array.isArray(filters.orderId)) {
+        query.andWhere('reservation.orderId IN (:...orderIds)', {
+          orderIds: filters.orderId,
+        });
+      } else {
+        query.andWhere('reservation.orderId = :orderId', {
+          orderId: filters.orderId,
+        });
+      }
+    }
+
+    // Handle customerId filters
+    if (filters.customerId) {
+      if (Array.isArray(filters.customerId)) {
+        query.andWhere('reservation.customerId IN (:...customerIds)', {
+          customerIds: filters.customerId,
+        });
+      } else {
+        query.andWhere('reservation.customerId = :customerId', {
+          customerId: filters.customerId,
+        });
+      }
+    }
+
+    // Handle status filters
+    if (filters.status) {
+      if (Array.isArray(filters.status)) {
+        query.andWhere('reservation.status IN (:...statuses)', {
+          statuses: filters.status,
+        });
+      } else {
+        query.andWhere('reservation.status = :status', {
+          status: filters.status,
+        });
+      }
+    }
+
+    // Handle reservedBy filters
+    if (filters.reservedBy) {
+      if (Array.isArray(filters.reservedBy)) {
+        query.andWhere('reservation.reservedBy IN (:...reservedByIds)', {
+          reservedByIds: filters.reservedBy,
+        });
+      } else {
+        query.andWhere('reservation.reservedBy = :reservedBy', {
+          reservedBy: filters.reservedBy,
+        });
+      }
+    }
+
+    // Handle isActive filter
+    if (filters.isActive !== undefined) {
+      if (filters.isActive) {
+        query.andWhere('reservation.status = :activeStatus', {
+          activeStatus: ReservationStatus.ACTIVE,
+        });
+      } else {
+        query.andWhere('reservation.status != :activeStatus', {
+          activeStatus: ReservationStatus.ACTIVE,
+        });
+      }
+    }
+
+    // Handle isExpired filter
+    if (filters.isExpired !== undefined) {
+      if (filters.isExpired) {
+        query.andWhere('reservation.expiresAt IS NOT NULL');
+        query.andWhere('reservation.expiresAt < :now', { now: new Date() });
+        query.andWhere('reservation.status = :activeStatus', {
+          activeStatus: ReservationStatus.ACTIVE,
+        });
+      } else {
+        query.andWhere(
+          '(reservation.expiresAt IS NULL OR reservation.expiresAt >= :now)',
+          { now: new Date() },
+        );
+      }
+    }
+
+    // Default ordering - most recent first
+    query.orderBy('reservation.createdAt', 'DESC');
+
+    const records = await query.getMany();
+
+    return records.map((entity) => this.reservationRepo.toDomain(entity));
   }
 
   async findExpiredReservations(): Promise<StockReservation[]> {
-    return await this.reservations.findExpiredReservations();
-  }
-
-  async findByStatus(status: ReservationStatus): Promise<StockReservation[]> {
-    return await this.reservations.findByStatus(status);
+    return await this.findBy({ isExpired: true });
   }
 
   async getTotalReservedForVariant(
     variantId: number,
     warehouseId: number,
   ): Promise<number> {
-    const reservations = await this.reservations.findByVariantAndWarehouse(
+    const reservations = await this.findBy({
       variantId,
       warehouseId,
-    );
+      isActive: true,
+    });
 
-    return reservations
-      .filter((r) => r.isActive())
-      .reduce((total, r) => total + r.getQuantity(), 0);
+    return reservations.reduce((total, r) => total + r.getQuantity(), 0);
   }
 }
 

@@ -7,7 +7,6 @@ import {
   ParseIntPipe,
   Put,
   Body,
-  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -16,9 +15,6 @@ import InventoryQuery from 'src/application/inventory/queries/inventory.query';
 import InventorySerialiser from 'src/presentation/serialisers/inventory.serialiser';
 import SetReorderLevelsCommand from 'src/application/inventory/commands/inventory/set-reorder-levels/set-reorder-levels.command';
 import SetReorderLevelsValidator from 'src/application/inventory/commands/inventory/set-reorder-levels/set-reorder-levels.validator';
-import ReserveStockCommand from 'src/application/inventory/commands/inventory/reserve-stock/reserve-stock.command';
-import ReserveStockValidator from 'src/application/inventory/commands/inventory/reserve-stock/reserve-stock.validator';
-import StockReservationSerialiser from 'src/presentation/serialisers/stock-reservation.serialiser';
 import JwtAuthGuard from 'src/modules/auth/guards/jwt-auth.guard';
 
 @Controller('inventory')
@@ -28,7 +24,6 @@ class InventoryController {
     private readonly commandBus: CommandBus,
     private readonly inventoryQuery: InventoryQuery,
     private readonly inventorySerialiser: InventorySerialiser,
-    private readonly reservationSerialiser: StockReservationSerialiser,
   ) {}
 
   @Get()
@@ -102,24 +97,6 @@ class InventoryController {
 
     const inventory = await this.commandBus.execute(command);
     return await this.inventorySerialiser.serialise(inventory);
-  }
-
-  @Post('reserve')
-  @HttpCode(HttpStatus.OK)
-  async reserveStock(@Body() dto: ReserveStockValidator) {
-    const command = new ReserveStockCommand(
-      dto.variantId,
-      dto.warehouseId,
-      dto.quantity,
-      dto.orderId ?? null,
-      dto.customerId ?? null,
-      dto.reservedBy,
-      dto.expiresAt ? new Date(dto.expiresAt) : null,
-      dto.notes ?? null,
-    );
-
-    const reservation = await this.commandBus.execute(command);
-    return await this.reservationSerialiser.serialise(reservation);
   }
 }
 

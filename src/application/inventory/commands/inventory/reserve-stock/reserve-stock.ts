@@ -4,6 +4,10 @@ import StockReservation from 'src/domain/inventory/stock-reservation';
 import InventoryRepository from 'src/infrastructure/database/repositories/inventory/inventory.repository';
 import StockReservationRepository from 'src/infrastructure/database/repositories/inventory/stock-reservation.repository';
 import ReservationStatus from 'src/domain/inventory/reservation-status';
+import {
+  InventoryNotFoundException,
+  InsufficientStockException,
+} from 'src/domain/inventory/exceptions';
 
 @CommandHandler(ReserveStockCommand)
 class ReserveStock implements ICommandHandler<ReserveStockCommand> {
@@ -19,17 +23,16 @@ class ReserveStock implements ICommandHandler<ReserveStockCommand> {
     );
 
     if (!inventory) {
-      throw new Error(
-        `No inventory found for variant ${command.variantId} in warehouse ${command.warehouseId}`,
+      throw new InventoryNotFoundException(
+        command.variantId,
+        command.warehouseId,
       );
     }
 
     const availableQuantity = inventory.getAvailableQuantity();
 
     if (availableQuantity < command.quantity) {
-      throw new Error(
-        `Insufficient available stock. Available: ${availableQuantity}, Requested: ${command.quantity}`,
-      );
+      throw new InsufficientStockException(availableQuantity, command.quantity);
     }
 
     // Create the stock reservation

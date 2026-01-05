@@ -10,6 +10,7 @@ import WarehouseEntity from 'src/infrastructure/database/entities/warehouse.enti
 import StaffEntity from 'src/infrastructure/database/entities/staff.entity';
 import InventoryController from 'src/presentation/http/controllers/inventory.controller';
 import InventoryBatchController from 'src/presentation/http/controllers/inventory-batch.controller';
+import StockReservationController from 'src/presentation/http/controllers/stock-reservation.controller';
 import InventoryRepository from 'src/infrastructure/database/repositories/inventory/inventory.repository';
 import InventoryDBRepository from 'src/infrastructure/database/repositories/inventory/inventory.db-repository';
 import InventoryBatchRepository from 'src/infrastructure/database/repositories/inventory/inventory-batch.repository';
@@ -34,7 +35,9 @@ import AdjustBatch from 'src/application/inventory/commands/inventory-batch/adju
 import DeleteBatch from 'src/application/inventory/commands/inventory-batch/delete/delete-batch';
 import SetReorderLevels from 'src/application/inventory/commands/inventory/set-reorder-levels/set-reorder-levels';
 import ReserveStock from 'src/application/inventory/commands/inventory/reserve-stock/reserve-stock';
-import UnreserveStock from 'src/application/inventory/commands/stock-reservation/unreserve-stock/unreserve-stock';
+import CancelReservation from 'src/application/inventory/commands/stock-reservation/cancel-reservation/cancel-reservation';
+import FulfillReservation from 'src/application/inventory/commands/stock-reservation/fulfill-reservation/fulfill-reservation';
+import UpdateReservation from 'src/application/inventory/commands/stock-reservation/update-reservation/update-reservation';
 import { StaffModule } from '../staff/staff.module';
 import { ProductModule } from '../product/product.module';
 import { WarehouseModule } from '../warehouse/warehouse.module';
@@ -58,7 +61,11 @@ import { StockReservationSeed } from 'src/infrastructure/database/seeds/stock-re
     ProductModule,
     WarehouseModule,
   ],
-  controllers: [InventoryController, InventoryBatchController],
+  controllers: [
+    InventoryController,
+    InventoryBatchController,
+    StockReservationController,
+  ],
   providers: [
     {
       provide: InventoryRepository,
@@ -93,7 +100,9 @@ import { StockReservationSeed } from 'src/infrastructure/database/seeds/stock-re
     DeleteBatch,
     SetReorderLevels,
     ReserveStock,
-    UnreserveStock,
+    CancelReservation,
+    FulfillReservation,
+    UpdateReservation,
     InventorySeed,
     StockReservationSeed,
   ],

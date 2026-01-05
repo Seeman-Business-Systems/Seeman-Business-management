@@ -2,6 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import SetReorderLevelsCommand from './set-reorder-levels.command';
 import Inventory from 'src/domain/inventory/inventory';
 import InventoryRepository from 'src/infrastructure/database/repositories/inventory/inventory.repository';
+import { InvalidReorderLevelsException } from 'src/domain/inventory/exceptions';
 
 @CommandHandler(SetReorderLevelsCommand)
 class SetReorderLevels implements ICommandHandler<SetReorderLevelsCommand> {
@@ -31,8 +32,8 @@ class SetReorderLevels implements ICommandHandler<SetReorderLevelsCommand> {
         command.maximumQuantity !== null &&
         command.maximumQuantity < command.minimumQuantity
       ) {
-        throw new Error(
-          `Maximum quantity cannot be less than minimum quantity`,
+        throw new InvalidReorderLevelsException(
+          `Maximum quantity (${command.maximumQuantity}) cannot be less than minimum quantity (${command.minimumQuantity})`,
         );
       }
 

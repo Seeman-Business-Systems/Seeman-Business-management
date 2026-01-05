@@ -6,6 +6,11 @@ import InventoryRepository from 'src/infrastructure/database/repositories/invent
 import InventoryMovementRepository from 'src/infrastructure/database/repositories/inventory/inventory-movement.repository';
 import InventoryMovement from 'src/domain/inventory/inventory-movement';
 import InventoryMovementType from 'src/domain/inventory/inventory-movement-type';
+import {
+  BatchNotFoundException,
+  BatchCannotBeAdjustedException,
+  InventoryNotFoundException,
+} from 'src/domain/inventory/exceptions';
 
 @CommandHandler(AdjustBatchCommand)
 class AdjustBatch implements ICommandHandler<AdjustBatchCommand> {
@@ -19,13 +24,13 @@ class AdjustBatch implements ICommandHandler<AdjustBatchCommand> {
     const batch = await this.inventoryBatches.findById(command.batchId);
 
     if (!batch) {
-      throw new Error(`Batch with id ${command.batchId} not found`);
+      throw new BatchNotFoundException(command.batchId);
     }
 
     const newQuantity = batch.getCurrentQuantity() + command.adjustmentQuantity;
 
     if (newQuantity < 0) {
-      throw new Error(
+      throw new BatchCannotBeAdjustedException(
         `Adjustment would result in negative quantity. Current: ${batch.getCurrentQuantity()}, Adjustment: ${command.adjustmentQuantity}`,
       );
     }
@@ -35,7 +40,10 @@ class AdjustBatch implements ICommandHandler<AdjustBatchCommand> {
 
     const inventory = await this.inventories.findById(batch.getInventoryId());
     if (!inventory) {
-      throw new Error(`Inventory with id ${batch.getInventoryId()} not found`);
+      throw new InventoryNotFoundException(
+        batch.getInventoryId(),
+        batch.getWarehouseId(),
+      );
     }
 
     inventory.setTotalQuantity(

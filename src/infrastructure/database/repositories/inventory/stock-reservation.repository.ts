@@ -1,4 +1,5 @@
 import StockReservation from 'src/domain/inventory/stock-reservation';
+import StockReservationEntity from '../../entities/stock-reservation.entity';
 import ReservationStatus from 'src/domain/inventory/reservation-status';
 
 abstract class StockReservationRepository {
@@ -14,6 +15,7 @@ abstract class StockReservationRepository {
   abstract findByStatus(status: ReservationStatus): Promise<StockReservation[]>;
   abstract commit(reservation: StockReservation): Promise<StockReservation>;
   abstract delete(id: number): Promise<void>;
+  abstract toDomain(entity: StockReservationEntity): StockReservation;
 }
 
 export default StockReservationRepository;

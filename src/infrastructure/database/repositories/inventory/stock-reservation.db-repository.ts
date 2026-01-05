@@ -65,7 +65,7 @@ class StockReservationDBRepository extends StockReservationRepository {
     const now = new Date();
     const entities = await this.reservationRepository.find({
       where: {
-        status: ReservationStatus.ACTIVE,
+        status: ReservationStatus.EXPIRED,
         expiresAt: LessThan(now),
       },
       order: { createdAt: 'DESC' },
@@ -93,7 +93,7 @@ class StockReservationDBRepository extends StockReservationRepository {
     await this.reservationRepository.delete(id);
   }
 
-  private toDomain(entity: StockReservationEntity): StockReservation {
+  toDomain(entity: StockReservationEntity): StockReservation {
     return new StockReservation(
       entity.id,
       entity.variantId,

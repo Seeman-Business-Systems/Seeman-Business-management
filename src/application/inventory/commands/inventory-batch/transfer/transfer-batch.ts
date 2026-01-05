@@ -7,6 +7,13 @@ import InventoryMovementRepository from 'src/infrastructure/database/repositorie
 import InventoryMovement from 'src/domain/inventory/inventory-movement';
 import InventoryMovementType from 'src/domain/inventory/inventory-movement-type';
 import Inventory from 'src/domain/inventory/inventory';
+import {
+  BatchNotFoundException,
+  BatchCannotBeTransferredException,
+  InsufficientStockException,
+  SameWarehouseTransferException,
+  InventoryNotFoundException,
+} from 'src/domain/inventory/exceptions';
 
 @CommandHandler(TransferBatchCommand)
 class TransferBatch implements ICommandHandler<TransferBatchCommand> {
@@ -20,21 +27,24 @@ class TransferBatch implements ICommandHandler<TransferBatchCommand> {
     const sourceBatch = await this.inventoryBatches.findById(command.batchId);
 
     if (!sourceBatch) {
-      throw new Error(`Batch with id ${command.batchId} not found`);
+      throw new BatchNotFoundException(command.batchId);
     }
 
     if (!sourceBatch.canTransfer()) {
-      throw new Error(`Batch cannot be transferred (must be ARRIVED and have available quantity)`);
+      throw new BatchCannotBeTransferredException(
+        `Batch must be ARRIVED and have available quantity`,
+      );
     }
 
     if (sourceBatch.getCurrentQuantity() < command.quantity) {
-      throw new Error(
-        `Insufficient quantity in batch. Available: ${sourceBatch.getCurrentQuantity()}, Requested: ${command.quantity}`,
+      throw new InsufficientStockException(
+        sourceBatch.getCurrentQuantity(),
+        command.quantity,
       );
     }
 
     if (sourceBatch.getWarehouseId() === command.destinationWarehouseId) {
-      throw new Error(`Source and destination warehouses cannot be the same`);
+      throw new SameWarehouseTransferException();
     }
 
     sourceBatch.setCurrentQuantity(
@@ -46,8 +56,9 @@ class TransferBatch implements ICommandHandler<TransferBatchCommand> {
       sourceBatch.getInventoryId(),
     );
     if (!sourceInventory) {
-      throw new Error(
-        `Inventory with id ${sourceBatch.getInventoryId()} not found`,
+      throw new InventoryNotFoundException(
+        sourceBatch.getInventoryId(),
+        sourceBatch.getWarehouseId(),
       );
     }
 

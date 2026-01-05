@@ -7,6 +7,11 @@ import InventoryMovementRepository from 'src/infrastructure/database/repositorie
 import InventoryBatchStatus from 'src/domain/inventory/inventory-batch-status';
 import InventoryMovement from 'src/domain/inventory/inventory-movement';
 import InventoryMovementType from 'src/domain/inventory/inventory-movement-type';
+import {
+  BatchNotFoundException,
+  BatchCannotBeReceivedException,
+  InventoryNotFoundException,
+} from 'src/domain/inventory/exceptions';
 
 @CommandHandler(ReceiveBatchCommand)
 class ReceiveBatch implements ICommandHandler<ReceiveBatchCommand> {
@@ -20,15 +25,15 @@ class ReceiveBatch implements ICommandHandler<ReceiveBatchCommand> {
     const batch = await this.inventoryBatches.findById(command.batchId);
 
     if (!batch) {
-      throw new Error(`Batch with id ${command.batchId} not found`);
+      throw new BatchNotFoundException(command.batchId);
     }
 
     if (
       batch.getStatus() !== InventoryBatchStatus.ORDERED &&
       batch.getStatus() !== InventoryBatchStatus.ON_THE_WAY
     ) {
-      throw new Error(
-        `Batch must be in ORDERED or ON_THE_WAY status to be received`,
+      throw new BatchCannotBeReceivedException(
+        `Batch must be in ORDERED or ON_THE_WAY status to be received (current status: ${batch.getStatus()})`,
       );
     }
 
@@ -38,7 +43,7 @@ class ReceiveBatch implements ICommandHandler<ReceiveBatchCommand> {
 
     const inventory = await this.inventories.findById(batch.getInventoryId());
     if (!inventory) {
-      throw new Error(`Inventory with id ${batch.getInventoryId()} not found`);
+      throw new InventoryNotFoundException(batch.getInventoryId(), batch.getWarehouseId());
     }
 
     inventory.setTotalQuantity(
