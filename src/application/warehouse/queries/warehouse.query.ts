@@ -36,7 +36,7 @@ class WarehouseQuery {
     }
 
     if (filters.name) {
-      query.andWhere('warehouse.name ILIKE :name', {
+      query.andWhere('warehouse.name LIKE :name', {
         name: `%${filters.name}%`,
       });
     }
