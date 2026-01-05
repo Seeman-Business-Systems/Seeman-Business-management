@@ -13,7 +13,7 @@ class CreateProductVariant implements ICommandHandler<CreateProductVariantComman
       command.productId,
       command.sku,
       command.variantName,
-      command.price,
+      command.sellingPrice,
       command.specifications,
       command.createdBy,
       new Date(),

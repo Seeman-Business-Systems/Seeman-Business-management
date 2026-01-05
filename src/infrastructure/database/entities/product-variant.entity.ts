@@ -25,8 +25,8 @@ class ProductVariantEntity {
   @Column({ type: 'varchar', length: 255 })
   variantName: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  price: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2, name: 'selling_price' })
+  sellingPrice: number;
 
   @Column({ type: 'jsonb', nullable: true })
   specifications: Record<string, any> | null;

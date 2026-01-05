@@ -11,6 +11,7 @@ import { BranchModule } from './modules/branch/branch.module';
 import { RoleModule } from './modules/role/role.module';
 import { WarehouseModule } from './modules/warehouse/warehouse.module';
 import { ProductModule } from './modules/product/product.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
 import DatabaseSeedService from './infrastructure/database/seeds/database-seed.service';
 import AuthService from './modules/auth/auth.service';
 import { RefreshTokenModule } from './modules/tokens/refresh-token.module';
@@ -40,6 +41,7 @@ import { RefreshTokenModule } from './modules/tokens/refresh-token.module';
     RoleModule,
     WarehouseModule,
     ProductModule,
+    InventoryModule,
     RefreshTokenModule,
   ],
   controllers: [AppController],

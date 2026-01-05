@@ -75,6 +75,6 @@ export class StaffSeed {
       await this.staff.commit(staffData as Staff);
     }
 
-    console.log('Default staff seeded successfully');
+    console.log('✅ Default staff seeded successfully');
   }
 }

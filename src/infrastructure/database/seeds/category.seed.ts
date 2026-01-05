@@ -183,6 +183,6 @@ export class CategorySeed {
       await this.categories.commit(category);
     }
 
-    console.log('Default categories seeded successfully');
+    console.log('✅ Default categories seeded successfully');
   }
 }

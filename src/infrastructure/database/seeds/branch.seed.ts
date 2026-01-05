@@ -102,6 +102,6 @@ export class BranchSeed {
       await this.branches.commit(branch);
     }
 
-    console.log('Default branches seeded successfully');
+    console.log('✅ Default branches seeded successfully');
   }
 }

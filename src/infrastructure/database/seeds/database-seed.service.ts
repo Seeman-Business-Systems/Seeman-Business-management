@@ -7,6 +7,8 @@ import { BrandSeed } from './brand.seed';
 import { CategorySeed } from './category.seed';
 import { ProductSeed } from './product.seed';
 import { ProductVariantSeed } from './product-variant.seed';
+import { InventorySeed } from './inventory.seed';
+import { StockReservationSeed } from './stock-reservation.seed';
 
 @Injectable()
 class DatabaseSeedService implements OnModuleInit {
@@ -19,6 +21,8 @@ class DatabaseSeedService implements OnModuleInit {
     private readonly categorySeed: CategorySeed,
     private readonly productSeed: ProductSeed,
     private readonly productVariantSeed: ProductVariantSeed,
+    private readonly inventorySeed: InventorySeed,
+    private readonly stockReservationSeed: StockReservationSeed,
   ) {}
 
   async onModuleInit() {
@@ -36,6 +40,8 @@ class DatabaseSeedService implements OnModuleInit {
       await this.categorySeed.seed();
       await this.productSeed.seed();
       await this.productVariantSeed.seed();
+      await this.inventorySeed.seed();
+      await this.stockReservationSeed.seed();
       console.log('Database seeding completed successfully');
     } catch (error) {
       console.error('Error seeding database:', error);

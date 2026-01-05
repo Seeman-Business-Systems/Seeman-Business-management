@@ -128,6 +128,6 @@ export class WarehouseSeed {
       await this.warehouses.commit(warehouse);
     }
 
-    console.log('Default warehouses seeded successfully');
+    console.log('✅ Default warehouses seeded successfully');
   }
 }

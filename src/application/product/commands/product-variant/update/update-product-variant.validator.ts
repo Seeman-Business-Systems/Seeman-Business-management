@@ -13,8 +13,8 @@ class UpdateProductVariantValidator {
 
   @IsOptional()
   @IsNumber()
-  @Min(0, { message: 'Price must be a positive number' })
-  price?: number;
+  @Min(0, { message: 'Selling price must be a positive number' })
+  sellingPrice?: number;
 
   @IsOptional()
   @IsObject()

@@ -105,7 +105,7 @@ class ProductController {
       productId,
       dto.sku,
       dto.variantName,
-      dto.price,
+      dto.sellingPrice,
       dto.specifications ?? null,
       actor?.getId() ?? ActorType.SYSTEM_ACTOR,
     );
@@ -130,7 +130,7 @@ class ProductController {
       variantId,
       dto.sku,
       dto.variantName,
-      dto.price,
+      dto.sellingPrice,
       dto.specifications,
     );
 

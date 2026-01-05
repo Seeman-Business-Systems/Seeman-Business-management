@@ -350,6 +350,6 @@ export class ProductSeed {
       await this.products.commit(product);
     }
 
-    console.log('Default products seeded successfully');
+    console.log('✅ Default products seeded successfully');
   }
 }

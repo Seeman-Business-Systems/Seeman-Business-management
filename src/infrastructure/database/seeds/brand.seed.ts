@@ -180,6 +180,6 @@ export class BrandSeed {
       await this.brands.commit(brand);
     }
 
-    console.log('Default brands seeded successfully');
+    console.log('✅ Default brands seeded successfully');
   }
 }
