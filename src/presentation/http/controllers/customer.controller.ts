@@ -18,7 +18,6 @@ import CreateCustomerValidator from 'src/application/customer/commands/create/cr
 import UpdateCustomerCommand from 'src/application/customer/commands/update/update-customer.command';
 import UpdateCustomerValidator from 'src/application/customer/commands/update/update-customer.validator';
 import DeleteCustomerCommand from 'src/application/customer/commands/delete/delete-customer.command';
-import { ActorType } from 'src/domain/common/actor-type';
 import Customer from 'src/domain/customer/customer';
 import Staff from 'src/domain/staff/staff';
 import CustomerRepository from 'src/infrastructure/database/repositories/customer/customer.repository';

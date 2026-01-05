@@ -9,6 +9,7 @@ import { ProductSeed } from './product.seed';
 import { ProductVariantSeed } from './product-variant.seed';
 import { InventorySeed } from './inventory.seed';
 import { StockReservationSeed } from './stock-reservation.seed';
+import { CustomerSeed } from './customer.seed';
 
 @Injectable()
 class DatabaseSeedService implements OnModuleInit {
@@ -23,6 +24,7 @@ class DatabaseSeedService implements OnModuleInit {
     private readonly productVariantSeed: ProductVariantSeed,
     private readonly inventorySeed: InventorySeed,
     private readonly stockReservationSeed: StockReservationSeed,
+    private readonly customerSeed: CustomerSeed,
   ) {}
 
   async onModuleInit() {
@@ -35,6 +37,7 @@ class DatabaseSeedService implements OnModuleInit {
       await this.roleSeed.seed();
       await this.branchSeed.seed();
       await this.staffSeed.seed();
+      await this.customerSeed.seed();
       await this.warehouseSeed.seed();
       await this.brandSeed.seed();
       await this.categorySeed.seed();

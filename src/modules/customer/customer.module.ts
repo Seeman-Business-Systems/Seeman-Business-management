@@ -10,6 +10,7 @@ import CustomerDBRepository from "src/infrastructure/database/repositories/custo
 import CustomerRepository from "src/infrastructure/database/repositories/customer/customer.repository";
 import CustomerController from "src/presentation/http/controllers/customer.controller";
 import CustomerSerialiser from "src/presentation/serialisers/customer.serialiser";
+import { CustomerSeed } from "src/infrastructure/database/seeds/customer.seed";
 import { StaffModule } from "../staff/staff.module";
 import { StaffSerialiser } from "src/presentation/serialisers/staff.serialiser";
 
@@ -25,7 +26,7 @@ import { StaffSerialiser } from "src/presentation/serialisers/staff.serialiser";
             provide: CustomerRepository,
             useClass: CustomerDBRepository,
         },
-        // CustomerSeed,
+        CustomerSeed,
         CreateCustomerHandler,
         UpdateCustomerHandler,
         DeleteCustomerHandler,
@@ -35,7 +36,7 @@ import { StaffSerialiser } from "src/presentation/serialisers/staff.serialiser";
     ],
     exports: [
         CustomerRepository,
-        // CustomerSeed
+        CustomerSeed,
     ]
 })
 
