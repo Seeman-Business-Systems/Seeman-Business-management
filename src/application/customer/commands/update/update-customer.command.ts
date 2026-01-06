@@ -10,6 +10,9 @@ class UpdateCustomerCommand extends Command<Customer> {
     public readonly email: string | null,
     public readonly companyName: string | null,
     public readonly altPhoneNumber: string | null,
+    public readonly creditLimit: number | null,
+    public readonly outstandingBalance: number | null,
+    public readonly actorId: number,
   ) {
     super();
   }

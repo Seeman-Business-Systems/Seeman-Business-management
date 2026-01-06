@@ -7,6 +7,8 @@ class Customer {
     public phoneNumber: string,
     public companyName: string | null,
     public altPhoneNumber: string | null,
+    public creditLimit: number,
+    public outstandingBalance: number,
     public createdBy: number,
     public createdAt: Date,
     public updatedAt: Date,
@@ -91,6 +93,26 @@ class Customer {
 
   setCreatedBy(createdBy: number): void {
     this.createdBy = createdBy;
+  }
+
+  getCreditLimit(): number {
+    return this.creditLimit;
+  }
+
+  setCreditLimit(creditLimit: number): void {
+    this.creditLimit = creditLimit;
+  }
+
+  getOutstandingBalance(): number {
+    return this.outstandingBalance;
+  }
+
+  setOutstandingBalance(outstandingBalance: number): void {
+    this.outstandingBalance = outstandingBalance;
+  }
+
+  getAvailableCredit(): number {
+    return this.creditLimit - this.outstandingBalance;
   }
 }
 

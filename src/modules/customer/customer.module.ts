@@ -4,6 +4,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import CreateCustomerHandler from 'src/application/customer/commands/create/create-customer';
 import UpdateCustomerHandler from "src/application/customer/commands/update/update-customer";
 import DeleteCustomerHandler from "src/application/customer/commands/delete/delete-customer";
+import SetCreditLimitHandler from "src/application/customer/commands/set-credit-limit/set-credit-limit";
 import CustomerQuery from "src/application/customer/queries/customer.query";
 import CustomerEntity from "src/infrastructure/database/entities/customer.entity";
 import CustomerDBRepository from "src/infrastructure/database/repositories/customer/customer.db-repository";
@@ -30,6 +31,7 @@ import { StaffSerialiser } from "src/presentation/serialisers/staff.serialiser";
         CreateCustomerHandler,
         UpdateCustomerHandler,
         DeleteCustomerHandler,
+        SetCreditLimitHandler,
         CustomerQuery,
         CustomerSerialiser,
         StaffSerialiser,

@@ -16,6 +16,8 @@ class CreateCustomer implements ICommandHandler<CreateCustomerCommand> {
       command.phoneNumber,
       command.companyName,
       command.altPhoneNumber,
+      0, // creditLimit - default to 0, must be set by CEO
+      0, // outstandingBalance - starts at 0
       command.createdBy,
       new Date(),
       new Date(),
