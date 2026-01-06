@@ -1,21 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan } from 'typeorm';
-import StockReservation from 'src/domain/inventory/stock-reservation';
-import StockReservationEntity from 'src/infrastructure/database/entities/stock-reservation.entity';
-import StockReservationRepository from './stock-reservation.repository';
+import InventoryReservation from 'src/domain/inventory/inventory-reservation';
+import InventoryReservationEntity from 'src/infrastructure/database/entities/inventory-reservation.entity';
 import ReservationStatus from 'src/domain/inventory/reservation-status';
+import InventoryReservationRepository from './inventory-reservation.repository';
 
 @Injectable()
-class StockReservationDBRepository extends StockReservationRepository {
+class InventoryReservationDBRepository extends InventoryReservationRepository {
   constructor(
-    @InjectRepository(StockReservationEntity)
-    private readonly reservationRepository: Repository<StockReservationEntity>,
+    @InjectRepository(InventoryReservationEntity)
+    private readonly reservationRepository: Repository<InventoryReservationEntity>,
   ) {
     super();
   }
 
-  async findById(id: number): Promise<StockReservation | null> {
+  async findById(id: number): Promise<InventoryReservation | null> {
     const entity = await this.reservationRepository.findOne({
       where: { id },
     });
@@ -23,7 +23,7 @@ class StockReservationDBRepository extends StockReservationRepository {
     return entity ? this.toDomain(entity) : null;
   }
 
-  async findByOrderId(orderId: number): Promise<StockReservation[]> {
+  async findByOrderId(orderId: number): Promise<InventoryReservation[]> {
     const entities = await this.reservationRepository.find({
       where: { orderId },
     });
@@ -31,7 +31,7 @@ class StockReservationDBRepository extends StockReservationRepository {
     return entities.map((entity) => this.toDomain(entity));
   }
 
-  async findByCustomerId(customerId: number): Promise<StockReservation[]> {
+  async findByCustomerId(customerId: number): Promise<InventoryReservation[]> {
     const entities = await this.reservationRepository.find({
       where: { customerId },
       order: { createdAt: 'DESC' },
@@ -43,7 +43,7 @@ class StockReservationDBRepository extends StockReservationRepository {
   async findByVariantAndWarehouse(
     variantId: number,
     warehouseId: number,
-  ): Promise<StockReservation[]> {
+  ): Promise<InventoryReservation[]> {
     const entities = await this.reservationRepository.find({
       where: { variantId, warehouseId },
       order: { createdAt: 'DESC' },
@@ -52,7 +52,7 @@ class StockReservationDBRepository extends StockReservationRepository {
     return entities.map((entity) => this.toDomain(entity));
   }
 
-  async findActiveReservations(): Promise<StockReservation[]> {
+  async findActiveReservations(): Promise<InventoryReservation[]> {
     const entities = await this.reservationRepository.find({
       where: { status: ReservationStatus.ACTIVE },
       order: { createdAt: 'DESC' },
@@ -61,7 +61,7 @@ class StockReservationDBRepository extends StockReservationRepository {
     return entities.map((entity) => this.toDomain(entity));
   }
 
-  async findExpiredReservations(): Promise<StockReservation[]> {
+  async findExpiredReservations(): Promise<InventoryReservation[]> {
     const now = new Date();
     const entities = await this.reservationRepository.find({
       where: {
@@ -74,7 +74,9 @@ class StockReservationDBRepository extends StockReservationRepository {
     return entities.map((entity) => this.toDomain(entity));
   }
 
-  async findByStatus(status: ReservationStatus): Promise<StockReservation[]> {
+  async findByStatus(
+    status: ReservationStatus,
+  ): Promise<InventoryReservation[]> {
     const entities = await this.reservationRepository.find({
       where: { status },
       order: { createdAt: 'DESC' },
@@ -83,7 +85,9 @@ class StockReservationDBRepository extends StockReservationRepository {
     return entities.map((entity) => this.toDomain(entity));
   }
 
-  async commit(reservation: StockReservation): Promise<StockReservation> {
+  async commit(
+    reservation: InventoryReservation,
+  ): Promise<InventoryReservation> {
     const entity = this.toEntity(reservation);
     const saved = await this.reservationRepository.save(entity);
     return this.toDomain(saved);
@@ -93,8 +97,8 @@ class StockReservationDBRepository extends StockReservationRepository {
     await this.reservationRepository.delete(id);
   }
 
-  toDomain(entity: StockReservationEntity): StockReservation {
-    return new StockReservation(
+  toDomain(entity: InventoryReservationEntity): InventoryReservation {
+    return new InventoryReservation(
       entity.id,
       entity.variantId,
       entity.warehouseId,
@@ -111,8 +115,10 @@ class StockReservationDBRepository extends StockReservationRepository {
     );
   }
 
-  private toEntity(reservation: StockReservation): StockReservationEntity {
-    const entity = new StockReservationEntity();
+  private toEntity(
+    reservation: InventoryReservation,
+  ): InventoryReservationEntity {
+    const entity = new InventoryReservationEntity();
     if (reservation.getId()) {
       entity.id = reservation.getId()!;
     }
@@ -132,4 +138,4 @@ class StockReservationDBRepository extends StockReservationRepository {
   }
 }
 
-export default StockReservationDBRepository;
+export default InventoryReservationDBRepository;

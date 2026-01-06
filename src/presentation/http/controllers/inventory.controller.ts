@@ -31,7 +31,7 @@ class InventoryController {
   async findAll(
     @Query('variantId') variantId?: string,
     @Query('warehouseId') warehouseId?: string,
-    @Query('lowStock') lowStock?: string,
+    @Query('lowInventory') lowInventory?: string,
     @Query('includeVariant') includeVariant?: string,
     @Query('includeWarehouse') includeWarehouse?: string,
     @Query('includeBatches') includeBatches?: string,
@@ -39,7 +39,7 @@ class InventoryController {
     const inventories = await this.inventoryQuery.findBy({
       variantId: variantId ? parseInt(variantId) : undefined,
       warehouseId: warehouseId ? parseInt(warehouseId) : undefined,
-      lowStock: lowStock === 'true',
+      lowInventory: lowInventory === 'true',
       includeVariant: includeVariant === 'true',
       includeWarehouse: includeWarehouse === 'true',
       includeBatches: includeBatches === 'true',
@@ -48,10 +48,10 @@ class InventoryController {
     return await this.inventorySerialiser.serialiseMany(inventories);
   }
 
-  @Get('low-stock')
+  @Get('low-inventory')
   @HttpCode(HttpStatus.OK)
-  async getLowStock(@Query('warehouseId') warehouseId?: string) {
-    const inventories = await this.inventoryQuery.getLowStockItems(
+  async getLowInventory(@Query('warehouseId') warehouseId?: string) {
+    const inventories = await this.inventoryQuery.getLowInventoryItems(
       warehouseId ? parseInt(warehouseId) : undefined,
     );
 
@@ -60,8 +60,10 @@ class InventoryController {
 
   @Get('variants/:variantId/summary')
   @HttpCode(HttpStatus.OK)
-  async getStockSummary(@Param('variantId', ParseIntPipe) variantId: number) {
-    const summary = await this.inventoryQuery.getStockSummary(variantId);
+  async getInventorySummary(
+    @Param('variantId', ParseIntPipe) variantId: number,
+  ) {
+    const summary = await this.inventoryQuery.getInventorySummary(variantId);
 
     return {
       totalQuantity: summary.totalQuantity,

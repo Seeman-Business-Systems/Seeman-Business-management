@@ -379,7 +379,7 @@ export class InventorySeed {
           },
         ],
       },
-      // Low stock scenario for testing alerts
+      // Low inventory scenario for testing alerts
       {
         variantId: 10, // Michelin Primacy 4 225/45 R17
         warehouseId: 4, // Lagos Island Retail Store
@@ -434,7 +434,7 @@ export class InventorySeed {
           0, // Will be updated as batches are added
           invData.minimumQuantity,
           invData.maximumQuantity,
-          0, // No reserved stock initially
+          0, // No reserved inventory initially
           new Date(),
           new Date(),
         );
@@ -473,9 +473,9 @@ export class InventorySeed {
             InventoryMovementType.IN,
             batchData.quantityReceived,
             null, // No order ID
-            null, // fromWarehouseId (no transfer, initial stock)
+            null, // fromWarehouseId (no transfer, initial inventory)
             invData.warehouseId, // toWarehouseId (received at this warehouse)
-            `Initial stock received - Batch ${batchData.batchNumber}`,
+            `Initial inventory received - Batch ${batchData.batchNumber}`,
             ActorType.SYSTEM_ACTOR,
             batchData.receivedDate!,
           );
@@ -495,7 +495,7 @@ export class InventorySeed {
 
     console.log(`✅ Inventory seeding completed:`);
     console.log(
-      `   - Total stock value: ₦${this.calculateTotalValue(inventoryData)}`,
+      `   - Total inventory value: ₦${this.calculateTotalValue(inventoryData)}`,
     );
   }
 

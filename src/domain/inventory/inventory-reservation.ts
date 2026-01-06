@@ -1,6 +1,6 @@
 import ReservationStatus from './reservation-status';
 
-class StockReservation {
+class InventoryReservation {
   constructor(
     private id: number | undefined,
     private variantId: number,
@@ -105,7 +105,9 @@ class StockReservation {
     if (!this.expiresAt) {
       return false;
     }
-    return this.expiresAt < new Date() && this.status === ReservationStatus.ACTIVE;
+    return (
+      this.expiresAt < new Date() && this.status === ReservationStatus.ACTIVE
+    );
   }
 
   cancel(): void {
@@ -124,4 +126,4 @@ class StockReservation {
   }
 }
 
-export default StockReservation;
+export default InventoryReservation;

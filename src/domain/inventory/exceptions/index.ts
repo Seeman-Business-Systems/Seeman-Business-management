@@ -1,6 +1,6 @@
 // Inventory exceptions
 export { InventoryNotFoundException } from './inventory-not-found.exception';
-export { InsufficientStockException } from './insufficient-stock.exception';
+export { InsufficientInventoryException } from './insufficient-inventory.exception';
 export { InvalidReorderLevelsException } from './invalid-reorder-levels.exception';
 
 // Batch exceptions

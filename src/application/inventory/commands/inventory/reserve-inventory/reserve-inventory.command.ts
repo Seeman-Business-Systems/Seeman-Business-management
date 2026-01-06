@@ -1,7 +1,8 @@
 import { Command } from '@nestjs/cqrs';
-import StockReservation from 'src/domain/inventory/stock-reservation';
+import InventoryReservation from 'src/domain/inventory/inventory-reservation';
 
-class ReserveStockCommand extends Command<StockReservation> {
+
+class ReserveInventoryCommand extends Command<InventoryReservation> {
   constructor(
     public readonly variantId: number,
     public readonly warehouseId: number,
@@ -16,4 +17,4 @@ class ReserveStockCommand extends Command<StockReservation> {
   }
 }
 
-export default ReserveStockCommand;
+export default ReserveInventoryCommand;

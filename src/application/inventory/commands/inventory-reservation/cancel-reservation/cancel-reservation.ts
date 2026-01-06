@@ -1,21 +1,23 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import FulfillReservationCommand from './fulfill-reservation.command';
-import StockReservation from 'src/domain/inventory/stock-reservation';
+import CancelReservationCommand from './cancel-reservation.command';
+import InventoryReservation from 'src/domain/inventory/inventory-reservation';
 import InventoryRepository from 'src/infrastructure/database/repositories/inventory/inventory.repository';
-import StockReservationRepository from 'src/infrastructure/database/repositories/inventory/stock-reservation.repository';
+import InventoryReservationRepository from 'src/infrastructure/database/repositories/inventory/inventory-reservation.repository';
 import {
   ReservationNotFoundException,
   ReservationNotActiveException,
 } from 'src/domain/inventory/exceptions';
 
-@CommandHandler(FulfillReservationCommand)
-class FulfillReservation implements ICommandHandler<FulfillReservationCommand> {
+@CommandHandler(CancelReservationCommand)
+class CancelReservation implements ICommandHandler<CancelReservationCommand> {
   constructor(
     private inventories: InventoryRepository,
-    private reservations: StockReservationRepository,
+    private reservations: InventoryReservationRepository,
   ) {}
 
-  async execute(command: FulfillReservationCommand): Promise<StockReservation> {
+  async execute(
+    command: CancelReservationCommand,
+  ): Promise<InventoryReservation> {
     const reservation = await this.reservations.findById(command.reservationId);
 
     if (!reservation) {
@@ -29,23 +31,19 @@ class FulfillReservation implements ICommandHandler<FulfillReservationCommand> {
       );
     }
 
-    // Mark reservation as fulfilled
-    reservation.fulfill();
+    // Cancel the reservation
+    reservation.cancel();
     const updatedReservation = await this.reservations.commit(reservation);
 
-    // Update inventory reserved quantity (reduce it since the stock is now sold/used)
+    // Update inventory reserved quantity
     const inventory = await this.inventories.findByVariantAndWarehouse(
       reservation.getVariantId(),
       reservation.getWarehouseId(),
     );
 
     if (inventory) {
-      // Reduce both reserved and total quantity
       inventory.setReservedQuantity(
         inventory.getReservedQuantity() - reservation.getQuantity(),
-      );
-      inventory.setTotalQuantity(
-        inventory.getTotalQuantity() - reservation.getQuantity(),
       );
       inventory.setUpdatedAt(new Date());
       await this.inventories.commit(inventory);
@@ -55,4 +53,4 @@ class FulfillReservation implements ICommandHandler<FulfillReservationCommand> {
   }
 }
 
-export default FulfillReservation;
+export default CancelReservation;

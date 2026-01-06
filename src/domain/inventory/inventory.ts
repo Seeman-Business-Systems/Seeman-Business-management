@@ -83,7 +83,7 @@ class Inventory {
     return this.totalQuantity - this.reservedQuantity;
   }
 
-  isLowStock(): boolean {
+  isLowInventory(): boolean {
     return this.totalQuantity < this.minimumQuantity;
   }
 }

@@ -11,7 +11,7 @@ abstract class InventoryRepository {
   ): Promise<Inventory | null>;
   abstract findByWarehouse(warehouseId: number): Promise<Inventory[]>;
   abstract findByVariant(variantId: number): Promise<Inventory[]>;
-  abstract findLowStock(warehouseId?: number): Promise<Inventory[]>;
+  abstract findLowInventory(warehouseId?: number): Promise<Inventory[]>;
   abstract findAll(): Promise<Inventory[]>;
   abstract commit(inventory: Inventory): Promise<Inventory>;
   abstract toDomain(entity: InventoryEntity): Inventory;

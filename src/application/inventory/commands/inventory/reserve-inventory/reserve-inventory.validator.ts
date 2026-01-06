@@ -1,6 +1,13 @@
-import { IsNumber, IsNotEmpty, Min, IsOptional, IsString, IsDateString } from 'class-validator';
+import {
+  IsNumber,
+  IsNotEmpty,
+  Min,
+  IsOptional,
+  IsString,
+  IsDateString,
+} from 'class-validator';
 
-class ReserveStockValidator {
+class ReserveInventoryValidator {
   @IsNumber()
   @IsNotEmpty({ message: 'Variant ID is required' })
   variantId: number;
@@ -35,4 +42,4 @@ class ReserveStockValidator {
   notes?: string | null;
 }
 
-export default ReserveStockValidator;
+export default ReserveInventoryValidator;

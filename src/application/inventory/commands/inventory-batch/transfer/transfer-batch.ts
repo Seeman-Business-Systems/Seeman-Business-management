@@ -10,7 +10,7 @@ import Inventory from 'src/domain/inventory/inventory';
 import {
   BatchNotFoundException,
   BatchCannotBeTransferredException,
-  InsufficientStockException,
+  InsufficientInventoryException,
   SameWarehouseTransferException,
   InventoryNotFoundException,
 } from 'src/domain/inventory/exceptions';
@@ -37,7 +37,7 @@ class TransferBatch implements ICommandHandler<TransferBatchCommand> {
     }
 
     if (sourceBatch.getCurrentQuantity() < command.quantity) {
-      throw new InsufficientStockException(
+      throw new InsufficientInventoryException(
         sourceBatch.getCurrentQuantity(),
         command.quantity,
       );
