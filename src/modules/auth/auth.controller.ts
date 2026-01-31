@@ -13,6 +13,7 @@ import RegisterStaffValidator from 'src/application/staff/commands/auth/register
 import AuthService from './auth.service';
 import JwtAuthGuard from './guards/jwt-auth.guard';
 import Actor from './decorators/actor.decorator';
+import { Public } from './decorators/public.decorator';
 import PasswordResetValidator from 'src/application/staff/commands/auth/password-reset.validator';
 
 @Controller('auth')
@@ -38,18 +39,21 @@ class AuthController {
     return await this.authService.register(staffData);
   }
 
+  @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() dto: { identifier: string; password: string }) {
     return await this.authService.login(dto.identifier, dto.password);
   }
 
+  @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(@Body('refreshToken') refreshToken: string) {
     return await this.authService.refresh(refreshToken);
   }
 
+  @Public()
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(@Body('refreshToken') refreshToken: string) {
