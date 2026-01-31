@@ -7,6 +7,8 @@ import AuthService from './auth.service';
 import { StaffModule } from '../staff/staff.module';
 import JwtStrategy from './strategies/jwt.strategy';
 import { RefreshTokenModule } from '../tokens/refresh-token.module';
+import { PasswordResetTokenModule } from '../tokens/password-reset-token.module';
+import MailersModule from 'src/mailers/mailers.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { RefreshTokenModule } from '../tokens/refresh-token.module';
     PassportModule,
     StaffModule,
     RefreshTokenModule,
+    PasswordResetTokenModule,
+    MailersModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

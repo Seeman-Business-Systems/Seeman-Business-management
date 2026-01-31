@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Use current hostname for API (works on localhost and when accessed via IP)
+const API_BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3000`;
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -24,8 +25,12 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If 401 and we haven't already retried
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Don't try to refresh for auth endpoints - let the error propagate
+    const isAuthEndpoint = originalRequest.url?.includes('/auth/login') ||
+                           originalRequest.url?.includes('/auth/refresh');
+
+    // If 401, not an auth endpoint, and we haven't already retried
+    if (error.response?.status === 401 && !isAuthEndpoint && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {

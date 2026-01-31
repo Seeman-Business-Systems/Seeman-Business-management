@@ -15,6 +15,8 @@ import JwtAuthGuard from './guards/jwt-auth.guard';
 import Actor from './decorators/actor.decorator';
 import { Public } from './decorators/public.decorator';
 import PasswordResetValidator from 'src/application/staff/commands/auth/password-reset.validator';
+import ForgotPasswordValidator from 'src/application/staff/commands/auth/forgot-password.validator';
+import ResetPasswordWithTokenValidator from 'src/application/staff/commands/auth/reset-password-with-token.validator';
 
 @Controller('auth')
 @UseGuards(JwtAuthGuard)
@@ -61,13 +63,29 @@ class AuthController {
     return { message: 'Logged out successfully' };
   }
 
-  @Post('reset-password/:id')
+  // @Post('reset-password/:id')
+  // @HttpCode(HttpStatus.OK)
+  // async resetPassword(
+  //   @Param('id', ParseIntPipe) id: number,
+  //   @Body() dto: PasswordResetValidator,
+  // ): Promise<Staff> {
+  //   return await this.authService.resetPassword(id, dto.newPassword);
+  // }
+
+  @Public()
+  @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
-  async resetPassword(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: PasswordResetValidator,
-  ): Promise<Staff> {
-    return await this.authService.resetPassword(id, dto.newPassword);
+  async forgotPassword(@Body() dto: ForgotPasswordValidator) {
+    await this.authService.forgotPassword(dto.email);
+    return { message: 'If the email exists, a password reset link has been sent' };
+  }
+
+  @Public()
+  @Post('reset-password-with-token')
+  @HttpCode(HttpStatus.OK)
+  async resetPasswordWithToken(@Body() dto: ResetPasswordWithTokenValidator) {
+    await this.authService.resetPasswordWithToken(dto.token, dto.newPassword);
+    return { message: 'Password has been reset successfully' };
   }
 
   /**
