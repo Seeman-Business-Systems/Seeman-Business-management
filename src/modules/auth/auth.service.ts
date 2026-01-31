@@ -5,18 +5,24 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import Staff from 'src/domain/staff/staff';
 import RefreshToken from 'src/domain/tokens/refresh-token';
+import PasswordResetToken from 'src/domain/tokens/password-reset-token';
 import StaffRepository from 'src/infrastructure/database/repositories/staff/staff.repository';
 import RefreshTokenRepository from 'src/infrastructure/database/repositories/token/refresh-token.repository';
+import PasswordResetTokenRepository from 'src/infrastructure/database/repositories/token/password-reset-token.repository';
+import PasswordResetMailer from 'src/mailers/auth/password-reset/password-reset.mailer';
 
 @Injectable()
 class AuthService {
   constructor(
     private staff: StaffRepository,
     private refreshTokens: RefreshTokenRepository,
+    private passwordResetTokens: PasswordResetTokenRepository,
+    private passwordResetMailer: PasswordResetMailer,
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {}
@@ -72,25 +78,17 @@ class AuthService {
     refreshToken: string;
     staff: Staff;
   } | void> {
-    console.log('Login attempt for identifier:', identifier, password);
     const staff =
       (await this.staff.findByPhoneNumber(identifier)) ||
       (await this.staff.findByEmail(identifier));
-
-    console.log('Found staff during login:', staff);
 
     if (!staff) {
       throw new UnauthorizedException('Staff not found');
     }
 
-    if (!this.passwordsMatch(password, staff.getPassword())) {
-      throw new UnauthorizedException('Invalid credentials');
+    if (!await this.passwordsMatch(password, staff.getPassword())) {
+      throw new UnauthorizedException('Invalid email/phone or password');
     }
-
-    //we do not need this for now because of multiple devices
-    // if (await this.isLoggedIn(staff.getId()!)) {
-    //   throw new UnauthorizedException('User already logged in');
-    // }
 
     const tokens = await this.generateTokens(staff);
 
@@ -159,22 +157,91 @@ class AuthService {
     await this.refreshTokens.revoke(staffRefreshToken);
   }
 
-  async resetPassword(staffId: number, newPassword: string): Promise<Staff> {
-    const staff = await this.staff.findById(staffId);
-    console.log('staff: ', staff);
+  // async resetPassword(staffId: number, newPassword: string): Promise<Staff> {
+  //   const staff = await this.staff.findById(staffId);
 
-    if (!staff) throw new NotFoundException('Staff not found');
+  //   if (!staff) throw new NotFoundException('Staff not found');
 
-    if (await this.passwordsMatch(newPassword, staff.getPassword())) {
-      throw new BadRequestException("Can't use same password as old");
+  //   if (await this.passwordsMatch(newPassword, staff.getPassword())) {
+  //     throw new BadRequestException("Can't use same password as old hsgas");
+  //   }
+
+  //   staff.setInitialPasswordChanged(true);
+  //   staff.setPassword(await this.hash(newPassword));
+
+  //   this.staff.commit(staff);
+
+  //   return staff;
+  // }
+
+  async forgotPassword(email: string): Promise<void> {
+    const staff = await this.staff.findByEmail(email);
+
+    if (!staff) {
+      // Don't reveal if email exists - always return success
+      return;
     }
 
+    // Invalidate any existing reset tokens for this user
+    await this.passwordResetTokens.invalidateAllForStaff(staff.getId()!);
+
+    // Generate secure random token
+    const token = crypto.randomBytes(32).toString('hex');
+
+    // Token expires in 30 minutes
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 30);
+
+    const resetToken = new PasswordResetToken(
+      undefined,
+      token,
+      staff.getId()!,
+      expiresAt,
+      new Date(),
+      undefined,
+    );
+
+    await this.passwordResetTokens.commit(resetToken);
+
+    // Send email with reset link
+    await this.passwordResetMailer.send(
+      email,
+      token,
+      staff.getFirstName(),
+    );
+  }
+
+  async resetPasswordWithToken(
+    token: string,
+    newPassword: string,
+  ): Promise<void> {
+    const resetToken = await this.passwordResetTokens.findByToken(token);
+
+    if (!resetToken) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    if (!resetToken.isValid()) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    const staff = await this.staff.findById(resetToken.getStaffId());
+
+    if (!staff) {
+      throw new NotFoundException('Staff not found');
+    }
+
+    if (await this.passwordsMatch(newPassword, staff.getPassword())) {
+      throw new BadRequestException("You can't use your previous password. Please try a different password.");
+    }
+
+    // Update password
     staff.setInitialPasswordChanged(true);
     staff.setPassword(await this.hash(newPassword));
+    await this.staff.commit(staff);
 
-    this.staff.commit(staff);
-
-    return staff;
+    // Mark token as used
+    await this.passwordResetTokens.markAsUsed(token);
   }
 
   private async genInitialPassword(): Promise<string> {
@@ -256,7 +323,7 @@ class AuthService {
     password: string,
     hashedPassword: string,
   ): Promise<boolean> {
-    return bcrypt.compare(password, hashedPassword);
+    return await bcrypt.compare(password, hashedPassword);
   }
 
   private async isLoggedIn(staffId: number): Promise<boolean> {

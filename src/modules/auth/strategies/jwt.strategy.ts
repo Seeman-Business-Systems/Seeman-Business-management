@@ -4,6 +4,14 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import StaffRepository from 'src/infrastructure/database/repositories/staff/staff.repository';
 
+interface JwtPayload {
+  sub: number;
+  phoneNumber: string;
+  email: string | null;
+  iat: number;
+  exp: number;
+}
+
 @Injectable()
 class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
@@ -20,8 +28,8 @@ class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any) {
-    console.log('JWT Payload:', payload);
+  async validate(payload: JwtPayload) {
+    console.log('Validating JWT for staff ID:', payload);
     const staff = await this.staff.findById(payload.sub);
 
     if (!staff) {

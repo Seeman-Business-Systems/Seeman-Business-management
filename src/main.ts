@@ -8,6 +8,12 @@ async function bootstrap() {
     logger: loggerConfig,
   });
 
+  // Enable CORS for frontend (origin: true allows all origins in development)
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -19,6 +25,6 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(process.env.PORT || 3000);
+  await app.listen(process.env.PORT || 3000, '0.0.0.0');
 }
 bootstrap();

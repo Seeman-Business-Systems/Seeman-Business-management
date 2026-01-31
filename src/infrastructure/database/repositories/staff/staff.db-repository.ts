@@ -15,6 +15,10 @@ class StaffDBRepository extends StaffRepository {
   }
 
   async findById(id: number): Promise<Staff | null> {
+    if (id === undefined || id === null) {
+      return null;
+    }
+
     const record = await this.repository.findOne({
       where: { id },
     });
@@ -63,7 +67,26 @@ class StaffDBRepository extends StaffRepository {
   }
 
   async commit(staff: Staff): Promise<Staff> {
-    const entity = Object.assign(new StaffEntity(), staff);
+    const entity = new StaffEntity();
+    if (staff.id !== undefined && staff.id !== null) {
+      entity.id = staff.id;
+    }
+    entity.firstName = staff.firstName;
+    entity.lastName = staff.lastName;
+    entity.phoneNumber = staff.phoneNumber;
+    entity.roleId = staff.roleId;
+    entity.branchId = staff.branchId;
+    entity.password = staff.password;
+    entity.createdBy = staff.createdBy;
+    entity.initialPasswordChanged = staff.initialPasswordChanged;
+    entity.middleName = staff.middleName;
+    entity.email = staff.email;
+    entity.joinedAt = staff.joinedAt;
+    if (staff.lastLoginAt) {
+      entity.lastLoginAt = staff.lastLoginAt;
+    }
+    entity.deletedAt = staff.deletedAt;
+
     const savedEntity = await this.repository.save(entity);
 
     return this.toDomain(savedEntity);

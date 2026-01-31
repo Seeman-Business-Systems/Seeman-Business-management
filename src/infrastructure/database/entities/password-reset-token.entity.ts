@@ -8,8 +8,8 @@ import {
 } from 'typeorm';
 import StaffEntity from './staff.entity';
 
-@Entity('refresh_tokens')
-class RefreshTokenEntity {
+@Entity('password_reset_tokens')
+class PasswordResetTokenEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -30,7 +30,7 @@ class RefreshTokenEntity {
   createdAt: Date;
 
   @Column({ nullable: true })
-  revokedAt?: Date;
+  usedAt?: Date;
 }
 
-export default RefreshTokenEntity;
+export default PasswordResetTokenEntity;
