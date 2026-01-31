@@ -1,7 +1,7 @@
 import { Command } from '@nestjs/cqrs';
-import StockReservation from 'src/domain/inventory/stock-reservation';
+import InventoryReservation from 'src/domain/inventory/inventory-reservation';
 
-class FulfillReservationCommand extends Command<StockReservation> {
+class FulfillReservationCommand extends Command<InventoryReservation> {
   constructor(public readonly reservationId: number) {
     super();
   }

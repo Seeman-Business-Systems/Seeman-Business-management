@@ -11,23 +11,23 @@ import {
   Query,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
-import StockReservationQuery from 'src/application/inventory/queries/stock-reservation.query';
-import StockReservationSerialiser from 'src/presentation/serialisers/stock-reservation.serialiser';
-import FulfillReservationCommand from 'src/application/inventory/commands/stock-reservation/fulfill-reservation/fulfill-reservation.command';
-import UpdateReservationCommand from 'src/application/inventory/commands/stock-reservation/update-reservation/update-reservation.command';
-import UpdateReservationValidator from 'src/application/inventory/commands/stock-reservation/update-reservation/update-reservation.validator';
-import ReserveStockCommand from 'src/application/inventory/commands/inventory/reserve-stock/reserve-stock.command';
-import ReserveStockValidator from 'src/application/inventory/commands/inventory/reserve-stock/reserve-stock.validator';
-import StockReservationRepository from 'src/infrastructure/database/repositories/inventory/stock-reservation.repository';
-import CancelReservationCommand from 'src/application/inventory/commands/stock-reservation/cancel-reservation/cancel-reservation.command';
+import ReserveInventoryCommand from 'src/application/inventory/commands/inventory/reserve-inventory/reserve-inventory.command';
+import ReserveInventoryValidator from 'src/application/inventory/commands/inventory/reserve-inventory/reserve-inventory.validator';
+import CancelReservationCommand from 'src/application/inventory/commands/inventory-reservation/cancel-reservation/cancel-reservation.command';
+import FulfillReservationCommand from 'src/application/inventory/commands/inventory-reservation/fulfill-reservation/fulfill-reservation.command';
+import UpdateReservationCommand from 'src/application/inventory/commands/inventory-reservation/update-reservation/update-reservation.command';
+import UpdateReservationValidator from 'src/application/inventory/commands/inventory-reservation/update-reservation/update-reservation.validator';
+import InventoryReservationQuery from 'src/application/inventory/queries/inventory-reservation.query';
+import InventoryReservationRepository from 'src/infrastructure/database/repositories/inventory/inventory-reservation.repository';
+import InventoryReservationSerialiser from 'src/presentation/serialisers/inventory-reservation.serialiser';
 
-@Controller('stock-reservations')
-class StockReservationController {
+@Controller('inventory-reservations')
+class InventoryReservationController {
   constructor(
     private readonly commandBus: CommandBus,
-    private readonly reservationQuery: StockReservationQuery,
-    private readonly reservationSerialiser: StockReservationSerialiser,
-    private readonly stockReservations: StockReservationRepository,
+    private readonly reservationQuery: InventoryReservationQuery,
+    private readonly reservationSerialiser: InventoryReservationSerialiser,
+    private readonly inventoryReservations: InventoryReservationRepository,
   ) {}
 
   @Get()
@@ -52,8 +52,10 @@ class StockReservationController {
       warehouseId: warehouseId ? parseInt(warehouseId) : undefined,
       status: status ? parseInt(status) : undefined,
       reservedBy: reservedBy ? parseInt(reservedBy) : undefined,
-      isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined,
-      isExpired: isExpired === 'true' ? true : isExpired === 'false' ? false : undefined,
+      isActive:
+        isActive === 'true' ? true : isActive === 'false' ? false : undefined,
+      isExpired:
+        isExpired === 'true' ? true : isExpired === 'false' ? false : undefined,
       includeVariant: includeVariant === 'true',
       includeWarehouse: includeWarehouse === 'true',
       includeReservedByStaff: includeReservedByStaff === 'true',
@@ -65,21 +67,23 @@ class StockReservationController {
   @Get('active')
   @HttpCode(HttpStatus.OK)
   async findActive() {
-    const reservations = await this.stockReservations.findActiveReservations();
+    const reservations =
+      await this.inventoryReservations.findActiveReservations();
     return this.reservationSerialiser.serialiseMany(reservations);
   }
 
   @Get('expired')
   @HttpCode(HttpStatus.OK)
   async findExpired() {
-    const reservations = await this.stockReservations.findExpiredReservations();
+    const reservations =
+      await this.inventoryReservations.findExpiredReservations();
     return this.reservationSerialiser.serialiseMany(reservations);
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   async findById(@Param('id', ParseIntPipe) id: number) {
-    const reservation = await this.stockReservations.findById(id);
+    const reservation = await this.inventoryReservations.findById(id);
 
     if (!reservation) {
       throw new Error(`Reservation with id ${id} not found`);
@@ -90,8 +94,8 @@ class StockReservationController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() dto: ReserveStockValidator) {
-    const command = new ReserveStockCommand(
+  async create(@Body() dto: ReserveInventoryValidator) {
+    const command = new ReserveInventoryCommand(
       dto.variantId,
       dto.warehouseId,
       dto.quantity,
@@ -141,4 +145,4 @@ class StockReservationController {
   }
 }
 
-export default StockReservationController;
+export default InventoryReservationController;

@@ -2,7 +2,7 @@ export interface InventoryFilters {
   ids?: number | number[];
   variantId?: number | number[];
   warehouseId?: number | number[];
-  lowStock?: boolean;
+  lowInventory?: boolean;
   includeVariant?: boolean;
   includeWarehouse?: boolean;
   includeBatches?: boolean;

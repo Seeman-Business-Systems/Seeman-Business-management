@@ -11,8 +11,8 @@ import ProductVariantEntity from './product-variant.entity';
 import WarehouseEntity from './warehouse.entity';
 import StaffEntity from './staff.entity';
 
-@Entity('stock_reservations')
-class StockReservationEntity {
+@Entity('inventory_reservations')
+class InventoryReservationEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -65,4 +65,4 @@ class StockReservationEntity {
   updatedAt: Date;
 }
 
-export default StockReservationEntity;
+export default InventoryReservationEntity;

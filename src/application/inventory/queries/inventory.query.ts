@@ -61,7 +61,7 @@ class InventoryQuery {
       }
     }
 
-    if (filters.lowStock) {
+    if (filters.lowInventory) {
       query.andWhere('inventory.totalQuantity < inventory.minimumQuantity');
     }
 
@@ -70,11 +70,11 @@ class InventoryQuery {
     return records.map((entity) => this.inventoryRepo.toDomain(entity));
   }
 
-  async getLowStockItems(warehouseId?: number): Promise<Inventory[]> {
-    return this.inventoryRepo.findLowStock(warehouseId);
+  async getLowInventoryItems(warehouseId?: number): Promise<Inventory[]> {
+    return this.inventoryRepo.findLowInventory(warehouseId);
   }
 
-  async getStockSummary(variantId: number): Promise<{
+  async getInventorySummary(variantId: number): Promise<{
     totalQuantity: number;
     totalReserved: number;
     totalAvailable: number;

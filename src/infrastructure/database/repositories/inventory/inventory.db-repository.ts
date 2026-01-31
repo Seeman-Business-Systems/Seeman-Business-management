@@ -64,7 +64,7 @@ class InventoryDBRepository extends InventoryRepository {
     return records.map((entity: InventoryEntity) => this.toDomain(entity));
   }
 
-  async findLowStock(warehouseId?: number): Promise<Inventory[]> {
+  async findLowInventory(warehouseId?: number): Promise<Inventory[]> {
     const queryBuilder = this.repository
       .createQueryBuilder('inventory')
       .leftJoinAndSelect('inventory.variant', 'variant')

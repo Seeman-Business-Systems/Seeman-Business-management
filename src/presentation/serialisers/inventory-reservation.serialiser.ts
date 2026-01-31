@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import StockReservation from 'src/domain/inventory/stock-reservation';
+import InventoryReservation from 'src/domain/inventory/inventory-reservation';
 import ProductVariantRepository from 'src/infrastructure/database/repositories/product/product-variant.repository';
 import WarehouseRepository from 'src/infrastructure/database/repositories/warehouse/warehouse.repository';
 import StaffRepository from 'src/infrastructure/database/repositories/staff/staff.repository';
@@ -8,7 +8,7 @@ import WarehouseSerialiser from './warehouse.serialiser';
 import { StaffSerialiser } from './staff.serialiser';
 
 @Injectable()
-class StockReservationSerialiser {
+class InventoryReservationSerialiser {
   constructor(
     private readonly variants: ProductVariantRepository,
     private readonly warehouses: WarehouseRepository,
@@ -18,7 +18,10 @@ class StockReservationSerialiser {
     private readonly staffSerialiser: StaffSerialiser,
   ) {}
 
-  async serialise(reservation: StockReservation, includeRelations: boolean = true) {
+  async serialise(
+    reservation: InventoryReservation,
+    includeRelations: boolean = true,
+  ) {
     const result: any = {
       id: reservation.getId(),
       variantId: reservation.getVariantId(),
@@ -39,8 +42,12 @@ class StockReservationSerialiser {
 
     if (includeRelations) {
       const variant = await this.variants.findById(reservation.getVariantId());
-      const warehouse = await this.warehouses.findById(reservation.getWarehouseId());
-      const reservedByStaff = await this.staff.findById(reservation.getReservedBy());
+      const warehouse = await this.warehouses.findById(
+        reservation.getWarehouseId(),
+      );
+      const reservedByStaff = await this.staff.findById(
+        reservation.getReservedBy(),
+      );
 
       result.variant = variant
         ? await this.productSerialiser.serialiseVariant(variant)
@@ -56,11 +63,16 @@ class StockReservationSerialiser {
     return result;
   }
 
-  async serialiseMany(reservations: StockReservation[], includeRelations: boolean = true) {
+  async serialiseMany(
+    reservations: InventoryReservation[],
+    includeRelations: boolean = true,
+  ) {
     return Promise.all(
-      reservations.map((reservation) => this.serialise(reservation, includeRelations)),
+      reservations.map((reservation) =>
+        this.serialise(reservation, includeRelations),
+      ),
     );
   }
 }
 
-export default StockReservationSerialiser;
+export default InventoryReservationSerialiser;

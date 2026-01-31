@@ -1,25 +1,26 @@
 import { Injectable } from '@nestjs/common';
-import StockReservationRepository from 'src/infrastructure/database/repositories/inventory/stock-reservation.repository';
+import InventoryReservationRepository from 'src/infrastructure/database/repositories/inventory/inventory-reservation.repository';
 import InventoryRepository from 'src/infrastructure/database/repositories/inventory/inventory.repository';
-import StockReservation from 'src/domain/inventory/stock-reservation';
+import InventoryReservation from 'src/domain/inventory/inventory-reservation';
 import ReservationStatus from 'src/domain/inventory/reservation-status';
 
 @Injectable()
-export class StockReservationSeed {
+export class InventoryReservationSeed {
   constructor(
-    private reservations: StockReservationRepository,
+    private reservations: InventoryReservationRepository,
     private inventories: InventoryRepository,
   ) {}
 
   async seed() {
-    const existingReservations = await this.reservations.findActiveReservations();
+    const existingReservations =
+      await this.reservations.findActiveReservations();
 
     if (existingReservations.length > 0) {
-      console.log('Stock reservations already exist. Skipping seed.');
+      console.log('Inventory reservations already exist. Skipping seed.');
       return;
     }
 
-    console.log('Seeding stock reservations...');
+    console.log('Seeding inventory reservations...');
 
     // Get some inventory records to create reservations for
     const inventory1 = await this.inventories.findByVariantAndWarehouse(1, 1); // Bridgestone 195/65 R15 at Onitsha Central
@@ -90,7 +91,7 @@ export class StockReservationSeed {
     ];
 
     for (const data of reservationsData) {
-      const reservation = new StockReservation(
+      const reservation = new InventoryReservation(
         undefined,
         data.variantId,
         data.warehouseId,
@@ -125,7 +126,7 @@ export class StockReservationSeed {
       }
     }
 
-    console.log(`✓ Created ${reservationsData.length} stock reservations`);
+    console.log(`✓ Created ${reservationsData.length} inventory reservations`);
     console.log(
       `  - ${reservationsData.filter((r) => r.status === ReservationStatus.ACTIVE).length} active reservations`,
     );

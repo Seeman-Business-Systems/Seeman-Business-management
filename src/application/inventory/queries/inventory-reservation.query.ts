@@ -1,21 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import StockReservation from 'src/domain/inventory/stock-reservation';
-import StockReservationEntity from 'src/infrastructure/database/entities/stock-reservation.entity';
-import StockReservationRepository from 'src/infrastructure/database/repositories/inventory/stock-reservation.repository';
-import { StockReservationFilters } from './stock-reservation.filters';
+import InventoryReservation from 'src/domain/inventory/inventory-reservation';
+import InventoryReservationEntity from 'src/infrastructure/database/entities/inventory-reservation.entity';
+import InventoryReservationRepository from 'src/infrastructure/database/repositories/inventory/inventory-reservation.repository';
 import ReservationStatus from 'src/domain/inventory/reservation-status';
+import { InventoryReservationFilters } from './inventory-reservation.filters';
 
 @Injectable()
-class StockReservationQuery {
+class InventoryReservationQuery {
   constructor(
-    @InjectRepository(StockReservationEntity)
-    public readonly reservations: Repository<StockReservationEntity>,
-    public readonly reservationRepo: StockReservationRepository,
+    @InjectRepository(InventoryReservationEntity)
+    public readonly reservations: Repository<InventoryReservationEntity>,
+    public readonly reservationRepo: InventoryReservationRepository,
   ) {}
 
-  async findBy(filters: StockReservationFilters): Promise<StockReservation[]> {
+  async findBy(
+    filters: InventoryReservationFilters,
+  ): Promise<InventoryReservation[]> {
     const query = this.reservations.createQueryBuilder('reservation');
 
     // Handle dynamic relation loading
@@ -155,7 +157,7 @@ class StockReservationQuery {
     return records.map((entity) => this.reservationRepo.toDomain(entity));
   }
 
-  async findExpiredReservations(): Promise<StockReservation[]> {
+  async findExpiredReservations(): Promise<InventoryReservation[]> {
     return await this.findBy({ isExpired: true });
   }
 
@@ -173,4 +175,4 @@ class StockReservationQuery {
   }
 }
 
-export default StockReservationQuery;
+export default InventoryReservationQuery;

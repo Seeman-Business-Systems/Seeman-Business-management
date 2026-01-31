@@ -1,23 +1,25 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import UpdateReservationCommand from './update-reservation.command';
-import StockReservation from 'src/domain/inventory/stock-reservation';
+import InventoryReservation from 'src/domain/inventory/inventory-reservation';
 import InventoryRepository from 'src/infrastructure/database/repositories/inventory/inventory.repository';
-import StockReservationRepository from 'src/infrastructure/database/repositories/inventory/stock-reservation.repository';
+import InventoryReservationRepository from 'src/infrastructure/database/repositories/inventory/inventory-reservation.repository';
 import {
   ReservationNotFoundException,
   ReservationNotActiveException,
   InventoryNotFoundException,
-  InsufficientStockException,
+  InsufficientInventoryException,
 } from 'src/domain/inventory/exceptions';
 
 @CommandHandler(UpdateReservationCommand)
 class UpdateReservation implements ICommandHandler<UpdateReservationCommand> {
   constructor(
     private inventories: InventoryRepository,
-    private reservations: StockReservationRepository,
+    private reservations: InventoryReservationRepository,
   ) {}
 
-  async execute(command: UpdateReservationCommand): Promise<StockReservation> {
+  async execute(
+    command: UpdateReservationCommand,
+  ): Promise<InventoryReservation> {
     const reservation = await this.reservations.findById(command.reservationId);
 
     if (!reservation) {
@@ -32,7 +34,10 @@ class UpdateReservation implements ICommandHandler<UpdateReservationCommand> {
     }
 
     // If quantity is being changed, we need to update inventory reserved quantity
-    if (command.quantity !== undefined && command.quantity !== reservation.getQuantity()) {
+    if (
+      command.quantity !== undefined &&
+      command.quantity !== reservation.getQuantity()
+    ) {
       const inventory = await this.inventories.findByVariantAndWarehouse(
         reservation.getVariantId(),
         reservation.getWarehouseId(),
@@ -48,9 +53,9 @@ class UpdateReservation implements ICommandHandler<UpdateReservationCommand> {
       const quantityDifference = command.quantity - reservation.getQuantity();
       const availableQuantity = inventory.getAvailableQuantity();
 
-      // If increasing quantity, check if enough stock is available
+      // If increasing quantity, check if enough inventory is available
       if (quantityDifference > 0 && availableQuantity < quantityDifference) {
-        throw new InsufficientStockException(
+        throw new InsufficientInventoryException(
           availableQuantity,
           quantityDifference,
         );

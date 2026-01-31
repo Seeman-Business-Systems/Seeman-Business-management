@@ -1,6 +1,6 @@
 import ReservationStatus from 'src/domain/inventory/reservation-status';
 
-export interface StockReservationFilters {
+export interface InventoryReservationFilters {
   ids?: number | number[];
   variantId?: number | number[];
   warehouseId?: number | number[];

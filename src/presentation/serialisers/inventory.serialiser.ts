@@ -16,27 +16,35 @@ class InventorySerialiser {
 
   async serialise(inventory: Inventory) {
     const variant = await this.variants.findById(inventory.getVariantId());
-    const warehouse = await this.warehouses.findById(inventory.getWarehouseId());
+    const warehouse = await this.warehouses.findById(
+      inventory.getWarehouseId(),
+    );
 
     return {
       id: inventory.getId(),
       variantId: inventory.getVariantId(),
       warehouseId: inventory.getWarehouseId(),
-      variant: variant ? await this.productSerialiser.serialiseVariant(variant) : null,
-      warehouse: warehouse ? await this.warehouseSerialiser.serialise(warehouse) : null,
+      variant: variant
+        ? await this.productSerialiser.serialiseVariant(variant)
+        : null,
+      warehouse: warehouse
+        ? await this.warehouseSerialiser.serialise(warehouse)
+        : null,
       totalQuantity: inventory.getTotalQuantity(),
       minimumQuantity: inventory.getMinimumQuantity(),
       maximumQuantity: inventory.getMaximumQuantity(),
       reservedQuantity: inventory.getReservedQuantity(),
       availableQuantity: inventory.getAvailableQuantity(),
-      isLowStock: inventory.isLowStock(),
+      isLowInventory: inventory.isLowInventory(),
       createdAt: inventory.getCreatedAt(),
       updatedAt: inventory.getUpdatedAt(),
     };
   }
 
   async serialiseMany(inventories: Inventory[]) {
-    return Promise.all(inventories.map((inventory) => this.serialise(inventory)));
+    return Promise.all(
+      inventories.map((inventory) => this.serialise(inventory)),
+    );
   }
 }
 

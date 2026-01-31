@@ -1,22 +1,24 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import ReserveStockCommand from './reserve-stock.command';
-import StockReservation from 'src/domain/inventory/stock-reservation';
+import ReserveInventoryCommand from './reserve-inventory.command';
 import InventoryRepository from 'src/infrastructure/database/repositories/inventory/inventory.repository';
-import StockReservationRepository from 'src/infrastructure/database/repositories/inventory/stock-reservation.repository';
 import ReservationStatus from 'src/domain/inventory/reservation-status';
 import {
   InventoryNotFoundException,
-  InsufficientStockException,
+  InsufficientInventoryException,
 } from 'src/domain/inventory/exceptions';
+import InventoryReservationRepository from 'src/infrastructure/database/repositories/inventory/inventory-reservation.repository';
+import InventoryReservation from 'src/domain/inventory/inventory-reservation';
 
-@CommandHandler(ReserveStockCommand)
-class ReserveStock implements ICommandHandler<ReserveStockCommand> {
+@CommandHandler(ReserveInventoryCommand)
+class ReserveInventory implements ICommandHandler<ReserveInventoryCommand> {
   constructor(
     private inventories: InventoryRepository,
-    private reservations: StockReservationRepository,
+    private reservations: InventoryReservationRepository,
   ) {}
 
-  async execute(command: ReserveStockCommand): Promise<StockReservation> {
+  async execute(
+    command: ReserveInventoryCommand,
+  ): Promise<InventoryReservation> {
     const inventory = await this.inventories.findByVariantAndWarehouse(
       command.variantId,
       command.warehouseId,
@@ -32,11 +34,14 @@ class ReserveStock implements ICommandHandler<ReserveStockCommand> {
     const availableQuantity = inventory.getAvailableQuantity();
 
     if (availableQuantity < command.quantity) {
-      throw new InsufficientStockException(availableQuantity, command.quantity);
+      throw new InsufficientInventoryException(
+        availableQuantity,
+        command.quantity,
+      );
     }
 
-    // Create the stock reservation
-    const reservation = new StockReservation(
+    // Create the inventory reservation
+    const reservation = new InventoryReservation(
       undefined,
       command.variantId,
       command.warehouseId,
@@ -65,4 +70,4 @@ class ReserveStock implements ICommandHandler<ReserveStockCommand> {
   }
 }
 
-export default ReserveStock;
+export default ReserveInventory;
