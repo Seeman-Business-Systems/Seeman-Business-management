@@ -1,12 +1,37 @@
+export interface Role {
+  id: number;
+  name: string;
+  isManagement: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Branch {
+  id: number;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  status: string;
+  phoneNumber: string;
+  code: string;
+  altPhoneNumber: string;
+  isHeadOffice: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}
+
 export interface Staff {
   id: number;
   firstName: string;
   lastName: string;
   middleName: string | null;
+  fullName: string;
   email: string;
   phoneNumber: string;
-  roleId: number;
-  branchId: number;
+  role: Role | null;
+  branch: Branch | null;
   joinedAt: string | null;
   createdAt: string;
   updatedAt: string;

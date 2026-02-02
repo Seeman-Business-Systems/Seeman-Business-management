@@ -5,6 +5,7 @@ import Login from './pages/Login/Login';
 import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
 import ResetPassword from './pages/ResetPassword/ResetPassword';
 import Dashboard from './pages/Dashboard';
+import Staff from './pages/Staff/Staff';
 
 function NotFound() {
   return (
@@ -29,6 +30,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/staff"
+          element={
+            <ProtectedRoute>
+              <Staff />
             </ProtectedRoute>
           }
         />
