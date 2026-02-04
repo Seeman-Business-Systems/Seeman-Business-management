@@ -22,14 +22,14 @@ class UpdateStaffValidator {
 
   @IsNotEmpty()
   @IsString()
-  @Matches(/^\+?[1-9]\d{1,14}$/, {
-    message: 'Invalid phone number format',
+  @Matches(/^\+?\d{10,15}$/, {
+    message: 'Phone number must be 10-15 digits',
   })
   phoneNumber: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsEmail()
-  email?: string;
+  email: string;
 
   @IsNotEmpty()
   @IsInt()
@@ -38,6 +38,9 @@ class UpdateStaffValidator {
   @IsNotEmpty()
   @IsInt()
   branchId: number;
+
+  @IsOptional()
+  joinedAt?: Date;
 }
 
 export default UpdateStaffValidator;

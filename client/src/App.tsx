@@ -6,6 +6,11 @@ import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
 import ResetPassword from './pages/ResetPassword/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Staff from './pages/Staff/Staff';
+import CreateStaff from './pages/Staff/CreateStaff';
+import EditStaff from './pages/Staff/EditStaff';
+import StaffProfile from './pages/Staff/StaffProfile';
+import MyProfile from './pages/Staff/MyProfile';
+import Roles from './pages/Staff/Roles/Roles';
 
 function NotFound() {
   return (
@@ -38,6 +43,46 @@ function App() {
           element={
             <ProtectedRoute>
               <Staff />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/staff/new"
+          element={
+            <ProtectedRoute>
+              <CreateStaff />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/staff/:id/edit"
+          element={
+            <ProtectedRoute>
+              <EditStaff />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/staff/roles/manage"
+          element={
+            <ProtectedRoute>
+              <Roles />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/staff/:id"
+          element={
+            <ProtectedRoute>
+              <StaffProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/me"
+          element={
+            <ProtectedRoute>
+              <MyProfile />
             </ProtectedRoute>
           }
         />

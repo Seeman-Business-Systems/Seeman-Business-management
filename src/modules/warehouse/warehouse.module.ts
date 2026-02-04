@@ -12,18 +12,16 @@ import WarehouseRepository from 'src/infrastructure/database/repositories/wareho
 import WarehouseQuery from 'src/application/warehouse/queries/warehouse.query';
 import WarehouseSerialiser from 'src/presentation/serialisers/warehouse.serialiser';
 import { StaffModule } from '../staff/staff.module';
+import { RoleModule } from '../role/role.module';
 import { BranchModule } from '../branch/branch.module';
-import { StaffSerialiser } from 'src/presentation/serialisers/staff.serialiser';
-import BranchSerialiser from 'src/presentation/serialisers/branch.serialiser';
-import StaffEntity from 'src/infrastructure/database/entities/staff.entity';
-import BranchEntity from 'src/infrastructure/database/entities/branch.entity';
 import { WarehouseSeed } from 'src/infrastructure/database/seeds/warehouse.seed';
 
 @Module({
   imports: [
     CqrsModule,
-    TypeOrmModule.forFeature([WarehouseEntity, StaffEntity, BranchEntity]),
+    TypeOrmModule.forFeature([WarehouseEntity]),
     StaffModule,
+    RoleModule,
     BranchModule,
   ],
   controllers: [WarehouseController],
@@ -34,8 +32,6 @@ import { WarehouseSeed } from 'src/infrastructure/database/seeds/warehouse.seed'
     },
     WarehouseQuery,
     WarehouseSerialiser,
-    StaffSerialiser,
-    BranchSerialiser,
     CreateWarehouseHandler,
     UpdateWarehouseHandler,
     DeleteWarehouseHandler,

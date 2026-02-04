@@ -1,7 +1,14 @@
+export interface BaseStaff {
+  id: number;
+  firstName: string;
+  lastName: string;
+}
+
 export interface Role {
   id: number;
   name: string;
   isManagement: boolean;
+  createdBy: BaseStaff | string | null;
   createdAt: string;
   updatedAt: string;
 }

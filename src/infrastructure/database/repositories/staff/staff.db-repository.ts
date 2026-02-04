@@ -66,6 +66,10 @@ class StaffDBRepository extends StaffRepository {
     return records.map((entity: StaffEntity) => this.toDomain(entity));
   }
 
+  async delete(id: number): Promise<void> {
+    await this.repository.softDelete(id);
+  }
+  
   async commit(staff: Staff): Promise<Staff> {
     const entity = new StaffEntity();
     if (staff.id !== undefined && staff.id !== null) {

@@ -26,7 +26,6 @@ import ProductController from 'src/presentation/http/controllers/product.control
 import BrandSerialiser from 'src/presentation/serialisers/brand.serialiser';
 import CategorySerialiser from 'src/presentation/serialisers/category.serialiser';
 import ProductSerialiser from 'src/presentation/serialisers/product.serialiser';
-import { StaffSerialiser } from 'src/presentation/serialisers/staff.serialiser';
 
 // Command Handlers - Brand
 import CreateBrandHandler from 'src/application/product/commands/brand/create/create-brand';
@@ -53,6 +52,7 @@ import ProductQuery from 'src/application/product/queries/product.query';
 
 // Modules
 import { StaffModule } from '../staff/staff.module';
+import { RoleModule } from '../role/role.module';
 
 // Seeds
 import { BrandSeed } from 'src/infrastructure/database/seeds/brand.seed';
@@ -71,6 +71,7 @@ import { ProductVariantSeed } from 'src/infrastructure/database/seeds/product-va
       StaffEntity,
     ]),
     StaffModule,
+    RoleModule,
   ],
   controllers: [
     BrandController,
@@ -103,7 +104,6 @@ import { ProductVariantSeed } from 'src/infrastructure/database/seeds/product-va
     BrandSerialiser,
     CategorySerialiser,
     ProductSerialiser,
-    StaffSerialiser,
 
     // Brand Command Handlers
     CreateBrandHandler,

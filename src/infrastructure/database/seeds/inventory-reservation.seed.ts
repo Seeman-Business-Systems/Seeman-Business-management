@@ -20,7 +20,7 @@ export class InventoryReservationSeed {
       return;
     }
 
-    console.log('Seeding inventory reservations...');
+    console.log('Seeding inventory reservations…');
 
     // Get some inventory records to create reservations for
     const inventory1 = await this.inventories.findByVariantAndWarehouse(1, 1); // Bridgestone 195/65 R15 at Onitsha Central

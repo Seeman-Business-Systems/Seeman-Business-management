@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, Matches } from 'class-validator';
 
 class RegisterStaffValidator {
   @IsString()
@@ -11,6 +11,9 @@ class RegisterStaffValidator {
 
   @IsString()
   @IsNotEmpty()
+  @Matches(/^\+?\d{10,15}$/, {
+    message: 'Phone number must be 10-15 digits',
+  })
   phoneNumber: string;
 
   @IsNotEmpty()
@@ -23,8 +26,8 @@ class RegisterStaffValidator {
   @IsOptional()
   middleName: string;
 
-  @IsString()
-  @IsOptional()
+  @IsNotEmpty()
+  @IsEmail()
   email: string;
 
   @IsOptional()

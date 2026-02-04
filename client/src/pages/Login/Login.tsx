@@ -50,7 +50,7 @@ function Login() {
       <div className="p-8 rounded-lg w-full max-w-md">
         <div className="text-center mb-3">
           <h1 className="text-3xl font-bold text-gray-900 font-roboto mb-2">
-            Welcome back
+            Welcome back!
           </h1>
           <p className="text-gray-500 mb-8">
             Enter your credentials to access your account

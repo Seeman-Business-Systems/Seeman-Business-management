@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CacheModule } from '@nestjs/cache-manager';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { redisStore } from 'cache-manager-redis-yet';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -22,6 +24,28 @@ import { CustomerModule } from './modules/customer/customer.module';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+    }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => {
+        const useRedis = configService.get('REDIS_ENABLED', 'false') === 'true';
+
+        if (useRedis) {
+          const store = await redisStore({
+            socket: {
+              host: configService.get('REDIS_HOST', 'localhost'),
+              port: configService.get('REDIS_PORT', 6379),
+            },
+            ttl: 300000, // 5 minutes in milliseconds
+          });
+          console.log('Using Redis cache');
+          return { store };
+        }
+
+        console.log('Using in-memory cache');
+        return { ttl: 300000 };
+      },
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',

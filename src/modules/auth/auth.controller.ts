@@ -3,8 +3,6 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
-  Param,
-  ParseIntPipe,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -14,14 +12,17 @@ import AuthService from './auth.service';
 import JwtAuthGuard from './guards/jwt-auth.guard';
 import Actor from './decorators/actor.decorator';
 import { Public } from './decorators/public.decorator';
-import PasswordResetValidator from 'src/application/staff/commands/auth/password-reset.validator';
 import ForgotPasswordValidator from 'src/application/staff/commands/auth/forgot-password.validator';
 import ResetPasswordWithTokenValidator from 'src/application/staff/commands/auth/reset-password-with-token.validator';
+import { StaffSerialiser } from 'src/presentation/serialisers/staff.serialiser';
 
 @Controller('auth')
 @UseGuards(JwtAuthGuard)
 class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private staffSerialiser: StaffSerialiser,
+  ) {}
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
@@ -38,14 +39,26 @@ class AuthController {
       joinedAt: dto.joinedAt,
     };
 
-    return await this.authService.register(staffData);
+    const result = await this.authService.register(staffData);
+    return {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      staff: await this.staffSerialiser.serialise(result.staff),
+    };
   }
 
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() dto: { identifier: string; password: string }) {
-    return await this.authService.login(dto.identifier, dto.password);
+    const result = await this.authService.login(dto.identifier, dto.password);
+    if (!result) return;
+
+    return {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      staff: await this.staffSerialiser.serialise(result.staff),
+    };
   }
 
   @Public()
@@ -62,15 +75,6 @@ class AuthController {
     await this.authService.logout(refreshToken);
     return { message: 'Logged out successfully' };
   }
-
-  // @Post('reset-password/:id')
-  // @HttpCode(HttpStatus.OK)
-  // async resetPassword(
-  //   @Param('id', ParseIntPipe) id: number,
-  //   @Body() dto: PasswordResetValidator,
-  // ): Promise<Staff> {
-  //   return await this.authService.resetPassword(id, dto.newPassword);
-  // }
 
   @Public()
   @Post('forgot-password')
@@ -94,7 +98,7 @@ class AuthController {
   @Post('me')
   @HttpCode(HttpStatus.OK)
   async getProfile(@Actor() actor: Staff) {
-    return { staff: actor };
+    return { staff: await this.staffSerialiser.serialise(actor) };
   }
 }
 
