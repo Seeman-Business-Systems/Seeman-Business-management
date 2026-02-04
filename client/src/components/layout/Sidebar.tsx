@@ -25,7 +25,7 @@ const menuItems: NavItem[] = [
 ];
 
 const supportItems: NavItem[] = [
-  { name: 'Profile', path: '/profile', icon: 'fa-user' },
+  { name: 'Profile', path: '/me', icon: 'fa-user' },
   { name: 'Help', path: '/help', icon: 'fa-circle-question' },
   { name: 'Settings', path: '/settings', icon: 'fa-gear' },
 ];

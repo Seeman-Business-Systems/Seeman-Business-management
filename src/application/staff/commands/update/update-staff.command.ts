@@ -11,6 +11,7 @@ class UpdateStaffCommand extends Command<Staff> {
     public readonly branchId: number,
     public readonly middleName?: string,
     public readonly email?: string,
+    public readonly joinedAt?: Date,
   ) {
     super();
   }

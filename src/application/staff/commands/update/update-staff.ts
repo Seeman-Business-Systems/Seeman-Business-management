@@ -28,6 +28,10 @@ class UpdateStaff implements ICommandHandler<UpdateStaffCommand> {
       staffToUpdate.setEmail(command.email);
     }
 
+    if (command.joinedAt) {
+      staffToUpdate.setJoinedAt(command.joinedAt);
+    }
+
     return await this.staff.commit(staffToUpdate);
   }
 }

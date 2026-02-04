@@ -28,7 +28,7 @@ class BranchQuery {
 
     // Handle filters
     if (filters.name) {
-      query.andWhere('branch.name LIKE :name', { name: `%${filters.name}%` });
+      query.andWhere('branch.name ILIKE :name', { name: `%${filters.name}%` });
     }
 
     if (filters.status) {

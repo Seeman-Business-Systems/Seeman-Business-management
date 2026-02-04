@@ -7,7 +7,7 @@ async function resetDatabase() {
   const dataSource = app.get(DataSource);
 
   try {
-    console.log('Starting database reset...');
+    console.log('Starting database reset…');
 
     // Get all table names
     const tables = await dataSource.query(`

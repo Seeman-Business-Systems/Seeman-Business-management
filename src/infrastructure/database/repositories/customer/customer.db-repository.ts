@@ -1,7 +1,7 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import CustomerRepository from './customer.repository';
 import CustomerEntity from '../../entities/customer.entity';
-import { IsNull, Like, Repository } from 'typeorm';
+import { IsNull, ILike, Repository } from 'typeorm';
 import Customer from 'src/domain/customer/customer';
 
 class CustomerDBRepository extends CustomerRepository {
@@ -25,7 +25,7 @@ class CustomerDBRepository extends CustomerRepository {
   async findByName(name: string): Promise<Customer[]> {
     const records = await this.repository.find({
       where: {
-        name: Like(`%${name}%`),
+        name: ILike(`%${name}%`),
       },
     });
 
@@ -57,7 +57,7 @@ class CustomerDBRepository extends CustomerRepository {
   }
 
   async commit(customer: Customer): Promise<Customer> {
-    const entity = this.toEntity(customer)
+    const entity = this.toEntity(customer);
     const savedEntity = await this.repository.save(entity);
 
     return this.toDomain(savedEntity);

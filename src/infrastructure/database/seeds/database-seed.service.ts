@@ -33,7 +33,7 @@ class DatabaseSeedService implements OnModuleInit {
 
   private async seedDatabase() {
     try {
-      console.log('Starting database seeding...');
+      console.log('Starting database seeding…');
       await this.roleSeed.seed();
       await this.branchSeed.seed();
       await this.staffSeed.seed();

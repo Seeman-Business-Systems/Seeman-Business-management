@@ -13,13 +13,14 @@ import CustomerController from "src/presentation/http/controllers/customer.contr
 import CustomerSerialiser from "src/presentation/serialisers/customer.serialiser";
 import { CustomerSeed } from "src/infrastructure/database/seeds/customer.seed";
 import { StaffModule } from "../staff/staff.module";
-import { StaffSerialiser } from "src/presentation/serialisers/staff.serialiser";
+import { RoleModule } from "../role/role.module";
 
 @Module({
     imports: [
         CqrsModule,
         TypeOrmModule.forFeature([CustomerEntity]),
         StaffModule,
+        RoleModule,
     ],
     controllers: [CustomerController],
     providers: [
@@ -34,7 +35,6 @@ import { StaffSerialiser } from "src/presentation/serialisers/staff.serialiser";
         SetCreditLimitHandler,
         CustomerQuery,
         CustomerSerialiser,
-        StaffSerialiser,
     ],
     exports: [
         CustomerRepository,

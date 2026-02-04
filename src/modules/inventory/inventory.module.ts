@@ -29,9 +29,9 @@ import AdjustBatch from 'src/application/inventory/commands/inventory-batch/adju
 import DeleteBatch from 'src/application/inventory/commands/inventory-batch/delete/delete-batch';
 import SetReorderLevels from 'src/application/inventory/commands/inventory/set-reorder-levels/set-reorder-levels';
 import { StaffModule } from '../staff/staff.module';
+import { RoleModule } from '../role/role.module';
 import { ProductModule } from '../product/product.module';
 import { WarehouseModule } from '../warehouse/warehouse.module';
-import { StaffSerialiser } from 'src/presentation/serialisers/staff.serialiser';
 import { InventorySeed } from 'src/infrastructure/database/seeds/inventory.seed';
 import InventoryReservationEntity from 'src/infrastructure/database/entities/inventory-reservation.entity';
 import InventoryReservationController from 'src/presentation/http/controllers/inventory-reservation.controller';
@@ -58,6 +58,7 @@ import { InventoryReservationSeed } from 'src/infrastructure/database/seeds/inve
       StaffEntity,
     ]),
     StaffModule,
+    RoleModule,
     ProductModule,
     WarehouseModule,
   ],
@@ -91,7 +92,6 @@ import { InventoryReservationSeed } from 'src/infrastructure/database/seeds/inve
     InventoryBatchSerialiser,
     InventoryMovementSerialiser,
     InventoryReservationSerialiser,
-    StaffSerialiser,
     CreateInventoryBatch,
     ReceiveBatch,
     UpdateBatchStatus,

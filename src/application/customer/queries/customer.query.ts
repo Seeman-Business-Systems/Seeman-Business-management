@@ -19,23 +19,25 @@ class CustomerQuery {
 
     // Handle filters
     if (filters.name) {
-      query.andWhere('customer.name LIKE :name', { name: `%${filters.name}%` });
+      query.andWhere('customer.name ILIKE :name', {
+        name: `%${filters.name}%`,
+      });
     }
 
     if (filters.email) {
-      query.andWhere('customer.email LIKE :email', {
+      query.andWhere('customer.email ILIKE :email', {
         email: `%${filters.email}%`,
       });
     }
 
     if (filters.phoneNumber) {
-      query.andWhere('customer.phone_number LIKE :phoneNumber', {
+      query.andWhere('customer.phone_number ILIKE :phoneNumber', {
         phoneNumber: `%${filters.phoneNumber}%`,
       });
     }
 
     if (filters.companyName) {
-      query.andWhere('customer.company_name LIKE :companyName', {
+      query.andWhere('customer.company_name ILIKE :companyName', {
         companyName: `%${filters.companyName}%`,
       });
     }

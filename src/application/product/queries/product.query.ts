@@ -45,7 +45,7 @@ class ProductQuery {
     }
 
     if (filters.name) {
-      query.andWhere('product.name LIKE :name', {
+      query.andWhere('product.name ILIKE :name', {
         name: `%${filters.name}%`,
       });
     }

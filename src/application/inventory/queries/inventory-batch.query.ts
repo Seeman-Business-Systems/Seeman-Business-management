@@ -78,7 +78,7 @@ class InventoryBatchQuery {
     }
 
     if (filters.batchNumber) {
-      query.andWhere('batch.batchNumber LIKE :batchNumber', {
+      query.andWhere('batch.batchNumber ILIKE :batchNumber', {
         batchNumber: `%${filters.batchNumber}%`,
       });
     }

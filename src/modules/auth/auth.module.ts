@@ -5,16 +5,17 @@ import { PassportModule } from '@nestjs/passport';
 import AuthController from './auth.controller';
 import AuthService from './auth.service';
 import { StaffModule } from '../staff/staff.module';
+import { RoleModule } from '../role/role.module';
 import JwtStrategy from './strategies/jwt.strategy';
 import { RefreshTokenModule } from '../tokens/refresh-token.module';
 import { PasswordResetTokenModule } from '../tokens/password-reset-token.module';
 import MailersModule from 'src/mailers/mailers.module';
-
 @Module({
   imports: [
     ConfigModule,
     PassportModule,
     StaffModule,
+    RoleModule,
     RefreshTokenModule,
     PasswordResetTokenModule,
     MailersModule,
