@@ -30,7 +30,7 @@ import type { BranchFilters } from 'src/application/branch/queries/branch.filter
 import BranchSerialiser from 'src/presentation/serialisers/branch.serialiser';
 
 @Controller('branches')
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 class BranchController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -49,9 +49,9 @@ class BranchController {
       dto.state,
       dto.status ?? BranchStatus.ACTIVE,
       dto.phoneNumber,
-      dto.managerId,
+      dto.managerId ?? null,
       dto.isHeadOffice ?? false,
-      actor.getId()! ?? ActorType.SYSTEM_ACTOR,
+      actor.getId(),
       dto.altPhoneNumber,
       dto.code,
     );
@@ -86,6 +86,14 @@ class BranchController {
     return await this.branchSerialiser.serialise(branch);
   }
 
+  @Delete()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteMany(@Body() dto: { ids: number[] }): Promise<void> {
+    await Promise.all(
+      dto.ids.map((id) => this.commandBus.execute(new DeleteBranchCommand(id))),
+    );
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
@@ -107,9 +115,14 @@ class BranchController {
   @Get()
   @HttpCode(HttpStatus.OK)
   async findAll(@Query() filters: BranchFilters) {
-    const branches = await this.branchQuery.findBy(filters);
+    const result = await this.branchQuery.findBy(filters);
 
-    return this.branchSerialiser.serialiseMany(branches, true);
+    return {
+      data: await this.branchSerialiser.serialiseMany(result.data, true),
+      total: result.total,
+      skip: result.skip,
+      take: result.take,
+    };
   }
 }
 

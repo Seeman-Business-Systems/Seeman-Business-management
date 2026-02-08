@@ -50,4 +50,14 @@ export class StaffSerialiser {
   serialiseMany(staff: Staff[]) {
     return Promise.all(staff.map((staff) => this.serialise(staff)));
   }
+
+  serialiseBase(staff: Staff) {
+    if (!staff) return null;
+
+    return {
+      id: staff.getId(),
+      firstName: staff.getFirstName(),
+      lastName: staff.getLastName(),
+    };
+  }
 }

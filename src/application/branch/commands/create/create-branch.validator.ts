@@ -48,9 +48,9 @@ class CreateBranchValidator {
   @Length(3, 6, { message: 'Branch code must be between 3 and 6 characters' })
   code?: string;
 
+  @IsOptional()
   @IsNumber()
-  @IsNotEmpty({ message: 'Manager ID is required' })
-  managerId: number;
+  managerId?: number;
 
   @IsBoolean()
   isHeadOffice?: boolean;

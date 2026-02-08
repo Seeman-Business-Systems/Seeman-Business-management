@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Modal from '../../../components/ui/Modal';
 import { useUpdateRoleMutation } from '../../../store/api/rolesApi';
 import type { Role } from '../../../types/auth';
+import { useToast } from '../../../context/ToastContext';
 
 interface EditRoleModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface EditRoleModalProps {
 }
 
 function EditRoleModal({ isOpen, onClose, role, onRoleUpdated }: EditRoleModalProps) {
+  const { showToast } = useToast();
   const [name, setName] = useState('');
   const [isManagement, setIsManagement] = useState(false);
   const [updateRole, { isLoading: saving }] = useUpdateRoleMutation();
@@ -28,10 +30,11 @@ function EditRoleModal({ isOpen, onClose, role, onRoleUpdated }: EditRoleModalPr
 
     try {
       await updateRole({ id: role.id, name, isManagement }).unwrap();
+      showToast('success', `Role "${name}" updated successfully`);
       onRoleUpdated?.();
       onClose();
     } catch (error) {
-      console.error('Failed to update role:', error);
+      showToast('error', `Failed to update role. Please try again. Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

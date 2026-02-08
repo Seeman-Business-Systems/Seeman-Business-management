@@ -12,10 +12,13 @@ import {
 import type { Role } from '../../../types/auth';
 import CreateRoleModal from './CreateRoleModal';
 import EditRoleModal from './EditRoleModal';
+import { useToast } from '../../../context/ToastContext';
 
 function Roles() {
   usePageTitle('Roles');
   const navigate = useNavigate();
+
+  const { showToast } = useToast();
 
   // RTK Query hooks
   const { data: roles = [], isLoading: loading } = useGetRolesQuery();
@@ -101,6 +104,7 @@ function Roles() {
   const handleBulkDelete = async () => {
     try {
       await deleteRoles(Array.from(selectedIds)).unwrap();
+      showToast('success', `${selectedIds.size} role${selectedIds.size > 1 ? 's' : ''} deleted successfully`);
       setSelectedIds(new Set());
       setBulkDeleteModalOpen(false);
       setActionValue('');
@@ -114,9 +118,11 @@ function Roles() {
 
     try {
       await deleteRole(roleToDelete.id).unwrap();
+      showToast('success', `Role "${roleToDelete.name}" deleted successfully`);
       setDeleteModalOpen(false);
       setRoleToDelete(null);
     } catch (error) {
+      showToast('error', `Failed to delete role. Please try again. Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       console.error('Failed to delete role:', error);
     }
   };

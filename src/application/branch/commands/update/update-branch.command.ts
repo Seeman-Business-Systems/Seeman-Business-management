@@ -11,9 +11,9 @@ class UpdateBranchCommand extends Command<Branch> {
     public readonly state: string,
     public readonly status: BranchStatus,
     public readonly phoneNumber: string,
-    public readonly managerId: number,
-    public readonly isHeadOffice: boolean,
-    public readonly code: string,
+    public readonly managerId?: number,
+    public readonly isHeadOffice?: boolean,
+    public readonly code?: string,
     public readonly altPhoneNumber?: string,
   ) {
     super();

@@ -6,6 +6,13 @@ import BranchEntity from 'src/infrastructure/database/entities/branch.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
+export interface PaginatedBranches {
+  data: Branch[];
+  total: number;
+  skip: number;
+  take: number;
+}
+
 @Injectable()
 class BranchQuery {
   constructor(
@@ -14,7 +21,7 @@ class BranchQuery {
     public readonly branchRepo: BranchRepository,
   ) {}
 
-  async findBy(filters: BranchFilters): Promise<Branch[]> {
+  async findBy(filters: BranchFilters): Promise<PaginatedBranches> {
     const query = this.branches.createQueryBuilder('branch');
 
     // Handle dynamic relation loading
@@ -24,6 +31,14 @@ class BranchQuery {
 
     if (filters.includeInventory) {
       query.leftJoinAndSelect('branch.inventory', 'inventory');
+    }
+
+    // Handle search (name, code, city, address) - case insensitive
+    if (filters.search) {
+      query.andWhere(
+        '(branch.name ILIKE :search OR branch.code ILIKE :search OR branch.city ILIKE :search OR branch.address ILIKE :search)',
+        { search: `%${filters.search}%` },
+      );
     }
 
     // Handle filters
@@ -67,11 +82,26 @@ class BranchQuery {
       }
     }
 
+    // Get total count before pagination
+    const total = await query.getCount();
+
+    // Apply pagination
+    const skip = filters.skip ?? 0;
+    const take = filters.take ?? 10;
+
+    query.skip(skip).take(take);
+
+    // Order by newest first
+    query.orderBy('branch.createdAt', 'DESC');
+
     const records = await query.getMany();
 
-    console.log('records: ', records);
-
-    return records.map((entity) => this.branchRepo.toDomain(entity));
+    return {
+      data: records.map((entity) => this.branchRepo.toDomain(entity)),
+      total,
+      skip,
+      take,
+    };
   }
 }
 
