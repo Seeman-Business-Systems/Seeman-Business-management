@@ -1,8 +1,7 @@
-import Staff from 'src/domain/staff/staff';
-
 export interface BranchFilters {
   ids?: number | number[];
   name?: string;
+  search?: string;
   status?: string;
   isHeadOffice?: boolean;
   managerId?: number;
@@ -10,4 +9,6 @@ export interface BranchFilters {
   state?: string | string[];
   includeStaff?: boolean;
   includeInventory?: boolean;
+  skip?: number;
+  take?: number;
 }

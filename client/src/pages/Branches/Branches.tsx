@@ -1,37 +1,27 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import Modal from '../../components/ui/Modal';
-import StaffTable from './StaffTable';
+import BranchesTable from './BranchesTable';
 import usePageTitle from '../../hooks/usePageTitle';
 import useDebounce from '../../hooks/useDebounce';
-import useRoles from '../../hooks/useRoles';
-import useBranches from '../../hooks/useBranches';
-import api from '../../lib/api';
-import type { Staff as StaffType } from '../../types/auth';
+import { BranchStatus } from '../../types/auth';
+import {
+  useGetBranchesPaginatedQuery,
+  useDeleteBranchesMutation,
+} from '../../store/api/branchesApi';
+import { useToast } from '../../context/ToastContext';
 
-interface PaginatedResponse {
-  data: StaffType[];
-  total: number;
-  skip: number;
-  take: number;
-}
+function Branches() {
+  usePageTitle('Branches');
 
-function Staff() {
-  usePageTitle('Staff');
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { showToast } = useToast();
 
-  const [staff, setStaff] = useState<StaffType[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const { branches } = useBranches();
-  const { roles } = useRoles();
-
-  // Filters - read roleId and branchId from URL params if present
+  // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 400);
-  const [selectedRole, setSelectedRole] = useState<string>(searchParams.get('roleId') || 'all');
-  const [selectedBranch, setSelectedBranch] = useState<string>(searchParams.get('branchId') || 'all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedCity, setSelectedCity] = useState<string>('all');
 
   // Selection
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -39,68 +29,37 @@ function Staff() {
 
   // Modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [singleDeleteId, setSingleDeleteId] = useState<number | null>(null);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [resultsPerPage, setResultsPerPage] = useState(6);
 
-  // Fetch staff with filters
-  const fetchStaff = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
+  // RTK Query
+  const skip = (currentPage - 1) * resultsPerPage;
+  const { data, isLoading: loading, isFetching } = useGetBranchesPaginatedQuery({
+    search: debouncedSearch || undefined,
+    status: selectedStatus !== 'all' ? selectedStatus : undefined,
+    city: selectedCity !== 'all' ? selectedCity : undefined,
+    skip,
+    take: resultsPerPage,
+  });
 
-      if (debouncedSearch) {
-        params.append('search', debouncedSearch);
-      }
-      if (selectedRole !== 'all') {
-        params.append('roleId', selectedRole);
-      }
-      if (selectedBranch !== 'all') {
-        params.append('branchId', selectedBranch);
-      }
+  const [deleteBranches, { isLoading: isDeleting }] = useDeleteBranchesMutation();
 
-      // Pagination
-      const skip = (currentPage - 1) * resultsPerPage;
-      params.append('skip', skip.toString());
-      params.append('take', resultsPerPage.toString());
+  const branches = data?.data || [];
+  const total = data?.total || 0;
 
-      const response = await api.get<PaginatedResponse>(`/staff?${params.toString()}`);
-      setStaff(Array.isArray(response.data.data) ? response.data.data : []);
-      setTotal(response.data.total);
-    } catch (error) {
-      console.error('Failed to fetch staff:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [debouncedSearch, selectedRole, selectedBranch, currentPage, resultsPerPage]);
-
-  useEffect(() => {
-    fetchStaff();
-  }, [fetchStaff]);
+  // Get unique cities for filter dropdown
+  const cities = useMemo(() => {
+    const citySet = new Set(branches.map((b) => b.city));
+    return Array.from(citySet).sort();
+  }, [branches]);
 
   // Reset to first page when filters change (not pagination)
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, selectedRole, selectedBranch, resultsPerPage]);
-
-  // Sync filters with URL
-  useEffect(() => {
-    setSearchParams((prev) => {
-      if (selectedRole === 'all') {
-        prev.delete('roleId');
-      } else {
-        prev.set('roleId', selectedRole);
-      }
-      if (selectedBranch === 'all') {
-        prev.delete('branchId');
-      } else {
-        prev.set('branchId', selectedBranch);
-      }
-      return prev;
-    }, { replace: true });
-  }, [selectedRole, selectedBranch, setSearchParams]);
+  }, [debouncedSearch, selectedStatus, selectedCity, resultsPerPage]);
 
   // Pagination calculations
   const totalPages = Math.ceil(total / resultsPerPage);
@@ -108,17 +67,17 @@ function Staff() {
   const endIndex = Math.min(startIndex + resultsPerPage, total);
 
   // Selection handlers
-  const isAllSelected = staff.length > 0 && staff.every((m) => selectedIds.has(m.id));
-  const isSomeSelected = staff.some((m) => selectedIds.has(m.id));
+  const isAllSelected = branches.length > 0 && branches.every((b) => selectedIds.has(b.id));
+  const isSomeSelected = branches.some((b) => selectedIds.has(b.id));
 
   const toggleSelectAll = () => {
     if (isAllSelected) {
       const newSet = new Set(selectedIds);
-      staff.forEach((m) => newSet.delete(m.id));
+      branches.forEach((b) => newSet.delete(b.id));
       setSelectedIds(newSet);
     } else {
       const newSet = new Set(selectedIds);
-      staff.forEach((m) => newSet.add(m.id));
+      branches.forEach((b) => newSet.add(b.id));
       setSelectedIds(newSet);
     }
   };
@@ -133,21 +92,26 @@ function Staff() {
     setSelectedIds(newSet);
   };
 
+  // Single delete handler (from context menu)
+  const handleSingleDelete = (id: number) => {
+    setSingleDeleteId(id);
+    setShowDeleteModal(true);
+  };
+
   // Delete handler
   const handleDeleteConfirm = async () => {
-    if (selectedIds.size === 0) return;
+    const idsToDelete = singleDeleteId ? [singleDeleteId] : Array.from(selectedIds);
+    if (idsToDelete.length === 0) return;
 
-    setIsDeleting(true);
     try {
-      await api.delete('/staff', { data: { ids: Array.from(selectedIds) } });
+      await deleteBranches(idsToDelete).unwrap();
+      showToast('success', `${idsToDelete.length} branch${idsToDelete.length > 1 ? 'es' : ''} deleted successfully`);
       setSelectedIds(new Set());
+      setSingleDeleteId(null);
       setActionValue('');
       setShowDeleteModal(false);
-      fetchStaff();
     } catch (error) {
-      console.error('Failed to delete staff:', error);
-    } finally {
-      setIsDeleting(false);
+      console.error('Failed to delete branches:', error);
     }
   };
 
@@ -178,7 +142,7 @@ function Staff() {
     return pages;
   };
 
-  if (loading && staff.length === 0) {
+  if (loading && branches.length === 0) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
@@ -193,22 +157,14 @@ function Staff() {
       <div className="space-y-3">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Staff</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Branches</h1>
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
-              to="/staff/roles/manage"
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-50 text-indigo-600 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors font-medium text-sm sm:text-base"
-            >
-              <i className="fa-solid fa-user-gear" />
-              <span className="hidden sm:inline">Manage Roles</span>
-              <span className="sm:hidden">Manage Roles</span>
-            </Link>
-            <Link
-              to="/staff/new"
+              to="/branches/new"
               className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm sm:text-base"
             >
               <i className="fa-solid fa-plus" />
-              <span className="sm:inline">Add Staff</span>
+              <span>Add Branch</span>
             </Link>
           </div>
         </div>
@@ -221,48 +177,51 @@ function Staff() {
               <i className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search member"
+                placeholder="Search branches"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent"
               />
+              {isFetching && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
+                </div>
+              )}
             </div>
 
             {/* Filters row - wraps on mobile */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              {/* Role Filter */}
+              {/* Status Filter */}
               <div className="relative flex-1 min-w-[130px]">
                 <select
-                  value={selectedRole}
-                  onChange={(e) => setSelectedRole(e.target.value)}
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
                   className="w-full appearance-none pl-9 pr-8 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent bg-white cursor-pointer"
                 >
-                  <option value="all">All staff</option>
-                  {roles.map((role) => (
-                    <option key={role.id} value={role.id.toString()}>
-                      {role.name}
-                    </option>
-                  ))}
+                  <option value="all">All statuses</option>
+                  <option value={BranchStatus.ACTIVE}>Active</option>
+                  <option value={BranchStatus.INACTIVE}>Inactive</option>
+                  <option value={BranchStatus.SUSPENDED}>Suspended</option>
                 </select>
-                <i className="fa-solid fa-users absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                <i className="fa-solid fa-circle-check absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
                 <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
               </div>
 
-              {/* Branch Filter */}
+              {/* City Filter */}
               <div className="relative flex-1 min-w-[130px]">
                 <select
-                  value={selectedBranch}
-                  onChange={(e) => setSelectedBranch(e.target.value)}
+                  value={selectedCity}
+                  onChange={(e) => setSelectedCity(e.target.value)}
                   className="w-full appearance-none pl-9 pr-8 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent bg-white cursor-pointer"
                 >
-                  <option value="all">All branches</option>
-                  {branches.map((branch) => (
-                    <option key={branch.id} value={branch.id.toString()}>
-                      {branch.name}
+                  <option value="all">All cities</option>
+                  {cities.map((city) => (
+                    <option key={city} value={city}>
+                      {city}
                     </option>
                   ))}
                 </select>
-                <i className="fa-solid fa-code-branch absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                <i className="fa-solid fa-location-dot absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
                 <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
               </div>
 
@@ -284,9 +243,9 @@ function Staff() {
           </div>
         </div>
 
-        {/* Staff Table */}
-        <StaffTable
-          staff={staff}
+        {/* Branches Table */}
+        <BranchesTable
+          branches={branches}
           selectedIds={selectedIds}
           onSelectOne={toggleSelectOne}
           onSelectAll={toggleSelectAll}
@@ -297,7 +256,9 @@ function Staff() {
           total={total}
           resultsPerPage={resultsPerPage}
           onResultsPerPageChange={setResultsPerPage}
+          onDelete={handleSingleDelete}
         />
+
         {/* Pagination */}
         {totalPages > 0 && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
@@ -337,9 +298,7 @@ function Staff() {
 
               {/* Next button */}
               <button
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
                 className="w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -356,13 +315,15 @@ function Staff() {
         isOpen={showDeleteModal}
         onClose={() => {
           setShowDeleteModal(false);
+          setSingleDeleteId(null);
           setActionValue('');
         }}
-        title="Delete Staff"
+        title="Delete Branch"
         leftButton={{
           text: 'Cancel',
           onClick: () => {
             setShowDeleteModal(false);
+            setSingleDeleteId(null);
             setActionValue('');
           },
           variant: 'secondary',
@@ -374,12 +335,24 @@ function Staff() {
         }}
       >
         <p className="text-gray-600">
-          Are you sure you want to delete {selectedIds.size} staff member
-          {selectedIds.size > 1 ? 's' : ''}? This action cannot be undone.
+          {singleDeleteId ? (
+            <>
+              Are you sure you want to delete{' '}
+              <span className="font-semibold text-gray-900">
+                {branches.find((b) => b.id === singleDeleteId)?.name}
+              </span>
+              ? This action cannot be undone.
+            </>
+          ) : (
+            <>
+              Are you sure you want to delete {selectedIds.size} branch
+              {selectedIds.size > 1 ? 'es' : ''}? This action cannot be undone.
+            </>
+          )}
         </p>
       </Modal>
     </Layout>
   );
 }
 
-export default Staff;
+export default Branches;

@@ -10,7 +10,7 @@ class CreateBranchCommand extends Command<Branch> {
     public readonly state: string,
     public readonly status: BranchStatus,
     public readonly phoneNumber: string,
-    public readonly managerId: number,
+    public readonly managerId: number | null,
     public readonly isHeadOffice: boolean = false,
     public readonly createdBy: number,
     public readonly altPhoneNumber?: string,

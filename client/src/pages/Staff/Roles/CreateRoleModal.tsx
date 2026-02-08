@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Modal from '../../../components/ui/Modal';
 import { useCreateRoleMutation } from '../../../store/api/rolesApi';
+import { useToast } from '../../../context/ToastContext';
 
 export interface CreateRoleModalProps {
   isOpen: boolean;
@@ -8,6 +9,7 @@ export interface CreateRoleModalProps {
 }
 
 function CreateRoleModal({ isOpen, onClose }: CreateRoleModalProps) {
+  const { showToast } = useToast();
   const [name, setName] = useState('');
   const [isManagement, setIsManagement] = useState(false);
   const [createRole, { isLoading: saving }] = useCreateRoleMutation();
@@ -23,10 +25,12 @@ function CreateRoleModal({ isOpen, onClose }: CreateRoleModalProps) {
 
     try {
       await createRole({ name, isManagement }).unwrap();
+      showToast('success', `Role "${name}" created successfully`);
       setName('');
       setIsManagement(false);
       onClose();
     } catch (error) {
+      showToast('error', `Failed to create role. Please try again. Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       console.error('Failed to create role:', error);
     }
   };

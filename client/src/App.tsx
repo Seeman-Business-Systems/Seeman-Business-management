@@ -1,5 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
+import ToastContainer from './components/ui/ToastContainer';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login/Login';
 import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
@@ -11,6 +13,7 @@ import EditStaff from './pages/Staff/EditStaff';
 import StaffProfile from './pages/Staff/StaffProfile';
 import MyProfile from './pages/Staff/MyProfile';
 import Roles from './pages/Staff/Roles/Roles';
+import { Branches, BranchProfile, CreateBranch, EditBranch } from './pages/Branches';
 
 function NotFound() {
   return (
@@ -26,7 +29,9 @@ function NotFound() {
 function App() {
   return (
     <AuthProvider>
-      <Routes>
+      <ToastProvider>
+        <ToastContainer />
+        <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
@@ -86,8 +91,41 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/branches"
+          element={
+            <ProtectedRoute>
+              <Branches />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/branches/new"
+          element={
+            <ProtectedRoute>
+              <CreateBranch />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/branches/:id"
+          element={
+            <ProtectedRoute>
+              <BranchProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/branches/:id/edit"
+          element={
+            <ProtectedRoute>
+              <EditBranch />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<NotFound />} />
-      </Routes>
+        </Routes>
+      </ToastProvider>
     </AuthProvider>
   );
 }

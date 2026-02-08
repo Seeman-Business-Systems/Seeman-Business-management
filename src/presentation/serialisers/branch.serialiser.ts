@@ -14,6 +14,8 @@ class BranchSerialiser {
 
   async serialise(branch: Branch, includeStaff: boolean = false) {
     const creator = await this.staff.findById(branch.getCreatedBy());
+    const managerId = branch.getManagerId();
+    const manager = managerId ? await this.staff.findById(managerId) : null;
 
     const result: any = {
       id: branch.getId(),
@@ -23,7 +25,9 @@ class BranchSerialiser {
       state: branch.getState(),
       status: branch.getStatus(),
       phoneNumber: branch.getPhoneNumber(),
-      createdBy: creator ? this.staffSerialiser.serialise(creator) : null,
+      managerId: managerId,
+      manager: manager ? this.staffSerialiser.serialiseBase(manager) : null,
+      createdBy: creator ? this.staffSerialiser.serialiseBase(creator) : null,
       isHeadOffice: branch.getIsHeadOffice(),
       code: branch.getCode(),
       altPhoneNumber: branch.getAltPhoneNumber(),

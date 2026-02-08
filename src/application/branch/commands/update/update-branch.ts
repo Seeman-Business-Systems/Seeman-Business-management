@@ -20,14 +20,21 @@ class UpdateBranch implements ICommandHandler<UpdateBranchCommand> {
     branchToUpdate.setState(command.state);
     branchToUpdate.setStatus(command.status);
     branchToUpdate.setPhoneNumber(command.phoneNumber);
-    branchToUpdate.setManagerId(command.managerId);
-    branchToUpdate.setIsHeadOffice(command.isHeadOffice);
 
-    if (command.altPhoneNumber) {
+    // Handle optional fields - set to null if not provided
+    branchToUpdate.setManagerId(command.managerId ?? null);
+
+    if (command.isHeadOffice !== undefined) {
+      branchToUpdate.setIsHeadOffice(command.isHeadOffice);
+    }
+
+    if (command.altPhoneNumber !== undefined) {
       branchToUpdate.setAltPhoneNumber(command.altPhoneNumber);
     }
 
-    branchToUpdate.setCode(command.code);
+    if (command.code !== undefined) {
+      branchToUpdate.setCode(command.code);
+    }
 
     return await this.branches.commit(branchToUpdate);
   }

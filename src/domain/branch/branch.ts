@@ -9,7 +9,7 @@ class Branch {
     public state: string,
     public status: BranchStatus,
     public phoneNumber: string,
-    public managerId: number,
+    public managerId: number | null,
     public isHeadOffice: boolean,
     public createdBy: number,
     public createdAt: Date,
@@ -71,11 +71,11 @@ class Branch {
     this.phoneNumber = phoneNumber;
   }
 
-  getManagerId(): number {
+  getManagerId(): number | null {
     return this.managerId;
   }
 
-  setManagerId(managerId: number): void {
+  setManagerId(managerId: number | null): void {
     this.managerId = managerId;
   }
 

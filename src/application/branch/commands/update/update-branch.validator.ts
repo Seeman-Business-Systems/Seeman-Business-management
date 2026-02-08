@@ -43,13 +43,14 @@ class UpdateBranchValidator {
   @Matches(/^[0-9+\-\s()]+$/, { message: 'Invalid phone number format' })
   altPhoneNumber?: string;
 
+  @IsOptional()
   @IsString()
   @Length(3, 6, { message: 'Branch code must be between 3 and 6 characters' })
-  code: string;
+  code?: string;
 
+  @IsOptional()
   @IsNumber()
-  @IsNotEmpty({ message: 'Manager ID is required' })
-  managerId: number;
+  managerId?: number;
 
   @IsBoolean()
   isHeadOffice: boolean;
