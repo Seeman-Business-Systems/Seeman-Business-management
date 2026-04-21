@@ -1,4 +1,4 @@
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import TransferBatchCommand from './transfer-batch.command';
 import InventoryBatch from 'src/domain/inventory/inventory-batch';
 import InventoryBatchRepository from 'src/infrastructure/database/repositories/inventory/inventory-batch.repository';
@@ -7,6 +7,7 @@ import InventoryMovementRepository from 'src/infrastructure/database/repositorie
 import InventoryMovement from 'src/domain/inventory/inventory-movement';
 import InventoryMovementType from 'src/domain/inventory/inventory-movement-type';
 import Inventory from 'src/domain/inventory/inventory';
+import InventoryTransferred from 'src/domain/inventory/events/inventory-transferred.event';
 import {
   BatchNotFoundException,
   BatchCannotBeTransferredException,
@@ -21,6 +22,7 @@ class TransferBatch implements ICommandHandler<TransferBatchCommand> {
     private inventoryBatches: InventoryBatchRepository,
     private inventories: InventoryRepository,
     private inventoryMovements: InventoryMovementRepository,
+    private eventBus: EventBus,
   ) {}
 
   async execute(command: TransferBatchCommand): Promise<InventoryBatch> {
@@ -133,16 +135,28 @@ class TransferBatch implements ICommandHandler<TransferBatchCommand> {
     const destMovement = new InventoryMovement(
       undefined,
       savedDestBatch.getId()!,
-      InventoryMovementType.IN,
+      InventoryMovementType.OFFLOAD,
       command.quantity,
       null, // orderId
       sourceBatch.getWarehouseId(), // fromWarehouseId
       command.destinationWarehouseId, // toWarehouseId
       `Transfer from warehouse ${sourceBatch.getWarehouseId()}`,
       command.actorId,
+      
       new Date(),
     );
     await this.inventoryMovements.commit(destMovement);
+
+    this.eventBus.publish(
+      new InventoryTransferred(
+        savedDestBatch.getId()!,
+        sourceBatch.getWarehouseId(),
+        command.destinationWarehouseId,
+        sourceInventory.getVariantId(),
+        command.quantity,
+        command.actorId,
+      ),
+    );
 
     return savedDestBatch;
   }

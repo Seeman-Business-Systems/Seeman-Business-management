@@ -6,6 +6,12 @@ import CategoryEntity from 'src/infrastructure/database/entities/category.entity
 import ProductEntity from 'src/infrastructure/database/entities/product.entity';
 import ProductVariantEntity from 'src/infrastructure/database/entities/product-variant.entity';
 import StaffEntity from 'src/infrastructure/database/entities/staff.entity';
+import InventoryEntity from 'src/infrastructure/database/entities/inventory.entity';
+import WarehouseEntity from 'src/infrastructure/database/entities/warehouse.entity';
+import InventoryRepository from 'src/infrastructure/database/repositories/inventory/inventory.repository';
+import InventoryDBRepository from 'src/infrastructure/database/repositories/inventory/inventory.db-repository';
+import WarehouseRepository from 'src/infrastructure/database/repositories/warehouse/warehouse.repository';
+import WarehouseDBRepository from 'src/infrastructure/database/repositories/warehouse/warehouse.db-repository';
 
 // Repositories
 import BrandRepository from 'src/infrastructure/database/repositories/product/brand.repository';
@@ -69,6 +75,8 @@ import { ProductVariantSeed } from 'src/infrastructure/database/seeds/product-va
       ProductEntity,
       ProductVariantEntity,
       StaffEntity,
+      InventoryEntity,
+      WarehouseEntity,
     ]),
     StaffModule,
     RoleModule,
@@ -83,6 +91,14 @@ import { ProductVariantSeed } from 'src/infrastructure/database/seeds/product-va
     {
       provide: BrandRepository,
       useClass: BrandDBRepository,
+    },
+    {
+      provide: InventoryRepository,
+      useClass: InventoryDBRepository,
+    },
+    {
+      provide: WarehouseRepository,
+      useClass: WarehouseDBRepository,
     },
     {
       provide: CategoryRepository,

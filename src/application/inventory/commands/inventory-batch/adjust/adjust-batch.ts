@@ -1,4 +1,4 @@
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import AdjustBatchCommand from './adjust-batch.command';
 import InventoryBatch from 'src/domain/inventory/inventory-batch';
 import InventoryBatchRepository from 'src/infrastructure/database/repositories/inventory/inventory-batch.repository';
@@ -6,6 +6,7 @@ import InventoryRepository from 'src/infrastructure/database/repositories/invent
 import InventoryMovementRepository from 'src/infrastructure/database/repositories/inventory/inventory-movement.repository';
 import InventoryMovement from 'src/domain/inventory/inventory-movement';
 import InventoryMovementType from 'src/domain/inventory/inventory-movement-type';
+import InventoryAdjusted from 'src/domain/inventory/events/inventory-adjusted.event';
 import {
   BatchNotFoundException,
   BatchCannotBeAdjustedException,
@@ -18,6 +19,7 @@ class AdjustBatch implements ICommandHandler<AdjustBatchCommand> {
     private inventoryBatches: InventoryBatchRepository,
     private inventories: InventoryRepository,
     private inventoryMovements: InventoryMovementRepository,
+    private eventBus: EventBus,
   ) {}
 
   async execute(command: AdjustBatchCommand): Promise<InventoryBatch> {
@@ -67,7 +69,20 @@ class AdjustBatch implements ICommandHandler<AdjustBatchCommand> {
     await this.inventories.commit(inventory);
     await this.inventoryMovements.commit(movement);
 
-    return await this.inventoryBatches.commit(batch);
+    const saved = await this.inventoryBatches.commit(batch);
+
+    this.eventBus.publish(
+      new InventoryAdjusted(
+        saved.getId()!,
+        saved.getWarehouseId(),
+        inventory.getVariantId(),
+        command.adjustmentQuantity,
+        command.actorId,
+        command.notes,
+      ),
+    );
+
+    return saved;
   }
 }
 

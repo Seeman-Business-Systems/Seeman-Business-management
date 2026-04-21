@@ -9,20 +9,25 @@ import {
   Body,
   Query,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import InventoryQuery from 'src/application/inventory/queries/inventory.query';
+import InventoryBatchQuery from 'src/application/inventory/queries/inventory-batch.query';
 import InventorySerialiser from 'src/presentation/serialisers/inventory.serialiser';
 import SetReorderLevelsCommand from 'src/application/inventory/commands/inventory/set-reorder-levels/set-reorder-levels.command';
 import SetReorderLevelsValidator from 'src/application/inventory/commands/inventory/set-reorder-levels/set-reorder-levels.validator';
+import AdjustBatchCommand from 'src/application/inventory/commands/inventory-batch/adjust/adjust-batch.command';
+import AdjustInventoryValidator from 'src/application/inventory/commands/inventory/adjust-inventory/adjust-inventory.validator';
 import JwtAuthGuard from 'src/modules/auth/guards/jwt-auth.guard';
 
 @Controller('inventory')
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 class InventoryController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly inventoryQuery: InventoryQuery,
+    private readonly inventoryBatchQuery: InventoryBatchQuery,
     private readonly inventorySerialiser: InventorySerialiser,
   ) {}
 
@@ -99,6 +104,56 @@ class InventoryController {
 
     const inventory = await this.commandBus.execute(command);
     return await this.inventorySerialiser.serialise(inventory);
+  }
+
+  @Put('adjust')
+  @HttpCode(HttpStatus.OK)
+  async adjustInventory(@Body() dto: AdjustInventoryValidator) {
+    // Find inventory record for this variant + warehouse
+    const inventories = await this.inventoryQuery.findBy({
+      variantId: dto.variantId,
+      warehouseId: dto.warehouseId,
+    });
+
+    if (inventories.length === 0) {
+      throw new BadRequestException(
+        'No inventory record found for this variant and warehouse.',
+      );
+    }
+
+    const inventory = inventories[0];
+
+    // Find batches for this inventory
+    const batches = await this.inventoryBatchQuery.findBy({
+      inventoryId: inventory.getId(),
+    });
+
+    if (batches.length === 0) {
+      throw new BadRequestException(
+        'No stock batches found. Add stock first before making adjustments.',
+      );
+    }
+
+    // For decrements, pick the batch with the highest currentQuantity.
+    // For increments, pick any batch (first one).
+    const batch =
+      dto.adjustmentQuantity < 0
+        ? batches.reduce((best, b) =>
+            b.getCurrentQuantity() > best.getCurrentQuantity() ? b : best,
+          )
+        : batches[0];
+
+    await this.commandBus.execute(
+      new AdjustBatchCommand(batch.getId()!, dto.adjustmentQuantity, dto.notes, 1),
+    );
+
+    // Return updated inventory
+    const updated = await this.inventoryQuery.findBy({
+      variantId: dto.variantId,
+      warehouseId: dto.warehouseId,
+    });
+
+    return await this.inventorySerialiser.serialise(updated[0]);
   }
 }
 

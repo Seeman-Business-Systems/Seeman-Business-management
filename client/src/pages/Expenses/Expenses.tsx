@@ -1,0 +1,367 @@
+import { useState, useEffect } from 'react';
+import Layout from '../../components/layout/Layout';
+import Modal from '../../components/ui/Modal';
+import usePageTitle from '../../hooks/usePageTitle';
+import { useGetExpensesQuery, useCreateExpenseMutation, useDeleteExpenseMutation } from '../../store/api/expensesApi';
+import { useGetBranchesQuery } from '../../store/api/branchesApi';
+import { useToast } from '../../context/ToastContext';
+import { EXPENSE_CATEGORY_LABELS } from '../../types/expense';
+import type { ExpenseCategory, CreateExpenseRequest } from '../../types/expense';
+
+const CATEGORIES = Object.keys(EXPENSE_CATEGORY_LABELS) as ExpenseCategory[];
+const PAGE_SIZE = 20;
+
+const CATEGORY_COLORS: Record<ExpenseCategory, string> = {
+  RENT:            'bg-blue-100 text-blue-800',
+  UTILITIES:       'bg-cyan-100 text-cyan-800',
+  SALARIES:        'bg-indigo-100 text-indigo-800',
+  WAYBILLFEES:     'bg-orange-100 text-orange-800',
+  MAINTENANCE:     'bg-yellow-100 text-yellow-800',
+  MISCELLANEOUS:   'bg-gray-100 text-gray-700',
+  FEEDING:         'bg-green-100 text-green-800',
+  DAILY_TRANSPORT: 'bg-purple-100 text-purple-800',
+};
+
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+}
+
+function formatDate(s: string) {
+  return new Date(s).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+const emptyForm: CreateExpenseRequest = {
+  amount: 0,
+  category: 'MISCELLANEOUS',
+  description: '',
+  branchId: 0,
+  date: new Date().toISOString().split('T')[0],
+  notes: '',
+};
+
+function Expenses() {
+  usePageTitle('Expenses');
+  const { showToast } = useToast();
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedBranch, setSelectedBranch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  useEffect(() => { setCurrentPage(1); }, [selectedBranch, selectedCategory, dateFrom, dateTo]);
+
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [form, setForm] = useState<CreateExpenseRequest>(emptyForm);
+  const [pendingDelete, setPendingDelete] = useState<number | null>(null);
+
+  const { data, isLoading, isFetching } = useGetExpensesQuery({
+    branchId: selectedBranch ? Number(selectedBranch) : undefined,
+    category: selectedCategory as ExpenseCategory || undefined,
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
+    take: PAGE_SIZE,
+    skip: (currentPage - 1) * PAGE_SIZE,
+  });
+
+  const { data: branches = [] } = useGetBranchesQuery();
+  const [createExpense, { isLoading: isCreating }] = useCreateExpenseMutation();
+  const [deleteExpense, { isLoading: isDeleting }] = useDeleteExpenseMutation();
+
+  const expenses = data?.data ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const totalAmount = expenses.reduce((sum, e) => sum + e.amount, 0);
+
+  const handleCreate = async () => {
+    if (!form.amount || !form.description || !form.branchId) return;
+    try {
+      await createExpense({ ...form, notes: form.notes || undefined }).unwrap();
+      setShowCreateModal(false);
+      setForm(emptyForm);
+      showToast('success', 'Expense recorded');
+    } catch {
+      showToast('error', 'Failed to record expense');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!pendingDelete) return;
+    try {
+      await deleteExpense(pendingDelete).unwrap();
+      setPendingDelete(null);
+      showToast('success', 'Expense deleted');
+    } catch {
+      showToast('error', 'Failed to delete expense');
+    }
+  };
+
+  return (
+    <Layout>
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Expenses</h1>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+          >
+            <i className="fa-solid fa-plus" />
+            Record Expense
+          </button>
+        </div>
+
+        {/* Filters */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <div className="flex flex-wrap gap-3">
+            {/* Branch */}
+            <div className="relative min-w-[150px] flex-1">
+              <select
+                value={selectedBranch}
+                onChange={(e) => setSelectedBranch(e.target.value)}
+                className="w-full appearance-none pl-9 pr-8 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white cursor-pointer"
+              >
+                <option value="">All branches</option>
+                {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+              <i className="fa-solid fa-building absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none" />
+              <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none" />
+            </div>
+            {/* Category */}
+            <div className="relative min-w-[150px] flex-1">
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full appearance-none pl-9 pr-8 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white cursor-pointer"
+              >
+                <option value="">All categories</option>
+                {CATEGORIES.map((c) => <option key={c} value={c}>{EXPENSE_CATEGORY_LABELS[c]}</option>)}
+              </select>
+              <i className="fa-solid fa-tag absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none" />
+              <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none" />
+            </div>
+            {/* Dates */}
+            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
+              className="px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
+              className="px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+            {(selectedBranch || selectedCategory || dateFrom || dateTo) && (
+              <button
+                onClick={() => { setSelectedBranch(''); setSelectedCategory(''); setDateFrom(''); setDateTo(''); }}
+                className="px-3 py-2.5 text-sm text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-indigo-600" />
+            </div>
+          ) : expenses.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                <i className="fa-solid fa-money-bill-trend-up text-gray-400 text-xl" />
+              </div>
+              <p className="text-gray-500 font-medium">No expenses found</p>
+              <p className="text-sm text-gray-400 mt-1">Record your first expense to get started.</p>
+            </div>
+          ) : (
+            <>
+              {/* Desktop */}
+              <div className={`hidden md:block overflow-x-auto ${isFetching ? 'opacity-60' : ''}`}>
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-100">
+                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
+                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Recorded By</th>
+                      <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                      <th className="w-10 px-6 py-3" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {expenses.map((expense, i) => (
+                      <tr key={expense.id} className={`hover:bg-gray-50 transition-colors ${i % 2 === 0 ? 'bg-indigo-50/20' : ''}`}>
+                        <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{formatDate(expense.date)}</td>
+                        <td className="px-6 py-4">
+                          <p className="text-sm text-gray-900 font-medium">{expense.description}</p>
+                          {expense.notes && <p className="text-xs text-gray-400 mt-0.5">{expense.notes}</p>}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${CATEGORY_COLORS[expense.category]}`}>
+                            {EXPENSE_CATEGORY_LABELS[expense.category]}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-700">{expense.branchName ?? '—'}</td>
+                        <td className="px-6 py-4 text-sm text-gray-700">{expense.recordedByName ?? '—'}</td>
+                        <td className="px-6 py-4 text-right">
+                          <span className="text-sm font-semibold text-gray-900">{formatCurrency(expense.amount)}</span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => setPendingDelete(expense.id)}
+                            className="text-gray-300 hover:text-red-500 transition-colors cursor-pointer"
+                          >
+                            <i className="fa-solid fa-trash text-sm" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t border-gray-200 bg-gray-50">
+                      <td colSpan={5} className="px-6 py-3 text-sm font-semibold text-gray-700">
+                        Total ({total} expense{total !== 1 ? 's' : ''})
+                      </td>
+                      <td className="px-6 py-3 text-right text-sm font-bold text-gray-900">
+                        {formatCurrency(totalAmount)}
+                      </td>
+                      <td />
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              {/* Mobile cards */}
+              <div className="md:hidden divide-y divide-gray-100">
+                {expenses.map((expense) => (
+                  <div key={expense.id} className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900">{expense.description}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{expense.branchName} · {formatDate(expense.date)}</p>
+                        {expense.recordedByName && <p className="text-xs text-gray-400 mt-0.5">By {expense.recordedByName}</p>}
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5">
+                        <span className="text-sm font-bold text-gray-900">{formatCurrency(expense.amount)}</span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${CATEGORY_COLORS[expense.category]}`}>
+                          {EXPENSE_CATEGORY_LABELS[expense.category]}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+            <div className="flex items-center justify-between">
+              <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed">
+                <i className="fa-solid fa-arrow-left" /> Previous
+              </button>
+              <span className="text-sm text-gray-500">Page {currentPage} of {totalPages}</span>
+              <button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed">
+                Next <i className="fa-solid fa-arrow-right" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Record Expense Modal */}
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => { setShowCreateModal(false); setForm(emptyForm); }}
+        title="Record Expense"
+        leftButton={{ text: 'Cancel', onClick: () => { setShowCreateModal(false); setForm(emptyForm); }, variant: 'secondary' }}
+        rightButton={{ text: isCreating ? 'Saving…' : 'Record Expense', onClick: handleCreate, variant: 'primary' }}
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Amount (₦) <span className="text-red-500">*</span></label>
+              <input
+                type="number"
+                min="0"
+                value={form.amount || ''}
+                onChange={(e) => setForm((f) => ({ ...f, amount: Number(e.target.value) }))}
+                placeholder="0"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date <span className="text-red-500">*</span></label>
+              <input
+                type="date"
+                value={form.date}
+                onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Category <span className="text-red-500">*</span></label>
+            <select
+              value={form.category}
+              onChange={(e) => setForm((f) => ({ ...f, category: e.target.value as ExpenseCategory }))}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              {CATEGORIES.map((c) => <option key={c} value={c}>{EXPENSE_CATEGORY_LABELS[c]}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Branch <span className="text-red-500">*</span></label>
+            <select
+              value={form.branchId || ''}
+              onChange={(e) => setForm((f) => ({ ...f, branchId: Number(e.target.value) }))}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">Select branch…</option>
+              {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              value={form.description}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              placeholder="e.g. Monthly office rent"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+            <textarea
+              value={form.notes}
+              onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+              rows={2}
+              placeholder="Any additional details…"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+            />
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete confirmation */}
+      <Modal
+        isOpen={pendingDelete !== null}
+        onClose={() => setPendingDelete(null)}
+        title="Delete Expense"
+        leftButton={{ text: 'Cancel', onClick: () => setPendingDelete(null), variant: 'secondary' }}
+        rightButton={{ text: isDeleting ? 'Deleting…' : 'Delete', onClick: handleDelete, variant: 'danger' }}
+      >
+        <p className="text-gray-600">Are you sure you want to delete this expense? This cannot be undone.</p>
+      </Modal>
+    </Layout>
+  );
+}
+
+export default Expenses;

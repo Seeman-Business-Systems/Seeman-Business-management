@@ -17,14 +17,8 @@ class WarehouseQuery {
   async findBy(filters: WarehouseFilters): Promise<Warehouse[]> {
     const query = this.warehouses.createQueryBuilder('warehouse');
 
-    // Handle dynamic relation loading
-    if (filters.includeBranch) {
-      query.leftJoinAndSelect('warehouse.branch', 'branch');
-    }
-
-    if (filters.includeManager) {
-      query.leftJoinAndSelect('warehouse.manager', 'manager');
-    }
+    // Always join branch so branchId is available via entity.branch.id
+    query.leftJoinAndSelect('warehouse.branch', 'branch');
 
     // Handle filters
     if (filters.ids) {
@@ -45,12 +39,6 @@ class WarehouseQuery {
       query.andWhere('warehouse.status = :status', { status: filters.status });
     }
 
-    if (filters.managerId) {
-      query.andWhere('warehouse.managerId = :managerId', {
-        managerId: filters.managerId,
-      });
-    }
-
     if (filters.warehouseType) {
       if (Array.isArray(filters.warehouseType)) {
         query.andWhere('warehouse.warehouseType IN (:...types)', {
@@ -63,14 +51,14 @@ class WarehouseQuery {
       }
     }
 
-    // Handle array filters for branchId
+    // Use join alias for branchId filter (no scalar branchId column on entity)
     if (filters.branchId) {
       if (Array.isArray(filters.branchId)) {
-        query.andWhere('warehouse.branchId IN (:...branchIds)', {
+        query.andWhere('branch.id IN (:...branchIds)', {
           branchIds: filters.branchId,
         });
       } else {
-        query.andWhere('warehouse.branchId = :branchId', {
+        query.andWhere('branch.id = :branchId', {
           branchId: filters.branchId,
         });
       }

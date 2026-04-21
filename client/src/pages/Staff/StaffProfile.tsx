@@ -3,7 +3,9 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import Modal from '../../components/ui/Modal';
 import usePageTitle from '../../hooks/usePageTitle';
-import { useGetStaffQuery } from '../../store/api/staffApi';
+import { useGetStaffQuery, useTransferStaffMutation } from '../../store/api/staffApi';
+import { useGetBranchesQuery } from '../../store/api/branchesApi';
+import { useToast } from '../../context/ToastContext';
 import api from '../../lib/api';
 
 interface StaffProfileProps {
@@ -23,8 +25,14 @@ function StaffProfile({ staffId: propStaffId, isMyprofile }: StaffProfileProps) 
     skip: !staffId,
   });
 
+  const { showToast } = useToast();
+  const { data: branches = [] } = useGetBranchesQuery();
+  const [transferStaff, { isLoading: isTransferring }] = useTransferStaffMutation();
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [transferBranchId, setTransferBranchId] = useState('');
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Not set';
@@ -33,6 +41,18 @@ function StaffProfile({ staffId: propStaffId, isMyprofile }: StaffProfileProps) 
       month: 'long',
       day: 'numeric',
     });
+  };
+
+  const handleTransfer = async () => {
+    if (!staffId || !transferBranchId) return;
+    try {
+      await transferStaff({ id: staffId, branchId: Number(transferBranchId) }).unwrap();
+      setShowTransferModal(false);
+      setTransferBranchId('');
+      showToast('success', 'Staff transferred successfully');
+    } catch {
+      showToast('error', 'Failed to transfer staff');
+    }
   };
 
   const handleDelete = async () => {
@@ -141,15 +161,23 @@ function StaffProfile({ staffId: propStaffId, isMyprofile }: StaffProfileProps) 
                 <i className="fa-solid fa-pen-to-square" />
                 Edit
               </Link>
-              <button
-                disabled
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-400 rounded-lg text-sm font-medium cursor-not-allowed"
-                title="Coming soon"
+              {!isMyprofile && (
+                <button
+                  onClick={() => setShowTransferModal(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors text-sm font-medium"
+                >
+                  <i className="fa-solid fa-right-left" />
+                  <span className="hidden sm:inline">Transfer</span>
+                </button>
+              )}
+              <Link
+                to={`/staff/${staff.id}/activities`}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
               >
                 <i className="fa-solid fa-clock-rotate-left" />
                 <span className="hidden sm:inline">View Activities</span>
                 <span className="sm:hidden">Activities</span>
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -306,6 +334,33 @@ function StaffProfile({ staffId: propStaffId, isMyprofile }: StaffProfileProps) 
           </div>
         )}
       </div>
+
+      {/* Transfer Modal */}
+      <Modal
+        isOpen={showTransferModal}
+        onClose={() => { setShowTransferModal(false); setTransferBranchId(''); }}
+        title="Transfer Staff Member"
+        leftButton={{ text: 'Cancel', onClick: () => { setShowTransferModal(false); setTransferBranchId(''); }, variant: 'secondary' }}
+        rightButton={{ text: isTransferring ? 'Transferring…' : 'Transfer', onClick: handleTransfer, variant: 'primary' }}
+      >
+        <p className="text-gray-600 mb-4">
+          Select the branch to transfer <span className="font-semibold text-gray-900">{staff.fullName}</span> to.
+          Currently at <span className="font-semibold text-gray-900">{staff.branch?.name ?? '—'}</span>.
+        </p>
+        <label className="block text-sm font-medium text-gray-700 mb-1">New Branch</label>
+        <select
+          value={transferBranchId}
+          onChange={(e) => setTransferBranchId(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          <option value="">Select a branch…</option>
+          {branches
+            .filter((b) => b.id !== staff.branch?.id)
+            .map((b) => (
+              <option key={b.id} value={b.id}>{b.name}</option>
+            ))}
+        </select>
+      </Modal>
 
       {/* Delete Confirmation Modal */}
       <Modal

@@ -7,6 +7,7 @@ import DeleteCustomerHandler from "src/application/customer/commands/delete/dele
 import SetCreditLimitHandler from "src/application/customer/commands/set-credit-limit/set-credit-limit";
 import CustomerQuery from "src/application/customer/queries/customer.query";
 import CustomerEntity from "src/infrastructure/database/entities/customer.entity";
+import SaleEntity from "src/infrastructure/database/entities/sale.entity";
 import CustomerDBRepository from "src/infrastructure/database/repositories/customer/customer.db-repository";
 import CustomerRepository from "src/infrastructure/database/repositories/customer/customer.repository";
 import CustomerController from "src/presentation/http/controllers/customer.controller";
@@ -18,7 +19,7 @@ import { RoleModule } from "../role/role.module";
 @Module({
     imports: [
         CqrsModule,
-        TypeOrmModule.forFeature([CustomerEntity]),
+        TypeOrmModule.forFeature([CustomerEntity, SaleEntity]),
         StaffModule,
         RoleModule,
     ],

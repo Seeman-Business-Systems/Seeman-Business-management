@@ -3,6 +3,7 @@ import { CqrsModule } from "@nestjs/cqrs";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import UpdateStaffHandler from "src/application/staff/commands/update/update-staff";
 import DeleteStaffHandler from "src/application/staff/commands/delete/delete-staff";
+import TransferStaffHandler from "src/application/staff/commands/transfer/transfer-staff.handler";
 import StaffQuery from "src/application/staff/queries/staff.query";
 import StaffEntity from "src/infrastructure/database/entities/staff.entity";
 import BranchEntity from "src/infrastructure/database/entities/branch.entity";
@@ -41,6 +42,7 @@ import { RoleSerialiser } from "src/presentation/serialisers/role.serialiser";
     StaffSeed,
     UpdateStaffHandler,
     DeleteStaffHandler,
+    TransferStaffHandler,
     StaffQuery,
     StaffSerialiser,
     BaseStaffSerialiser,

@@ -52,11 +52,11 @@ class ProductQuery {
 
     if (filters.brandId) {
       if (Array.isArray(filters.brandId)) {
-        query.andWhere('product.brandId IN (:...brandIds)', {
+        query.andWhere('brand.id IN (:...brandIds)', {
           brandIds: filters.brandId,
         });
       } else {
-        query.andWhere('product.brandId = :brandId', {
+        query.andWhere('brand.id = :brandId', {
           brandId: filters.brandId,
         });
       }
@@ -64,11 +64,11 @@ class ProductQuery {
 
     if (filters.categoryId) {
       if (Array.isArray(filters.categoryId)) {
-        query.andWhere('product.categoryId IN (:...categoryIds)', {
+        query.andWhere('category.id IN (:...categoryIds)', {
           categoryIds: filters.categoryId,
         });
       } else {
-        query.andWhere('product.categoryId = :categoryId', {
+        query.andWhere('category.id = :categoryId', {
           categoryId: filters.categoryId,
         });
       }
