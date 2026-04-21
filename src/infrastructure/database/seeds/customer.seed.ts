@@ -11,10 +11,10 @@ export class CustomerSeed {
     const existingCustomers: Customer[] = await this.customers.findAll();
 
     // Since you already have 2 customers, we'll only add more if there are less than 5
-    if (existingCustomers.length >= 5) {
-      console.log('Sufficient customers already exist. Skipping seed.');
-      return;
-    }
+    // if (existingCustomers.length >= 5) {
+    //   console.log('Sufficient customers already exist. Skipping seed.');
+    //   return;
+    // }
 
     const customersToAdd = 5 - existingCustomers.length;
     console.log(`Adding ${customersToAdd} additional customers...`);

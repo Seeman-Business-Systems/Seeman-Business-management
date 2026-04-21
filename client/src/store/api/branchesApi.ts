@@ -73,7 +73,7 @@ export const branchesApi = baseApi.injectEndpoints({
         method: 'POST',
         body,
       }),
-      invalidatesTags: [{ type: 'Branch', id: 'LIST' }],
+      invalidatesTags: [{ type: 'Branch', id: 'LIST' }, { type: 'Activity' }],
     }),
 
     updateBranch: builder.mutation<Branch, { id: number } & BranchFormData>({

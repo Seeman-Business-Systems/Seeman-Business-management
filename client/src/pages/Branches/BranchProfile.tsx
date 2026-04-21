@@ -130,21 +130,26 @@ function BranchProfile() {
             {/* Action Buttons */}
             <div className="flex items-center gap-2 sm:gap-3">
               <Link
+                to={`/warehouses?branchId=${branch.id}`}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+              >
+                <i className="fa-solid fa-warehouse" />
+                <span className="hidden sm:inline">View Warehouses</span>
+              </Link>
+              <Link
+                to={`/branches/${branch.id}/activities`}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+              >
+                <i className="fa-solid fa-clock-rotate-left" />
+                <span className="hidden sm:inline">View Activities</span>
+              </Link>
+              <Link
                 to={`/branches/${branch.id}/edit`}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
               >
                 <i className="fa-solid fa-pen-to-square" />
                 Edit
               </Link>
-              <button
-                disabled
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-400 rounded-lg text-sm font-medium cursor-not-allowed"
-                title="Coming soon"
-              >
-                <i className="fa-solid fa-clock-rotate-left" />
-                <span className="hidden sm:inline">View Activities</span>
-                <span className="sm:hidden">Activities</span>
-              </button>
             </div>
           </div>
         </div>

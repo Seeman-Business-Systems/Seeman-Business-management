@@ -54,7 +54,7 @@ class ReceiveBatch implements ICommandHandler<ReceiveBatchCommand> {
     const movement = new InventoryMovement(
       undefined,
       batch.getId()!,
-      InventoryMovementType.IN,
+      InventoryMovementType.OFFLOAD,
       batch.getQuantityReceived(),
       null, // orderId
       null, // fromWarehouseId (no transfer)

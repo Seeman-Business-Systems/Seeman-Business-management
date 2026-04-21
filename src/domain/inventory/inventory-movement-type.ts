@@ -1,6 +1,6 @@
 enum InventoryMovementType {
-  IN = 1,
-  OUT = 2,
+  OFFLOAD = 1,
+  SUPPLY = 2,
   ADJUST = 3,
   TRANSFER = 4,
 }

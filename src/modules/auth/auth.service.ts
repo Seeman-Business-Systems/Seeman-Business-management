@@ -157,23 +157,6 @@ class AuthService {
     await this.refreshTokens.revoke(staffRefreshToken);
   }
 
-  // async resetPassword(staffId: number, newPassword: string): Promise<Staff> {
-  //   const staff = await this.staff.findById(staffId);
-
-  //   if (!staff) throw new NotFoundException('Staff not found');
-
-  //   if (await this.passwordsMatch(newPassword, staff.getPassword())) {
-  //     throw new BadRequestException("Can't use same password as old hsgas");
-  //   }
-
-  //   staff.setInitialPasswordChanged(true);
-  //   staff.setPassword(await this.hash(newPassword));
-
-  //   this.staff.commit(staff);
-
-  //   return staff;
-  // }
-
   async forgotPassword(email: string): Promise<void> {
     const staff = await this.staff.findByEmail(email);
 

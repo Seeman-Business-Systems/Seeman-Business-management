@@ -17,10 +17,15 @@ interface SidebarProps {
 
 const menuItems: NavItem[] = [
   { name: 'Dashboard', path: '/', icon: 'fa-gauge-high' },
+  { name: 'Products', path: '/products', icon: 'fa-box' },
   { name: 'Inventory', path: '/inventory', icon: 'fa-boxes-stacked' },
   { name: 'Sales', path: '/sales', icon: 'fa-cart-shopping' },
+  { name: 'Supplies', path: '/supplies', icon: 'fa-truck-fast' },
+  { name: 'Customers', path: '/customers', icon: 'fa-users' },
+  { name: 'Expenses', path: '/expenses', icon: 'fa-money-bill-trend-up' },
+  { name: 'Activities', path: '/activities', icon: 'fa-clock-rotate-left' },
   { name: 'Reports', path: '/reports', icon: 'fa-chart-line' },
-  { name: 'Staff', path: '/staff', icon: 'fa-users' },
+  { name: 'Staff', path: '/staff', icon: 'fa-id-card' },
   { name: 'Branches', path: '/branches', icon: 'fa-code-branch' },
 ];
 
@@ -28,6 +33,7 @@ const supportItems: NavItem[] = [
   { name: 'Profile', path: '/me', icon: 'fa-user' },
   { name: 'Help', path: '/help', icon: 'fa-circle-question' },
   { name: 'Settings', path: '/settings', icon: 'fa-gear' },
+  { name: 'Report Issue', path: '/report-issue', icon: 'fa-bug' },
 ];
 
 function Sidebar({ collapsed, onToggle, isMobile = false, isOpen = false }: SidebarProps) {

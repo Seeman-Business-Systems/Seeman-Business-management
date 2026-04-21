@@ -116,7 +116,7 @@ class WarehouseController {
     const warehouse = await this.warehouses.findById(id);
 
     if (warehouse) {
-      return this.warehouseSerialiser.serialise(warehouse, true);
+      return this.warehouseSerialiser.serialise(warehouse);
     }
   }
 
@@ -125,7 +125,7 @@ class WarehouseController {
   async findAll(@Query() filters: WarehouseFilters) {
     const warehouses = await this.warehouseQuery.findBy(filters);
 
-    return this.warehouseSerialiser.serialiseMany(warehouses, true);
+    return this.warehouseSerialiser.serialiseMany(warehouses);
   }
 }
 

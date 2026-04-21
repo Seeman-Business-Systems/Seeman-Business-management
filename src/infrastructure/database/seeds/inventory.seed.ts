@@ -470,7 +470,7 @@ export class InventorySeed {
           const movement = new InventoryMovement(
             undefined,
             savedBatch.getId()!,
-            InventoryMovementType.IN,
+            InventoryMovementType.OFFLOAD,
             batchData.quantityReceived,
             null, // No order ID
             null, // fromWarehouseId (no transfer, initial inventory)

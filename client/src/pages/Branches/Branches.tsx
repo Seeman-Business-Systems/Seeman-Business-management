@@ -160,6 +160,13 @@ function Branches() {
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Branches</h1>
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
+              to="/warehouses"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm sm:text-base"
+            >
+              <i className="fa-solid fa-warehouse" />
+              <span className="hidden sm:inline">Warehouses</span>
+            </Link>
+            <Link
               to="/branches/new"
               className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm sm:text-base"
             >

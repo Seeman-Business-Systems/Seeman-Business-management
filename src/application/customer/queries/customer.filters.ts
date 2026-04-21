@@ -4,4 +4,5 @@ export interface CustomerFilters {
   email?: string;
   phoneNumber?: string;
   companyName?: string;
+  hasOutstandingBalance?: boolean | string;
 }

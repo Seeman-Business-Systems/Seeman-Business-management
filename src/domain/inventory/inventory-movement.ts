@@ -90,12 +90,12 @@ class InventoryMovement {
     this.createdAt = createdAt;
   }
 
-  isInbound(): boolean {
-    return this.type === InventoryMovementType.IN;
+  isOffload(): boolean {
+    return this.type === InventoryMovementType.OFFLOAD;
   }
 
-  isOutbound(): boolean {
-    return this.type === InventoryMovementType.OUT;
+  isSupply(): boolean {
+    return this.type === InventoryMovementType.SUPPLY;
   }
 
   isAdjustment(): boolean {

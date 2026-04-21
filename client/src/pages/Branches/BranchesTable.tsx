@@ -151,13 +151,20 @@ function BranchesTable({
                       <i className="fa-solid fa-ellipsis-vertical" />
                     </button>
                     {openMenuId === branch.id && (
-                      <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                      <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
                         <Link
                           to={`/branches/${branch.id}`}
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                         >
                           <i className="fa-solid fa-eye text-gray-400 w-4" />
                           View Details
+                        </Link>
+                        <Link
+                          to={`/branches/${branch.id}/activities`}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          <i className="fa-solid fa-clock-rotate-left text-gray-400 w-4" />
+                          View Activities
                         </Link>
                         <Link
                           to={`/staff?branchId=${branch.id}`}
@@ -321,7 +328,14 @@ function BranchesTable({
                         <i className="fa-solid fa-ellipsis-vertical" />
                       </button>
                       {openMenuId === branch.id && (
-                        <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                        <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                          <Link
+                            to={`/branches/${branch.id}/activities`}
+                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                          >
+                            <i className="fa-solid fa-clock-rotate-left text-gray-400 w-4" />
+                            View Activities
+                          </Link>
                           <Link
                             to={`/staff?branchId=${branch.id}`}
                             className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"

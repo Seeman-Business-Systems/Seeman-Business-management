@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   ParseIntPipe,
+  Patch,
   Put,
   Query,
   UseGuards,
@@ -14,11 +15,15 @@ import {
 import { CommandBus } from '@nestjs/cqrs';
 import UpdateStaffCommand from 'src/application/staff/commands/update/update-staff.command';
 import UpdateStaffValidator from 'src/application/staff/commands/update/update-staff.validator';
+import TransferStaffCommand from 'src/application/staff/commands/transfer/transfer-staff.command';
+import TransferStaffValidator from 'src/application/staff/commands/transfer/transfer-staff.validator';
 import DeleteStaffCommand from 'src/application/staff/commands/delete/delete-staff.command';
 import StaffRepository from 'src/infrastructure/database/repositories/staff/staff.repository';
 import StaffQuery from 'src/application/staff/queries/staff.query';
 import type { StaffFilters } from 'src/application/staff/queries/staff.filters';
 import JwtAuthGuard from 'src/modules/auth/guards/jwt-auth.guard';
+import Actor from 'src/modules/auth/decorators/actor.decorator';
+import Staff from 'src/domain/staff/staff';
 import { StaffSerialiser } from 'src/presentation/serialisers/staff.serialiser';
 
 @Controller('staff')
@@ -70,6 +75,18 @@ class StaffController {
     }
 
     return null;
+  }
+
+  @Patch(':id/transfer')
+  @HttpCode(HttpStatus.OK)
+  async transfer(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: TransferStaffValidator,
+    @Actor() actor: Staff,
+  ) {
+    const command = new TransferStaffCommand(id, dto.branchId, actor.getId());
+    const staff = await this.commandBus.execute(command);
+    return this.staffSerialiser.serialise(staff);
   }
 
   @Delete()

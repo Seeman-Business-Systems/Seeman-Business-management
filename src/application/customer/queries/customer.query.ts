@@ -51,6 +51,17 @@ class CustomerQuery {
       }
     }
 
+    if (filters.hasOutstandingBalance === true || filters.hasOutstandingBalance === 'true') {
+      query.andWhere(`(
+        SELECT COALESCE(SUM(s.total_amount), 0) - COALESCE(SUM(p.amount), 0)
+        FROM sales s
+        LEFT JOIN sale_payments p ON p.sale_id = s.id
+        WHERE s.customer_id = customer.id
+          AND s.status != 'CANCELLED'
+          AND s.deleted_at IS NULL
+      ) > 0`);
+    }
+
     const records = await query.getMany();
 
     return records.map((entity) => this.customerRepo.toDomain(entity));
