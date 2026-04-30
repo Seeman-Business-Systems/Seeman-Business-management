@@ -15,6 +15,7 @@ import StaffRepository from 'src/infrastructure/database/repositories/staff/staf
 import RefreshTokenRepository from 'src/infrastructure/database/repositories/token/refresh-token.repository';
 import PasswordResetTokenRepository from 'src/infrastructure/database/repositories/token/password-reset-token.repository';
 import PasswordResetMailer from 'src/mailers/auth/password-reset/password-reset.mailer';
+import WelcomeMailer from 'src/mailers/auth/welcome/welcome.mailer';
 
 @Injectable()
 class AuthService {
@@ -23,6 +24,7 @@ class AuthService {
     private refreshTokens: RefreshTokenRepository,
     private passwordResetTokens: PasswordResetTokenRepository,
     private passwordResetMailer: PasswordResetMailer,
+    private welcomeMailer: WelcomeMailer,
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {}
@@ -32,7 +34,7 @@ class AuthService {
    */
   async register(
     staffData: Partial<Staff>,
-  ): Promise<{ accessToken: string; refreshToken: string; staff: Staff }> {
+  ): Promise<{ staff: Staff }> {
     if (await this.isExistingUser(staffData.phoneNumber!, staffData?.email)) {
       throw new BadRequestException(
         'User with provided phone number or email already exists',
@@ -59,12 +61,11 @@ class AuthService {
 
     const savedStaff = await this.staff.commit(newStaff);
 
-    const tokens = await this.generateTokens(savedStaff);
+    if (savedStaff.email) {
+      await this.sendWelcomeEmail(savedStaff);
+    }
 
-    return {
-      ...tokens,
-      staff: savedStaff,
-    };
+    return { staff: savedStaff };
   }
 
   /**
@@ -88,6 +89,12 @@ class AuthService {
 
     if (!await this.passwordsMatch(password, staff.getPassword())) {
       throw new UnauthorizedException('Invalid email/phone or password');
+    }
+
+    if (!staff.initialPasswordChanged) {
+      throw new UnauthorizedException(
+        'Account setup incomplete. Please check your email for the setup link.',
+      );
     }
 
     const tokens = await this.generateTokens(staff);
@@ -227,6 +234,21 @@ class AuthService {
     await this.passwordResetTokens.markAsUsed(token);
   }
 
+  async impersonate(targetStaffId: number): Promise<{ accessToken: string; staff: Staff }> {
+    const target = await this.staff.findById(targetStaffId);
+    if (!target) throw new NotFoundException('Staff not found');
+
+    const payload = {
+      sub: target.getId(),
+      phoneNumber: target.getPhoneNumber(),
+      email: target.getEmail(),
+      isImpersonation: true,
+    };
+
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '2h' });
+    return { accessToken, staff: target };
+  }
+
   private async genInitialPassword(): Promise<string> {
     const chars = this.configService.get<string>(
       'INITIAL_PASSWORD_CHARS',
@@ -255,6 +277,20 @@ class AuthService {
       (email && (await this.staff.findByEmail(email)));
 
     return !!staff;
+  }
+
+  private async sendWelcomeEmail(staff: Staff): Promise<void> {
+    await this.passwordResetTokens.invalidateAllForStaff(staff.getId()!);
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 30);
+
+    await this.passwordResetTokens.commit(
+      new PasswordResetToken(undefined, token, staff.getId()!, expiresAt, new Date(), undefined),
+    );
+
+    await this.welcomeMailer.send(staff.email!, token, staff.getFirstName());
   }
 
   private async hash(password: string): Promise<string> {

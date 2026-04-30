@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import Layout from '../../components/layout/Layout';
 import Modal from '../../components/ui/Modal';
 import ProductsTable from './ProductsTable';
@@ -23,6 +24,7 @@ const tabs: { key: TabType; label: string; type?: ProductType }[] = [
 
 function Products() {
   usePageTitle('Products');
+  const { can } = useAuth();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const { showToast } = useToast();
@@ -175,21 +177,25 @@ function Products() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Products</h1>
           <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              onClick={() => setShowBrandsModal(true)}
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm sm:text-base cursor-pointer"
-            >
-              <i className="fa-solid fa-tag" />
-              <span className="hidden sm:inline">Manage Brands</span>
-              <span className="sm:hidden">Brands</span>
-            </button>
-            <Link
-              to={getAddProductUrl()}
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm sm:text-base"
-            >
-              <i className="fa-solid fa-plus" />
-              <span>Add Product</span>
-            </Link>
+            {can('brand:manage') && (
+              <button
+                onClick={() => setShowBrandsModal(true)}
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm sm:text-base cursor-pointer"
+              >
+                <i className="fa-solid fa-tag" />
+                <span className="hidden sm:inline">Manage Brands</span>
+                <span className="sm:hidden">Brands</span>
+              </button>
+            )}
+            {can('product:create') && (
+              <Link
+                to={getAddProductUrl()}
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm sm:text-base"
+              >
+                <i className="fa-solid fa-plus" />
+                <span>Add Product</span>
+              </Link>
+            )}
           </div>
         </div>
 

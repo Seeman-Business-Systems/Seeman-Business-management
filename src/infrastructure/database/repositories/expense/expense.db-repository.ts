@@ -36,7 +36,7 @@ class ExpenseDBRepository extends ExpenseRepository {
   }
 
   async delete(id: number): Promise<void> {
-    await this.repository.delete(id);
+    await this.repository.softDelete(id);
   }
 
   toDomain(entity: ExpenseEntity): Expense {

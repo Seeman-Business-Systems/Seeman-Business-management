@@ -30,6 +30,7 @@ export class StaffSerialiser {
       middleName: staff.getMiddleName(),
       fullName: staff.getFullName(),
       joinedAt: staff.getJoinedAt(),
+      lastLoginAt: staff.getLastLoginAt() ?? null,
       createdAt: staff.getCreatedAt(),
       updatedAt: staff.getUpdatedAt(),
     };

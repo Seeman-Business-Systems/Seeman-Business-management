@@ -6,6 +6,7 @@ import {
   Post,
   Get,
   Delete,
+  Patch,
   Param,
   ParseIntPipe,
   UseGuards,
@@ -14,6 +15,8 @@ import {
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import JwtAuthGuard from 'src/modules/auth/guards/jwt-auth.guard';
+import { RequirePermission } from 'src/modules/auth/decorators/role-guard.decorator';
+import { Permission } from 'src/domain/permission/permission';
 import Actor from 'src/modules/auth/decorators/actor.decorator';
 import Staff from 'src/domain/staff/staff';
 import CreateSaleCommand from 'src/application/sale/commands/create-sale/create-sale.command';
@@ -21,6 +24,8 @@ import CreateSaleValidator from 'src/application/sale/commands/create-sale/creat
 import RecordSalePaymentCommand from 'src/application/sale/commands/record-payment/record-payment.command';
 import RecordSalePaymentValidator from 'src/application/sale/commands/record-payment/record-payment.validator';
 import CancelSaleCommand from 'src/application/sale/commands/cancel-sale/cancel-sale.command';
+import UpdateSaleCommand from 'src/application/sale/commands/update-sale/update-sale.command';
+import UpdateSaleValidator from 'src/application/sale/commands/update-sale/update-sale.validator';
 import SaleQuery from 'src/application/sale/queries/sale.query';
 import type { SaleFilters } from 'src/application/sale/queries/sale.filters';
 import SaleSerialiser from 'src/presentation/serialisers/sale.serialiser';
@@ -36,6 +41,7 @@ class SaleController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(Permission.SALE_CREATE)
   async create(
     @Body() dto: CreateSaleValidator,
     @Actor() actor: Staff,
@@ -57,6 +63,7 @@ class SaleController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.SALE_READ)
   async findAll(@Query() filters: SaleFilters) {
     const result = await this.saleQuery.findBy({
       ...filters,
@@ -69,6 +76,7 @@ class SaleController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.SALE_READ)
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const sale = await this.saleQuery.findById(id);
 
@@ -81,6 +89,7 @@ class SaleController {
 
   @Post(':id/payments')
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(Permission.PAYMENT_RECORD)
   async recordPayment(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: RecordSalePaymentValidator,
@@ -100,8 +109,28 @@ class SaleController {
     return this.saleSerialiser.serialisePayment(payment);
   }
 
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.SALE_UPDATE)
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateSaleValidator,
+  ) {
+    const command = new UpdateSaleCommand(
+      id,
+      dto.notes,
+      dto.paymentMethod,
+      dto.status,
+    );
+
+    const sale = await this.commandBus.execute(command);
+
+    return this.saleSerialiser.serialise(sale);
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.SALE_CANCEL)
   async cancel(@Param('id', ParseIntPipe) id: number, @Actor() actor: Staff) {
     const command = new CancelSaleCommand(id, actor.getId()!);
 

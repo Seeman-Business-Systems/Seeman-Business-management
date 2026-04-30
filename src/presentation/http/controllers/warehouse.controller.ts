@@ -28,9 +28,11 @@ import WarehouseRepository from 'src/infrastructure/database/repositories/wareho
 import WarehouseQuery from 'src/application/warehouse/queries/warehouse.query';
 import type { WarehouseFilters } from 'src/application/warehouse/queries/warehouse.filters';
 import WarehouseSerialiser from 'src/presentation/serialisers/warehouse.serialiser';
+import { RequirePermission } from 'src/modules/auth/decorators/role-guard.decorator';
+import { Permission } from 'src/domain/permission/permission';
 
 @Controller('warehouses')
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 class WarehouseController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -40,7 +42,8 @@ class WarehouseController {
   ) {}
 
   @Post()
-  @HttpCode(HttpStatus.CREATED) 
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(Permission.WAREHOUSE_CREATE)
   async create(
     @Body() dto: CreateWarehouseValidator,
     @Actor() actor: Staff,
@@ -66,6 +69,7 @@ class WarehouseController {
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.WAREHOUSE_UPDATE)
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateWarehouseValidator,
@@ -91,6 +95,7 @@ class WarehouseController {
 
   @Post(':id/assign')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.WAREHOUSE_UPDATE)
   async assignToStaff(
     @Param('id', ParseIntPipe) warehouseId: number,
     @Body('staffId', ParseIntPipe) staffId: number,
@@ -104,6 +109,7 @@ class WarehouseController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @RequirePermission(Permission.WAREHOUSE_UPDATE)
   async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
     const command = new DeleteWarehouseCommand(id);
 
@@ -112,6 +118,7 @@ class WarehouseController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.WAREHOUSE_READ)
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const warehouse = await this.warehouses.findById(id);
 
@@ -122,6 +129,7 @@ class WarehouseController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.WAREHOUSE_READ)
   async findAll(@Query() filters: WarehouseFilters) {
     const warehouses = await this.warehouseQuery.findBy(filters);
 

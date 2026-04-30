@@ -226,8 +226,8 @@ function CustomerProfile() {
             )}
           </div>
 
-          {/* Right: Purchase history */}
-          <div className="lg:col-span-2">
+          {/* Right: Purchase history + Reservations */}
+          <div className="lg:col-span-2 space-y-4">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="px-4 py-3 border-b border-gray-200">
                 <h2 className="text-sm font-semibold text-gray-700">
@@ -284,9 +284,11 @@ function CustomerProfile() {
                             </span>
                           </td>
                           <td className="px-4 py-3 text-center">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${paymentStyles[sale.paymentStatus]}`}>
-                              {sale.paymentStatus.charAt(0) + sale.paymentStatus.slice(1).toLowerCase()}
-                            </span>
+                            {sale.paymentStatus && (
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${paymentStyles[sale.paymentStatus]}`}>
+                                {sale.paymentStatus.charAt(0) + sale.paymentStatus.slice(1).toLowerCase()}
+                              </span>
+                            )}
                           </td>
                         </tr>
                       ))}

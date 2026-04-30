@@ -5,6 +5,8 @@ export interface SupplyItem {
   variantId: number;
   variantName: string | null;
   quantity: number;
+  warehouseId: number | null;
+  warehouseName: string | null;
 }
 
 export interface Supply {

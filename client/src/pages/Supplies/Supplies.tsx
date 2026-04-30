@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import Modal from '../../components/ui/Modal';
 import usePageTitle from '../../hooks/usePageTitle';
@@ -23,16 +23,28 @@ const statusStyles: Record<SupplyStatus, string> = {
   CANCELLED:  'bg-red-100 text-red-800',
 };
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
 function Supplies() {
   usePageTitle('Supplies');
 
-  const [activeTab, setActiveTab] = useState<TabKey>('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<TabKey>(
+    (searchParams.get('status') as TabKey) ?? 'all',
+  );
+
+  useEffect(() => {
+    if (searchParams.has('status')) {
+      searchParams.delete('status');
+      setSearchParams(searchParams, { replace: true });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => { setCurrentPage(1); }, [activeTab, selectedBranch, dateFrom, dateTo]);
 
@@ -44,23 +56,27 @@ function Supplies() {
   const handleFulfilConfirm = async () => {
     if (!pendingFulfil) return;
     try {
-      await fulfilSupply({ id: pendingFulfil.id, notes: fulfilNotes || undefined }).unwrap();
+      const fulfilled = pendingFulfil;
+      await fulfilSupply({ id: fulfilled.id, notes: fulfilNotes || undefined }).unwrap();
       setPendingFulfil(null);
       setFulfilNotes('');
       showToast('success', 'Supply marked as fulfilled');
+      if (fulfilled.saleId) {
+        showToast('info', `Sale ${fulfilled.saleNumber} has been fulfilled automatically`);
+      }
     } catch {
       showToast('error', 'Failed to fulfil supply');
     }
   };
 
-  const skip = (currentPage - 1) * PAGE_SIZE;
+  const skip = (currentPage - 1) * pageSize;
 
   const { data, isLoading, isFetching } = useGetSuppliesQuery({
     status: activeTab !== 'all' ? activeTab : undefined,
     branchId: selectedBranch !== 'all' ? Number(selectedBranch) : undefined,
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
-    take: PAGE_SIZE,
+    take: pageSize,
     skip,
   });
 
@@ -68,7 +84,7 @@ function Supplies() {
 
   const supplies = data?.data ?? [];
   const total = data?.total ?? 0;
-  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const totalPages = Math.ceil(total / pageSize);
 
   const formatDate = (s: string) =>
     new Date(s).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -170,8 +186,23 @@ function Supplies() {
             </div>
           ) : (
             <>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+                <p className="text-sm text-gray-600">
+                  Showing {total > 0 ? skip + 1 : 0}–{Math.min(skip + pageSize, total)} of {total} supplies
+                </p>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Results per page:</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
+                    className="appearance-none px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white cursor-pointer"
+                  >
+                    {PAGE_SIZE_OPTIONS.map((n) => <option key={n} value={n}>{n}</option>)}
+                  </select>
+                </div>
+              </div>
               {/* Desktop table */}
-              <div className="hidden md:block overflow-x-auto">
+              <div className="hidden md:block overflow-x-clip">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-100">
@@ -225,23 +256,33 @@ function Supplies() {
                         <td className="px-6 py-4 text-sm text-gray-500">
                           {formatDate(supply.createdAt)}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-4 whitespace-nowrap">
                           <div className="flex items-center justify-end gap-2">
                             {supply.status === 'DRAFT' && (
-                              <button
-                                onClick={() => setPendingFulfil(supply)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors text-xs font-medium"
-                              >
-                                <i className="fa-solid fa-circle-check" />
-                                Fulfil
-                              </button>
+                              <div className="relative group inline-flex">
+                                <button
+                                  onClick={() => setPendingFulfil(supply)}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors text-xs font-medium cursor-pointer"
+                                >
+                                  <i className="fa-solid fa-circle-check" />
+                                  Fulfil
+                                </button>
+                                <div className="absolute bottom-full right-0 mb-1.5 bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                                  Mark as Fulfilled
+                                </div>
+                              </div>
                             )}
-                            <Link
-                              to={`/supplies/${supply.id}`}
-                              className="text-gray-400 hover:text-indigo-600 transition-colors cursor-pointer"
-                            >
-                              <i className="fa-solid fa-chevron-right" />
-                            </Link>
+                            <div className="relative group inline-flex">
+                              <Link
+                                to={`/supplies/${supply.id}`}
+                                className="text-gray-400 hover:text-indigo-600 transition-colors cursor-pointer"
+                              >
+                                <i className="fa-solid fa-chevron-right" />
+                              </Link>
+                              <div className="absolute bottom-full right-0 mb-1.5 bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                                View details
+                              </div>
+                            </div>
                           </div>
                         </td>
                       </tr>
@@ -286,7 +327,7 @@ function Supplies() {
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {totalPages > 0 && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
             <div className="flex items-center justify-between gap-4">
               <button
@@ -315,7 +356,7 @@ function Supplies() {
               </div>
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
+                disabled={currentPage === totalPages || totalPages === 0}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next <i className="fa-solid fa-arrow-right" />

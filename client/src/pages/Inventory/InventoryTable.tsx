@@ -242,7 +242,7 @@ function InventoryTable({
                       {record.variant?.sellingPrice != null ? formatPrice(record.variant.sellingPrice) : '—'}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="py-4">
                     {record.isLowInventory ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
                         <i className="fa-solid fa-triangle-exclamation" />

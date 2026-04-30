@@ -10,6 +10,8 @@ import JwtAuthGuard from 'src/modules/auth/guards/jwt-auth.guard';
 import ActivityQuery from 'src/application/activity/queries/activity.query';
 import type ActivityFilters from 'src/application/activity/queries/activity.filters';
 import ActivitySerialiser from 'src/presentation/serialisers/activity.serialiser';
+import { RequirePermission } from 'src/modules/auth/decorators/role-guard.decorator';
+import { Permission } from 'src/domain/permission/permission';
 
 @Controller('activities')
 @UseGuards(JwtAuthGuard)
@@ -21,6 +23,7 @@ class ActivityController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.ACTIVITY_READ)
   async findAll(@Query() filters: ActivityFilters) {
     const result = await this.activityQuery.findBy({
       ...filters,

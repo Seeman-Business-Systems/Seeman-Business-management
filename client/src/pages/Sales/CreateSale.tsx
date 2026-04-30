@@ -6,6 +6,8 @@ import { useGetProductsQuery } from '../../store/api/productsApi';
 import { useGetBranchesQuery } from '../../store/api/branchesApi';
 import { useCreateSaleMutation } from '../../store/api/salesApi';
 import { useGetCustomersQuery } from '../../store/api/customersApi';
+import { useLazyGetInventoryQuery } from '../../store/api/inventoryApi';
+import type { InventoryRecord } from '../../types/inventory';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { PaymentMethod } from '../../types/sale';
@@ -38,8 +40,8 @@ function CreateSale() {
   const { user } = useAuth();
 
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [selectedBranch, setSelectedBranch] = useState<string>('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.CASH);
+  const [selectedBranch, setSelectedBranch] = useState<string>(() => user?.branch?.id ? String(user.branch.id) : '');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | ''>('');
   const [saleDiscount, setSaleDiscount] = useState('');
   const [notes, setNotes] = useState('');
   const [variantSearch, setVariantSearch] = useState('');
@@ -47,6 +49,7 @@ function CreateSale() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [customerSearch, setCustomerSearch] = useState('');
   const [showCustomerSearch, setShowCustomerSearch] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const customerRef = useRef<HTMLDivElement>(null);
 
   const { data: products = [] } = useGetProductsQuery({ includeRelations: true });
@@ -55,13 +58,23 @@ function CreateSale() {
     customerSearch.trim() ? { name: customerSearch.trim() } : undefined
   );
   const [createSale, { isLoading }] = useCreateSaleMutation();
+  const [fetchInventory] = useLazyGetInventoryQuery();
 
-  // Set default branch from user's branch
+  // variantId → total available quantity across all warehouses
+  const [stockMap, setStockMap] = useState<Record<number, number>>({});
+
   useEffect(() => {
-    if (user?.branch?.id && !selectedBranch) {
-      setSelectedBranch(String(user.branch.id));
-    }
-  }, [user?.branch?.id]);
+    fetchInventory(undefined)
+      .unwrap()
+      .then((records) => {
+        const map: Record<number, number> = {};
+        for (const r of records) {
+          map[r.variantId] = (map[r.variantId] ?? 0) + r.availableQuantity;
+        }
+        setStockMap(map);
+      })
+      .catch(() => {});
+  }, [fetchInventory]);
 
   // Flatten all variants with product info
   const allVariants: (ProductVariant & { productName: string })[] = useMemo(() => {
@@ -88,6 +101,23 @@ function CreateSale() {
   }, [allVariants, variantSearch]);
 
   const addToCart = (variant: ProductVariant & { productName: string }) => {
+    const available = stockMap[variant.id] ?? 0;
+    const inCart = cart.find((item) => item.variantId === variant.id)?.quantity ?? 0;
+
+    if (available <= 0) {
+      showToast('error', `"${variant.variantName}" is out of stock.`);
+      setVariantSearch('');
+      setShowVariantSearch(false);
+      return;
+    }
+
+    if (inCart >= available) {
+      showToast('warning', `Only ${available} unit${available === 1 ? '' : 's'} available for "${variant.variantName}".`);
+      setVariantSearch('');
+      setShowVariantSearch(false);
+      return;
+    }
+
     const existing = cart.find((item) => item.variantId === variant.id);
     if (existing) {
       setCart((prev) =>
@@ -134,12 +164,24 @@ function CreateSale() {
   const totalAmount = subtotal - discountAmount;
 
   const handleSubmit = async () => {
+    setFormError(null);
+
     if (!selectedBranch) {
-      showToast('error', 'Please select a branch');
+      setFormError('Please select a branch before recording the sale.');
       return;
     }
     if (cart.length === 0) {
-      showToast('error', 'Please add at least one item');
+      setFormError('Please add at least one item to the cart.');
+      return;
+    }
+    const zeroPrice = cart.find((item) => item.unitPrice <= 0);
+    if (zeroPrice) {
+      setFormError(`"${zeroPrice.variantName}" has no unit price set. Please enter a price greater than 0.`);
+      return;
+    }
+    const zeroQty = cart.find((item) => item.quantity <= 0);
+    if (zeroQty) {
+      setFormError(`"${zeroQty.variantName}" has an invalid quantity. Please enter at least 1.`);
       return;
     }
 
@@ -153,7 +195,7 @@ function CreateSale() {
     try {
       const sale = await createSale({
         branchId: Number(selectedBranch),
-        paymentMethod,
+        paymentMethod: paymentMethod || null,
         lineItems,
         customerId: selectedCustomer?.id,
         discountAmount: discountAmount || undefined,
@@ -161,9 +203,24 @@ function CreateSale() {
       }).unwrap();
 
       showToast('success', `Sale ${sale.saleNumber} recorded successfully`);
+
+      const soldVariantIds = new Set(cart.map((item) => item.variantId));
+      const { data: lowStockRecords } = await fetchInventory({ lowInventory: true });
+      if (lowStockRecords) {
+        const lowSoldItems = lowStockRecords.filter((r: InventoryRecord) => soldVariantIds.has(r.variantId));
+        for (const record of lowSoldItems) {
+          const name = record.variant?.variantName ?? `Variant #${record.variantId}`;
+          showToast('warning', `Stock for "${name}" is running low — consider restocking`);
+        }
+      }
+
       navigate(`/sales/${sale.id}`);
-    } catch {
-      showToast('error', 'Failed to record sale');
+    } catch (err: unknown) {
+      const apiMessage =
+        err && typeof err === 'object' && 'data' in err
+          ? (err as { data?: { message?: string } }).data?.message
+          : null;
+      setFormError(typeof apiMessage === 'string' ? apiMessage : 'Failed to record sale. Please check the form and try again.');
     }
   };
 
@@ -198,6 +255,7 @@ function CreateSale() {
                     setShowVariantSearch(true);
                   }}
                   onFocus={() => setShowVariantSearch(true)}
+                  onBlur={() => setTimeout(() => setShowVariantSearch(false), 150)}
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent"
                 />
                 {showVariantSearch && filteredVariants.length > 0 && (
@@ -205,7 +263,7 @@ function CreateSale() {
                     {filteredVariants.map((v) => (
                       <button
                         key={v.id}
-                        onClick={() => addToCart(v)}
+                        onMouseDown={() => addToCart(v)}
                         className="w-full px-4 py-3 text-left hover:bg-indigo-50 flex items-center justify-between gap-2 border-b border-gray-50 last:border-0 cursor-pointer"
                       >
                         <div>
@@ -265,20 +323,20 @@ function CreateSale() {
                         <div>
                           <label className="block text-xs text-gray-500 mb-1">Unit Price</label>
                           <input
-                            type="number"
-                            min="0"
-                            value={item.unitPrice}
-                            onChange={(e) => updateCartItem(item.variantId, 'unitPrice', Number(e.target.value))}
+                            type="text"
+                            inputMode="numeric"
+                            value={item.unitPrice === 0 ? '' : item.unitPrice.toLocaleString('en-NG')}
+                            onChange={(e) => { const n = Number(e.target.value.replace(/,/g, '')); if (!isNaN(n)) updateCartItem(item.variantId, 'unitPrice', n); }}
                             className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
                           />
                         </div>
                         <div>
                           <label className="block text-xs text-gray-500 mb-1">Discount</label>
                           <input
-                            type="number"
-                            min="0"
-                            value={item.discountAmount}
-                            onChange={(e) => updateCartItem(item.variantId, 'discountAmount', Number(e.target.value))}
+                            type="text"
+                            inputMode="numeric"
+                            value={item.discountAmount === 0 ? '' : item.discountAmount.toLocaleString('en-NG')}
+                            onChange={(e) => { const n = Number(e.target.value.replace(/,/g, '')); if (!isNaN(n)) updateCartItem(item.variantId, 'discountAmount', n); }}
                             className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
                           />
                         </div>
@@ -297,6 +355,14 @@ function CreateSale() {
 
           {/* Right: Summary & Payment */}
           <div className="space-y-4">
+            {/* Validation error */}
+            {formError && (
+              <div className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
+                <i className="fa-solid fa-circle-exclamation mt-0.5 flex-shrink-0" />
+                <span>{formError}</span>
+              </div>
+            )}
+
             {/* Sale settings */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-4">
               <h2 className="text-sm font-semibold text-gray-700">Sale Details</h2>
@@ -371,14 +437,15 @@ function CreateSale() {
               {/* Payment method */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Payment Method <span className="text-red-500">*</span>
+                  Payment Method <span className="text-gray-400 font-normal">(optional)</span>
                 </label>
                 <div className="relative">
                   <select
                     value={paymentMethod}
-                    onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
+                    onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod | '')}
                     className="w-full appearance-none pl-9 pr-8 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white cursor-pointer"
                   >
+                    <option value="">— Not specified —</option>
                     <option value={PaymentMethod.CASH}>Cash</option>
                     <option value={PaymentMethod.CARD}>Card</option>
                     <option value={PaymentMethod.TRANSFER}>Transfer</option>
@@ -395,10 +462,13 @@ function CreateSale() {
                   Sale Discount <span className="text-gray-400 font-normal">(optional)</span>
                 </label>
                 <input
-                  type="number"
-                  min="0"
-                  value={saleDiscount}
-                  onChange={(e) => setSaleDiscount(e.target.value)}
+                  type="text"
+                  inputMode="numeric"
+                  value={saleDiscount ? Number(saleDiscount).toLocaleString('en-NG') : ''}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/,/g, '');
+                    if (raw === '' || !isNaN(Number(raw))) setSaleDiscount(raw);
+                  }}
                   placeholder="0"
                   className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 />

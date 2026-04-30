@@ -41,8 +41,8 @@ export interface Sale {
   id: number;
   saleNumber: string;
   status: SaleStatus;
-  paymentStatus: PaymentStatus;
-  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus | null;
+  paymentMethod: PaymentMethod | null;
   subtotal: number;
   discountAmount: number;
   totalAmount: number;
@@ -67,7 +67,7 @@ export interface CreateSaleLineItemRequest {
 export interface CreateSaleRequest {
   customerId?: number;
   branchId: number;
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethod | null;
   discountAmount?: number;
   notes?: string;
   lineItems: CreateSaleLineItemRequest[];

@@ -50,11 +50,11 @@ class SaleEntity {
   @Column({ type: 'enum', enum: SaleStatus, default: SaleStatus.FULFILLED })
   status: SaleStatus;
 
-  @Column({ type: 'enum', enum: PaymentStatus, name: 'payment_status', default: PaymentStatus.PENDING })
-  paymentStatus: PaymentStatus;
+  @Column({ type: 'enum', enum: PaymentStatus, name: 'payment_status', nullable: true, default: PaymentStatus.PENDING })
+  paymentStatus: PaymentStatus | null;
 
-  @Column({ type: 'enum', enum: PaymentMethod, name: 'payment_method' })
-  paymentMethod: PaymentMethod;
+  @Column({ type: 'enum', enum: PaymentMethod, name: 'payment_method', nullable: true })
+  paymentMethod: PaymentMethod | null;
 
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   subtotal: number;

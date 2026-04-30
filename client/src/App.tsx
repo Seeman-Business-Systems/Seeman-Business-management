@@ -22,8 +22,11 @@ import { Warehouses, WarehouseProfile, WarehouseActivities, CreateWarehouse, Edi
 import { Sales, CreateSale, SaleDetail, SaleReceipt } from './pages/Sales';
 import { Supplies, SupplyDetail } from './pages/Supplies';
 import { Customers, CustomerProfile } from './pages/Customers';
+import { Reservations, ReservationDetail } from './pages/Reservations';
 import { Activities } from './pages/Activities';
 import { Expenses } from './pages/Expenses';
+import { SystemSettings } from './pages/SystemSettings';
+import ImpersonationBanner from './components/ImpersonationBanner';
 
 function NotFound() {
   return (
@@ -41,6 +44,7 @@ function App() {
     <AuthProvider>
       <ToastProvider>
         <ToastContainer />
+        <ImpersonationBanner />
         <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -314,6 +318,30 @@ function App() {
           element={
             <ProtectedRoute>
               <Activities />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reservations"
+          element={
+            <ProtectedRoute>
+              <Reservations />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reservations/:id"
+          element={
+            <ProtectedRoute>
+              <ReservationDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/system-settings"
+          element={
+            <ProtectedRoute>
+              <SystemSettings />
             </ProtectedRoute>
           }
         />

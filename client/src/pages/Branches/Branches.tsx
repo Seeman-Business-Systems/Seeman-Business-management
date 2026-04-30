@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import Layout from '../../components/layout/Layout';
 import Modal from '../../components/ui/Modal';
 import BranchesTable from './BranchesTable';
@@ -14,7 +15,7 @@ import { useToast } from '../../context/ToastContext';
 
 function Branches() {
   usePageTitle('Branches');
-
+  const { can } = useAuth();
   const { showToast } = useToast();
 
   // Filters
@@ -166,13 +167,15 @@ function Branches() {
               <i className="fa-solid fa-warehouse" />
               <span className="hidden sm:inline">Warehouses</span>
             </Link>
-            <Link
-              to="/branches/new"
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm sm:text-base"
-            >
-              <i className="fa-solid fa-plus" />
-              <span>Add Branch</span>
-            </Link>
+            {can('branch:create') && (
+              <Link
+                to="/branches/new"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm sm:text-base"
+              >
+                <i className="fa-solid fa-plus" />
+                <span>Add Branch</span>
+              </Link>
+            )}
           </div>
         </div>
 

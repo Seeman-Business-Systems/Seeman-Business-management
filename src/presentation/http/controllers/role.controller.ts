@@ -26,6 +26,8 @@ import RoleRepository from 'src/infrastructure/database/repositories/role/role.r
 import Actor from 'src/modules/auth/decorators/actor.decorator';
 import JwtAuthGuard from 'src/modules/auth/guards/jwt-auth.guard';
 import { RoleSerialiser } from 'src/presentation/serialisers/role.serialiser';
+import { RequirePermission } from 'src/modules/auth/decorators/role-guard.decorator';
+import { Permission } from 'src/domain/permission/permission';
 
 const ROLES_CACHE_KEY = 'all_roles';
 
@@ -41,6 +43,7 @@ class RoleController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(Permission.ROLE_MANAGE)
   async create(@Body() dto: CreateRoleValidator, @Actor() actor: Staff) {
     const command = new CreateRoleCommand(
       dto.name,
@@ -55,6 +58,7 @@ class RoleController {
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.ROLE_MANAGE)
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateRoleValidator,
@@ -68,6 +72,7 @@ class RoleController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @RequirePermission(Permission.ROLE_MANAGE)
   async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
     const command = new DeleteRoleCommand(id);
 
@@ -77,6 +82,7 @@ class RoleController {
 
   @Delete()
   @HttpCode(HttpStatus.NO_CONTENT)
+  @RequirePermission(Permission.ROLE_MANAGE)
   async deleteMany(@Body('ids') ids: number[]): Promise<void> {
     await Promise.all(
       ids.map((id) => this.commandBus.execute(new DeleteRoleCommand(id))),
@@ -86,6 +92,7 @@ class RoleController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.ROLE_READ)
   async getRole(@Param('id', ParseIntPipe) id: number) {
     const role = await this.roles.findByIdOrName(id, undefined);
     if (role) {
@@ -96,6 +103,7 @@ class RoleController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.ROLE_READ)
   async getAllRoles() {
     const cached = await this.cacheManager.get(ROLES_CACHE_KEY);
     if (cached) {

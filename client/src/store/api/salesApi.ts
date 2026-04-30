@@ -8,6 +8,12 @@ import type {
   PaginatedSalesResponse,
 } from '../../types/sale';
 
+interface UpdateSaleRequest {
+  notes?: string | null;
+  paymentMethod?: string | null;
+  status?: string;
+}
+
 export const salesApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getSales: builder.query<PaginatedSalesResponse, SaleFilters | void>({
@@ -68,6 +74,18 @@ export const salesApi = baseApi.injectEndpoints({
       ],
     }),
 
+    updateSale: builder.mutation<Sale, { id: number; data: UpdateSaleRequest }>({
+      query: ({ id, data }) => ({
+        url: `/sales/${id}`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Sale', id },
+        { type: 'Sale', id: 'LIST' },
+      ],
+    }),
+
     cancelSale: builder.mutation<Sale, number>({
       query: (id) => ({
         url: `/sales/${id}`,
@@ -89,6 +107,7 @@ export const {
   useGetSalesQuery,
   useGetSaleQuery,
   useCreateSaleMutation,
+  useUpdateSaleMutation,
   useRecordPaymentMutation,
   useCancelSaleMutation,
 } = salesApi;

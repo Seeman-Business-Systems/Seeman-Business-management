@@ -27,6 +27,12 @@ class Expense {
   getCreatedAt(): Date { return this.createdAt; }
   getUpdatedAt(): Date { return this.updatedAt; }
 
+  setAmount(amount: number): void { this.amount = amount; }
+  setCategory(category: ExpenseCategory): void { this.category = category; }
+  setDescription(description: string): void { this.description = description; }
+  setBranchId(branchId: number): void { this.branchId = branchId; }
+  setDate(date: Date): void { this.date = date; }
+  setNotes(notes: string | null): void { this.notes = notes; }
   setUpdatedAt(updatedAt: Date): void { this.updatedAt = updatedAt; }
 }
 

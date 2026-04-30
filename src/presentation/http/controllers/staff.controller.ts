@@ -22,6 +22,8 @@ import StaffRepository from 'src/infrastructure/database/repositories/staff/staf
 import StaffQuery from 'src/application/staff/queries/staff.query';
 import type { StaffFilters } from 'src/application/staff/queries/staff.filters';
 import JwtAuthGuard from 'src/modules/auth/guards/jwt-auth.guard';
+import { RequirePermission } from 'src/modules/auth/decorators/role-guard.decorator';
+import { Permission } from 'src/domain/permission/permission';
 import Actor from 'src/modules/auth/decorators/actor.decorator';
 import Staff from 'src/domain/staff/staff';
 import { StaffSerialiser } from 'src/presentation/serialisers/staff.serialiser';
@@ -38,6 +40,7 @@ class StaffController {
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.STAFF_CREATE)
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateStaffValidator,
@@ -60,6 +63,7 @@ class StaffController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @RequirePermission(Permission.STAFF_DELETE)
   async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
     const command = new DeleteStaffCommand(id);
     await this.commandBus.execute(command);
@@ -67,6 +71,7 @@ class StaffController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.STAFF_READ)
   async getStaff(@Param('id', ParseIntPipe) id: number) {
     const staff = await this.staff.findById(id);
 
@@ -79,6 +84,7 @@ class StaffController {
 
   @Patch(':id/transfer')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.STAFF_TRANSFER)
   async transfer(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: TransferStaffValidator,
@@ -91,6 +97,7 @@ class StaffController {
 
   @Delete()
   @HttpCode(HttpStatus.NO_CONTENT)
+  @RequirePermission(Permission.STAFF_DELETE)
   async deleteMany(@Body('ids') ids: number[]) {
     await Promise.all(
       ids.map((id) => this.commandBus.execute(new DeleteStaffCommand(id))),
@@ -99,6 +106,7 @@ class StaffController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.STAFF_READ)
   async getAllStaff(@Query() filters: StaffFilters) {
     const result = await this.staffQuery.findBy(filters);
     return {

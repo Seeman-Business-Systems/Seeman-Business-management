@@ -17,10 +17,12 @@ class SupplyItemDBRepository extends SupplyItemRepository {
   async commitMany(items: SupplyItem[]): Promise<SupplyItem[]> {
     const entities = items.map((item) => {
       const entity = new SupplyItemEntity();
+      if (item.getId()) entity.id = item.getId()!;
       entity.supplyId = item.getSupplyId();
       entity.variantId = item.getVariantId();
       entity.variantName = item.getVariantName();
       entity.quantity = item.getQuantity();
+      entity.warehouseId = item.getWarehouseId();
       return entity;
     });
 
@@ -36,6 +38,7 @@ class SupplyItemDBRepository extends SupplyItemRepository {
       entity.variantName,
       entity.quantity,
       entity.createdAt,
+      entity.warehouseId,
     );
   }
 }

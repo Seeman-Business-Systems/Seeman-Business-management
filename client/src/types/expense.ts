@@ -6,7 +6,8 @@ export type ExpenseCategory =
   | 'MAINTENANCE'
   | 'MISCELLANEOUS'
   | 'FEEDING'
-  | 'DAILY_TRANSPORT';
+  | 'DAILY_TRANSPORT'
+  | 'WORKERS_PAYMENT';
 
 export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
   RENT: 'Rent',
@@ -17,6 +18,7 @@ export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
   MISCELLANEOUS: 'Miscellaneous',
   FEEDING: 'Feeding',
   DAILY_TRANSPORT: 'Daily Transport',
+  WORKERS_PAYMENT: 'Workers Payment',
 };
 
 export interface Expense {
@@ -41,6 +43,15 @@ export interface ExpenseFilters {
   dateTo?: string;
   take?: number;
   skip?: number;
+}
+
+export interface UpdateExpenseRequest {
+  amount: number;
+  category: ExpenseCategory;
+  description: string;
+  branchId: number;
+  date: string;
+  notes?: string;
 }
 
 export interface CreateExpenseRequest {

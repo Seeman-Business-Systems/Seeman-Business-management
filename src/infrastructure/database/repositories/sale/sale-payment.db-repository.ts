@@ -41,7 +41,7 @@ class SalePaymentDBRepository extends SalePaymentRepository {
     }
     entity.saleId = payment.getSaleId()!;
     entity.amount = payment.getAmount();
-    entity.paymentMethod = payment.getPaymentMethod();
+    entity.paymentMethod = payment.getPaymentMethod()!;
     entity.reference = payment.getReference();
     entity.notes = payment.getNotes();
     entity.recordedBy = payment.getRecordedBy();

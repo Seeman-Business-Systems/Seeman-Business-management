@@ -18,6 +18,8 @@ class SupplySerialiser {
         variantId: item.getVariantId(),
         variantName: item.getVariantName(),
         quantity: item.getQuantity(),
+        warehouseId: item.getWarehouseId(),
+        warehouseName: item.getWarehouseName(),
       })),
       createdAt: supply.getCreatedAt(),
       updatedAt: supply.getUpdatedAt(),

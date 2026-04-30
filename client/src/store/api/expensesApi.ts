@@ -1,5 +1,5 @@
 import { baseApi } from './baseApi';
-import type { Expense, ExpenseFilters, CreateExpenseRequest, ExpenseListResponse } from '../../types/expense';
+import type { Expense, ExpenseFilters, CreateExpenseRequest, UpdateExpenseRequest, ExpenseListResponse } from '../../types/expense';
 
 export const expensesApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -32,6 +32,14 @@ export const expensesApi = baseApi.injectEndpoints({
       ],
     }),
 
+    updateExpense: builder.mutation<Expense, { id: number; data: UpdateExpenseRequest }>({
+      query: ({ id, data }) => ({ url: `/expenses/${id}`, method: 'PATCH', body: data }),
+      invalidatesTags: (_result, _err, { id }) => [
+        { type: 'Expense', id },
+        { type: 'Expense', id: 'LIST' },
+      ],
+    }),
+
     deleteExpense: builder.mutation<void, number>({
       query: (id) => ({ url: `/expenses/${id}`, method: 'DELETE' }),
       invalidatesTags: (_result, _err, id) => [
@@ -42,4 +50,4 @@ export const expensesApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useGetExpensesQuery, useCreateExpenseMutation, useDeleteExpenseMutation } = expensesApi;
+export const { useGetExpensesQuery, useCreateExpenseMutation, useUpdateExpenseMutation, useDeleteExpenseMutation } = expensesApi;

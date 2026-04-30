@@ -19,6 +19,11 @@ export class RoleSeed {
 
     const defaultRoles = [
       {
+        name: 'Super Admin',
+        isManagement: true,
+        createdBy: ActorType.SYSTEM_ACTOR,
+      },
+      {
         name: 'CEO',
         isManagement: true,
         createdBy: ActorType.SYSTEM_ACTOR,

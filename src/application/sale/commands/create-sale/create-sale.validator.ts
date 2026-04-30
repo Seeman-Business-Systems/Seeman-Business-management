@@ -38,9 +38,9 @@ class CreateSaleValidator {
   @IsNotEmpty({ message: 'Branch ID is required' })
   branchId: number;
 
+  @IsOptional()
   @IsEnum(PaymentMethod, { message: 'Payment method must be a valid value' })
-  @IsNotEmpty({ message: 'Payment method is required' })
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethod | null;
 
   @IsArray()
   @ArrayMinSize(1, { message: 'At least one line item is required' })

@@ -1,5 +1,5 @@
 import { baseApi } from './baseApi';
-import type { InventoryRecord, InventoryFilters, SetReorderLevelsRequest, AdjustInventoryRequest } from '../../types/inventory';
+import type { InventoryRecord, InventoryFilters, SetReorderLevelsRequest, AdjustInventoryRequest, AddStockRequest } from '../../types/inventory';
 
 export const inventoryApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -30,6 +30,15 @@ export const inventoryApi = baseApi.injectEndpoints({
       invalidatesTags: [{ type: 'Inventory', id: 'LIST' }],
     }),
 
+    addStock: builder.mutation<InventoryRecord, AddStockRequest>({
+      query: (body) => ({
+        url: '/inventory/add-stock',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: [{ type: 'Inventory', id: 'LIST' }, { type: 'Activity' }],
+    }),
+
     adjustInventory: builder.mutation<InventoryRecord, AdjustInventoryRequest>({
       query: (body) => ({
         url: '/inventory/adjust',
@@ -43,6 +52,8 @@ export const inventoryApi = baseApi.injectEndpoints({
 
 export const {
   useGetInventoryQuery,
+  useLazyGetInventoryQuery,
   useSetReorderLevelsMutation,
+  useAddStockMutation,
   useAdjustInventoryMutation,
 } = inventoryApi;

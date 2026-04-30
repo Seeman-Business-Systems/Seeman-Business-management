@@ -6,6 +6,8 @@ class SupplyItem {
     private variantName: string | null,
     private quantity: number,
     private createdAt: Date,
+    private warehouseId: number | null = null,
+    private warehouseName: string | null = null,
   ) {}
 
   getId(): number | undefined {
@@ -30,6 +32,18 @@ class SupplyItem {
 
   getQuantity(): number {
     return this.quantity;
+  }
+
+  getWarehouseId(): number | null {
+    return this.warehouseId;
+  }
+
+  setWarehouseId(warehouseId: number): void {
+    this.warehouseId = warehouseId;
+  }
+
+  getWarehouseName(): string | null {
+    return this.warehouseName;
   }
 
   getCreatedAt(): Date {

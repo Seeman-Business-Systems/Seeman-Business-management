@@ -51,35 +51,16 @@ export interface AdjustInventoryRequest {
   notes: string;
 }
 
+export interface AddStockRequest {
+  variantId: number;
+  warehouseId: number;
+  quantity: number;
+  notes?: string;
+}
+
 // Inventory record enriched with product-level info (joined client-side)
 export interface EnrichedInventoryRecord extends InventoryRecord {
   brandName?: string;
   brandId?: number;
   productType?: ProductType;
-}
-
-export interface CreateInventoryBatchRequest {
-  variantId: number;
-  warehouseId: number;
-  batchNumber: string;
-  supplierId: number;
-  quantityReceived: number;
-  costPricePerUnit: number;
-  expiryDate?: string | null;
-}
-
-export interface InventoryBatch {
-  id: number;
-  inventoryId: number;
-  warehouseId: number;
-  batchNumber: string;
-  supplierId: number;
-  quantityReceived: number;
-  currentQuantity: number;
-  costPricePerUnit: number;
-  status: number;
-  receivedDate: string | null;
-  expiryDate: string | null;
-  createdAt: string;
-  updatedAt: string;
 }

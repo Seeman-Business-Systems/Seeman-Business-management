@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import Layout from '../../components/layout/Layout';
 import Modal from '../../components/ui/Modal';
 import StaffTable from './StaffTable';
@@ -19,6 +20,7 @@ interface PaginatedResponse {
 
 function Staff() {
   usePageTitle('Staff');
+  const { can } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [staff, setStaff] = useState<StaffType[]>([]);
@@ -203,13 +205,15 @@ function Staff() {
               <span className="hidden sm:inline">Manage Roles</span>
               <span className="sm:hidden">Manage Roles</span>
             </Link>
-            <Link
-              to="/staff/new"
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm sm:text-base"
-            >
-              <i className="fa-solid fa-plus" />
-              <span className="sm:inline">Add Staff</span>
-            </Link>
+            {can('staff:create') && (
+              <Link
+                to="/staff/new"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm sm:text-base"
+              >
+                <i className="fa-solid fa-plus" />
+                <span className="sm:inline">Add Staff</span>
+              </Link>
+            )}
           </div>
         </div>
 

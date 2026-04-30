@@ -11,7 +11,7 @@ import OnSaleCreatedActivityHandler from 'src/application/activity/event-handler
 import OnSaleCancelledActivityHandler from 'src/application/activity/event-handlers/on-sale-cancelled.handler';
 import OnPaymentRecordedActivityHandler from 'src/application/activity/event-handlers/on-payment-recorded.handler';
 import OnInventoryAdjustedActivityHandler from 'src/application/activity/event-handlers/on-inventory-adjusted.handler';
-import OnInventoryTransferredActivityHandler from 'src/application/activity/event-handlers/on-inventory-transferred.handler';
+import OnStockAddedActivityHandler from 'src/application/activity/event-handlers/on-stock-added.handler';
 import OnProductCreatedActivityHandler from 'src/application/activity/event-handlers/on-product-created.handler';
 import OnBranchCreatedActivityHandler from 'src/application/activity/event-handlers/on-branch-created.handler';
 import OnWarehouseCreatedActivityHandler from 'src/application/activity/event-handlers/on-warehouse-created.handler';
@@ -36,7 +36,7 @@ import OnExpenseCreatedActivityHandler from 'src/application/activity/event-hand
     OnSaleCancelledActivityHandler,
     OnPaymentRecordedActivityHandler,
     OnInventoryAdjustedActivityHandler,
-    OnInventoryTransferredActivityHandler,
+    OnStockAddedActivityHandler,
     OnProductCreatedActivityHandler,
     OnBranchCreatedActivityHandler,
     OnWarehouseCreatedActivityHandler,

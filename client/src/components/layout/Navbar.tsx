@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../Logo';
+import { Link } from 'react-router-dom';
+import { useGetActivitiesQuery } from '../../store/api/activitiesApi';
 
 interface NavbarProps {
   onMobileMenuToggle?: () => void;
@@ -10,6 +12,16 @@ interface NavbarProps {
 function Navbar({ onMobileMenuToggle, mobileMenuOpen }: NavbarProps) {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+
+  const { data: latestActivity } = useGetActivitiesQuery({ take: 1 });
+
+  const hasUnviewed = useMemo(() => {
+    const latest = latestActivity?.data?.[0];
+    if (!latest || !user?.id) return false;
+    const lastViewed = localStorage.getItem(`activities_last_viewed_${user.id}`);
+    if (!lastViewed) return true;
+    return new Date(latest.createdAt) > new Date(lastViewed);
+  }, [latestActivity, user?.id]);
 
   return (
     <header className="bg-white flex items-center justify-between px-4 md:px-6 py-4 shadow-sm">
@@ -35,34 +47,44 @@ function Navbar({ onMobileMenuToggle, mobileMenuOpen }: NavbarProps) {
       {/* Right Section */}
       <div className="flex items-center gap-4 md:gap-6">
         {/* Notification Icon */}
-        <button className="relative w-10 h-10 text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-full border border-gray-200 shadow-sm cursor-pointer transition-colors flex items-center justify-center">
-          <i className="fa-regular fa-bell text-lg" />
-          {/* Notification badge */}
-          <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
-        </button>
+        <Link to="/activities" className="relative">
+          <button className="relative w-10 h-10 text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-full border border-gray-200 shadow-sm cursor-pointer transition-colors flex items-center justify-center">
+            <i className="fa-regular fa-bell text-lg" />
+            {/* Notification badge */}
+            {hasUnviewed && (
+              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-indigo-500 rounded-full border-2 border-white" />
+            )}
+          </button>
+        </Link>
 
         {/* Desktop: Divider */}
         <div className="hidden md:block h-8 w-px bg-gray-200" />
 
         {/* Desktop: User Profile with name */}
-        <div className="hidden md:flex items-center gap-4">
-          <div className="text-right">
-            <p className="text-sm font-semibold text-gray-800">
-              {user?.firstName} {user?.lastName}
-            </p>
-            <p className="text-xs text-gray-500">{user?.role?.name || 'Staff'}</p>
+        <Link to="/me">
+          <div className="hidden md:flex items-center gap-4 cursor-pointer">
+            <div className="text-right">
+              <p className="text-sm font-semibold text-gray-800">
+                {user?.firstName} {user?.lastName}
+              </p>
+              <p className="text-xs text-gray-500">
+                {user?.role?.name || 'Staff'}
+              </p>
+            </div>
+            <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+              <i className="fa-solid fa-user text-indigo-600" />
+            </div>
           </div>
-          <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-            <i className="fa-solid fa-user text-indigo-600" />
-          </div>
-        </div>
+        </Link>
 
         {/* Mobile: Hamburger Menu */}
         <button
           onClick={onMobileMenuToggle}
           className="md:hidden w-10 h-10 text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-full border border-gray-200 shadow-sm cursor-pointer transition-colors flex items-center justify-center"
         >
-          <i className={`fa-solid ${mobileMenuOpen ? 'fa-xmark' : 'fa-bars'} text-lg`} />
+          <i
+            className={`fa-solid ${mobileMenuOpen ? 'fa-xmark' : 'fa-bars'} text-lg`}
+          />
         </button>
       </div>
     </header>

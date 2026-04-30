@@ -19,7 +19,7 @@ class SupplyDBRepository extends SupplyRepository {
   async findById(id: number): Promise<Supply | null> {
     const record = await this.repository.findOne({
       where: { id },
-      relations: ['items', 'branch', 'suppliedByStaff'],
+      relations: ['items', 'items.warehouse', 'branch', 'suppliedByStaff'],
     });
     return record ? this.toDomain(record) : null;
   }
@@ -27,7 +27,7 @@ class SupplyDBRepository extends SupplyRepository {
   async findBySale(saleId: number): Promise<Supply | null> {
     const record = await this.repository.findOne({
       where: { saleId },
-      relations: ['items', 'branch', 'suppliedByStaff'],
+      relations: ['items', 'items.warehouse', 'branch', 'suppliedByStaff'],
     });
     return record ? this.toDomain(record) : null;
   }
@@ -65,6 +65,8 @@ class SupplyDBRepository extends SupplyRepository {
           item.variantName,
           item.quantity,
           item.createdAt,
+          item.warehouseId,
+          item.warehouse?.name ?? null,
         ),
     );
 

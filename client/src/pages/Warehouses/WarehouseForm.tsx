@@ -20,6 +20,7 @@ const warehouseTypeOptions = [
   { value: 2, label: 'Regional' },
   { value: 3, label: 'Plaza' },
   { value: 4, label: 'Retail Store' },
+  { value: 5, label: 'Garage' },
 ];
 
 const warehouseStatusOptions = [

@@ -131,34 +131,6 @@ class SaleDBRepository extends SaleRepository {
         ),
     );
 
-    const customer = entity.customer
-      ? {
-          id: entity.customer.id,
-          name: entity.customer.name,
-          phoneNumber: entity.customer.phoneNumber,
-          email: entity.customer.email,
-        }
-      : null;
-
-    const soldByData = entity.soldByStaff
-      ? {
-          id: entity.soldByStaff.id,
-          firstName: entity.soldByStaff.firstName,
-          lastName: entity.soldByStaff.lastName,
-        }
-      : null;
-
-    const branchData = entity.branch
-      ? {
-          id: entity.branch.id,
-          name: entity.branch.name,
-          address: entity.branch.address ?? null,
-          city: entity.branch.city ?? null,
-          state: entity.branch.state ?? null,
-          phoneNumber: entity.branch.phoneNumber ?? null,
-        }
-      : null;
-
     return new Sale(
       entity.id,
       entity.saleNumber,
@@ -178,9 +150,6 @@ class SaleDBRepository extends SaleRepository {
       entity.deletedAt,
       lineItems,
       payments,
-      customer,
-      soldByData,
-      branchData,
     );
   }
 }

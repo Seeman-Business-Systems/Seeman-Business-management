@@ -1,4 +1,7 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { RoleGuard } from './modules/auth/guards/role.guard';
+import JwtAuthGuard from './modules/auth/guards/jwt-auth.guard';
 import { ConfigModule } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
 import { AppController } from './app.controller';
@@ -19,6 +22,8 @@ import { SaleModule } from './modules/sale/sale.module';
 import { ActivityModule } from './modules/activity/activity.module';
 import { SupplyModule } from './modules/supply/supply.module';
 import { ExpenseModule } from './modules/expense/expense.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { PermissionModule } from './modules/permission/permission.module';
 
 @Module({
   imports: [
@@ -42,9 +47,16 @@ import { ExpenseModule } from './modules/expense/expense.module';
     ActivityModule,
     SupplyModule,
     ExpenseModule,
+    AnalyticsModule,
+    PermissionModule,
   ],
   controllers: [AppController],
-  providers: [AppService, DatabaseSeedService],
+  providers: [
+    AppService,
+    DatabaseSeedService,
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useExisting: RoleGuard },
+  ],
 })
 
 export class AppModule {}

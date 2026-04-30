@@ -6,18 +6,29 @@ import type { Staff, LoginResponse } from '../types/auth';
 
 interface AuthContextType {
   user: Staff | null;
+  permissions: string[];
   isAuthenticated: boolean;
   isLoading: boolean;
+  isImpersonating: boolean;
+  can: (permission: string) => boolean;
   login: (identifier: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  impersonate: (accessToken: string, staff: Staff) => Promise<void>;
+  exitImpersonation: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Staff | null>(null);
+  const [permissions, setPermissions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isImpersonating, setIsImpersonating] = useState(false);
   const navigate = useNavigate();
+
+  const can = (permission: string): boolean => {
+    return permissions.includes('*') || permissions.includes(permission);
+  };
 
   // Check if user is already logged in on mount
   useEffect(() => {
@@ -32,10 +43,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const { data } = await api.post('/auth/me');
         setUser(data.staff);
+        setPermissions(data.permissions ?? []);
+        setIsImpersonating(!!localStorage.getItem('originalToken'));
       } catch {
-        // Token invalid or expired - clear storage
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
+        localStorage.removeItem('originalToken');
       } finally {
         setIsLoading(false);
       }
@@ -53,6 +66,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('accessToken', data.accessToken);
     localStorage.setItem('refreshToken', data.refreshToken);
     setUser(data.staff);
+
+    // Fetch permissions after login
+    try {
+      const { data: meData } = await api.post('/auth/me');
+      setPermissions(meData.permissions ?? []);
+    } catch {
+      setPermissions([]);
+    }
+
     navigate('/');
   };
 
@@ -68,19 +90,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
+      localStorage.removeItem('originalToken');
       setUser(null);
+      setPermissions([]);
+      setIsImpersonating(false);
       navigate('/login');
     }
+  };
+
+  const impersonate = async (accessToken: string, staff: Staff) => {
+    const current = localStorage.getItem('accessToken');
+    if (current) localStorage.setItem('originalToken', current);
+    localStorage.setItem('accessToken', accessToken);
+    setUser(staff);
+    setIsImpersonating(true);
+    try {
+      const { data } = await api.post('/auth/me');
+      setPermissions(data.permissions ?? []);
+    } catch {
+      setPermissions([]);
+    }
+    navigate('/');
+  };
+
+  const exitImpersonation = async () => {
+    const original = localStorage.getItem('originalToken');
+    if (!original) return;
+    localStorage.setItem('accessToken', original);
+    localStorage.removeItem('originalToken');
+    setIsImpersonating(false);
+    try {
+      const { data } = await api.post('/auth/me');
+      setUser(data.staff);
+      setPermissions(data.permissions ?? []);
+    } catch {
+      setUser(null);
+      setPermissions([]);
+      navigate('/login');
+    }
+    navigate('/system-settings');
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        permissions,
         isAuthenticated: !!user,
         isLoading,
+        isImpersonating,
+        can,
         login,
         logout,
+        impersonate,
+        exitImpersonation,
       }}
     >
       {children}

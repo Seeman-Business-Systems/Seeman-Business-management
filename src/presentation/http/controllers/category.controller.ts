@@ -10,6 +10,7 @@ import {
   Delete,
   Get,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import CreateCategoryCommand from 'src/application/product/commands/category/create/create-category.command';
@@ -22,8 +23,12 @@ import Staff from 'src/domain/staff/staff';
 import { ActorType } from 'src/domain/common/actor-type';
 import CategoryRepository from 'src/infrastructure/database/repositories/product/category.repository';
 import CategorySerialiser from 'src/presentation/serialisers/category.serialiser';
+import JwtAuthGuard from 'src/modules/auth/guards/jwt-auth.guard';
+import { RequirePermission } from 'src/modules/auth/decorators/role-guard.decorator';
+import { Permission } from 'src/domain/permission/permission';
 
 @Controller('categories')
+@UseGuards(JwtAuthGuard)
 class CategoryController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -33,6 +38,7 @@ class CategoryController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(Permission.CATEGORY_MANAGE)
   async create(
     @Body() dto: CreateCategoryValidator,
     @Actor() actor: Staff,
@@ -50,6 +56,7 @@ class CategoryController {
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.CATEGORY_MANAGE)
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateCategoryValidator,
@@ -67,6 +74,7 @@ class CategoryController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @RequirePermission(Permission.CATEGORY_MANAGE)
   async delete(@Param('id', ParseIntPipe) id: number) {
     const command = new DeleteCategoryCommand(id);
     await this.commandBus.execute(command);
@@ -74,6 +82,7 @@ class CategoryController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.CATEGORY_MANAGE)
   async findById(
     @Param('id', ParseIntPipe) id: number,
     @Query('includeParent') includeParent?: string,
@@ -90,6 +99,7 @@ class CategoryController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.CATEGORY_MANAGE)
   async findAll(@Query('includeParent') includeParent?: string) {
     const categories = await this.categories.findAll();
     return await this.categorySerialiser.serialiseMany(

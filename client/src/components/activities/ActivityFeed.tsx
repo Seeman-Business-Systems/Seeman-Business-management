@@ -58,7 +58,7 @@ const TYPE_LABELS: Record<ActivityType, string> = {
 };
 
 // ── Single activity row ───────────────────────────────────────────────────────
-function ActivityItem({ activity }: { activity: Activity }) {
+function ActivityItem({ activity, isNew }: { activity: Activity; isNew: boolean }) {
   const icon = TYPE_ICONS[activity.type] ?? 'fa-bolt';
   const entityUrl = getEntityUrl(activity);
   const rawText = generateActivityText(activity);
@@ -74,7 +74,10 @@ function ActivityItem({ activity }: { activity: Activity }) {
 
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-gray-900 leading-snug">{actorText}</p>
+          <p className="text-sm text-gray-900 leading-snug">
+            {actorText}
+            {isNew && <span className="inline-block w-2 h-2 rounded-full bg-blue-500 ml-1.5 mb-0.5 align-middle" />}
+          </p>
           <div className="flex flex-wrap items-center gap-2 mt-1">
             <time className="text-xs text-gray-400">
               {new Date(activity.createdAt).toLocaleString('en-US', {
@@ -111,11 +114,12 @@ interface ActivityFeedProps {
     entityType?: string;
     entityId?: number;
   };
+  lastViewedAt?: string;
 }
 
 const PAGE_SIZE = 20;
 
-export function ActivityFeed({ fixedParams }: ActivityFeedProps) {
+export function ActivityFeed({ fixedParams, lastViewedAt }: ActivityFeedProps) {
   const [page, setPage] = useState(0);
   const [typeFilter, setTypeFilter] = useState<ActivityType | ''>('');
   const [dateFrom, setDateFrom] = useState('');
@@ -193,32 +197,75 @@ export function ActivityFeed({ fixedParams }: ActivityFeedProps) {
         ) : (
           <>
             <div className="flex items-center justify-between mb-4">
-              <span className="text-sm text-gray-400">{data.total} total</span>
+              <span className="text-sm text-gray-400">
+                Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, data.total)} of {data.total} activities
+              </span>
             </div>
             <ol className="relative border-l border-gray-200 ml-3.5">
               {data.data.map((activity) => (
-                <ActivityItem key={activity.id} activity={activity} />
+                <ActivityItem
+                  key={activity.id}
+                  activity={activity}
+                  isNew={!!lastViewedAt && new Date(activity.createdAt) > new Date(lastViewedAt)}
+                />
               ))}
             </ol>
 
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
-                <button onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  <i className="fa-solid fa-chevron-left text-xs" /> Previous
-                </button>
-                <span className="text-sm text-gray-500">Page {page + 1} of {totalPages}</span>
-                <button onClick={() => setPage((p) => p + 1)} disabled={(page + 1) * PAGE_SIZE >= data.total}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  Next <i className="fa-solid fa-chevron-right text-xs" />
-                </button>
-              </div>
-            )}
           </>
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-4">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <i className="fa-solid fa-arrow-left" /> Previous
+            </button>
+            <div className="flex items-center gap-1">
+              {(() => {
+                const currentPage = page + 1;
+                const pages: (number | string)[] = [];
+                if (totalPages <= 5) {
+                  for (let i = 1; i <= totalPages; i++) pages.push(i);
+                } else if (currentPage <= 3) {
+                  pages.push(1, 2, 3, 4, '...', totalPages);
+                } else if (currentPage >= totalPages - 2) {
+                  pages.push(1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+                } else {
+                  pages.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
+                }
+                return pages.map((p, i) =>
+                  typeof p === 'number' ? (
+                    <button
+                      key={i}
+                      onClick={() => setPage(p - 1)}
+                      className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                        currentPage === p ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ) : (
+                    <span key={i} className="px-2 text-gray-400">{p}</span>
+                  )
+                );
+              })()}
+            </div>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next <i className="fa-solid fa-arrow-right" />
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

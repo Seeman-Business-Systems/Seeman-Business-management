@@ -63,6 +63,15 @@ export const suppliesApi = baseApi.injectEndpoints({
         { type: 'Activity' },
       ],
     }),
+
+    assignSupplyItemWarehouse: builder.mutation<Supply, { supplyId: number; itemId: number; warehouseId: number }>({
+      query: ({ supplyId, itemId, warehouseId }) => ({
+        url: `/supplies/${supplyId}/items/${itemId}/warehouse`,
+        method: 'PATCH',
+        body: { warehouseId },
+      }),
+      invalidatesTags: (_result, _err, { supplyId }) => [{ type: 'Supply', id: supplyId }],
+    }),
   }),
 });
 
@@ -71,4 +80,5 @@ export const {
   useGetSupplyQuery,
   useFulfilSupplyMutation,
   useCancelSupplyMutation,
+  useAssignSupplyItemWarehouseMutation,
 } = suppliesApi;

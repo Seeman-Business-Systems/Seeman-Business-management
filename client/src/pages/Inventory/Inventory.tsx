@@ -5,13 +5,11 @@ import Modal from '../../components/ui/Modal';
 import InventoryTable from './InventoryTable';
 import usePageTitle from '../../hooks/usePageTitle';
 import type { EnrichedInventoryRecord, InventoryRecord } from '../../types/inventory';
-import { useGetInventoryQuery, useSetReorderLevelsMutation } from '../../store/api/inventoryApi';
+import { useGetInventoryQuery, useSetReorderLevelsMutation, useAddStockMutation, useAdjustInventoryMutation } from '../../store/api/inventoryApi';
 import { useGetWarehousesQuery } from '../../store/api/warehousesApi';
 import { useGetBrandsQuery } from '../../store/api/brandsApi';
 import { useGetProductsQuery } from '../../store/api/productsApi';
 import { ProductType } from '../../types/product';
-import { useCreateInventoryBatchMutation, useReceiveInventoryBatchMutation } from '../../store/api/inventoryBatchesApi';
-import { useAdjustInventoryMutation } from '../../store/api/inventoryApi';
 import { useToast } from '../../context/ToastContext';
 
 type TabType = 'all' | 'tyre' | 'battery' | 'spare_part';
@@ -62,10 +60,7 @@ function Inventory() {
   // Add stock modal
   const [addStockRecord, setAddStockRecord] = useState<EnrichedInventoryRecord | null>(null);
   const [stockQty, setStockQty] = useState('');
-  const [stockCost, setStockCost] = useState('');
-  const [stockBatchNum, setStockBatchNum] = useState('');
-  const [stockSupplierId, setStockSupplierId] = useState('');
-  const [stockExpiry, setStockExpiry] = useState('');
+  const [stockNotes, setStockNotes] = useState('');
 
   const { data: inventory = [], isLoading, isFetching } = useGetInventoryQuery({
     warehouseId: selectedWarehouse !== 'all' ? Number(selectedWarehouse) : undefined,
@@ -76,11 +71,8 @@ function Inventory() {
   const { data: brands = [] } = useGetBrandsQuery();
   const { data: products = [] } = useGetProductsQuery({ includeRelations: true });
   const [setReorderLevels, { isLoading: isSavingReorder }] = useSetReorderLevelsMutation();
-  const [createBatch, { isLoading: isCreatingBatch }] = useCreateInventoryBatchMutation();
-  const [receiveBatch, { isLoading: isReceivingBatch }] = useReceiveInventoryBatchMutation();
+  const [addStock, { isLoading: isAddingStock }] = useAddStockMutation();
   const [adjustInventory, { isLoading: isAdjusting }] = useAdjustInventoryMutation();
-
-  const isAddingStock = isCreatingBatch || isReceivingBatch;
 
   // Build productId → product info lookup
   const productInfoMap = useMemo(() => {
@@ -215,53 +207,30 @@ function Inventory() {
   // Add stock handlers
   const openAddStockModal = (record: EnrichedInventoryRecord) => {
     setAddStockRecord(record);
-    setStockBatchNum(`BATCH-${Date.now()}`);
     setStockQty('');
-    setStockCost('');
-    setStockSupplierId('');
-    setStockExpiry('');
+    setStockNotes('');
   };
 
   const closeAddStockModal = () => {
     setAddStockRecord(null);
     setStockQty('');
-    setStockCost('');
-    setStockBatchNum('');
-    setStockSupplierId('');
-    setStockExpiry('');
+    setStockNotes('');
   };
 
   const handleAddStock = async () => {
     if (!addStockRecord) return;
     const qty = Number(stockQty);
-    const cost = Number(stockCost);
-    const supplierId = Number(stockSupplierId);
-
     if (!stockQty || isNaN(qty) || qty < 1) {
       showToast('error', 'Quantity must be at least 1');
       return;
     }
-    if (!stockCost || isNaN(cost) || cost < 0) {
-      showToast('error', 'Cost price must be a valid number');
-      return;
-    }
-    if (!stockSupplierId || isNaN(supplierId) || supplierId < 1) {
-      showToast('error', 'Supplier ID is required');
-      return;
-    }
-
     try {
-      const batch = await createBatch({
+      await addStock({
         variantId: addStockRecord.variantId,
         warehouseId: addStockRecord.warehouseId,
-        batchNumber: stockBatchNum || `BATCH-${Date.now()}`,
-        supplierId,
-        quantityReceived: qty,
-        costPricePerUnit: cost,
-        expiryDate: stockExpiry || null,
+        quantity: qty,
+        notes: stockNotes.trim() || undefined,
       }).unwrap();
-
-      await receiveBatch(batch.id).unwrap();
       showToast('success', `${qty} units added to stock`);
       closeAddStockModal();
     } catch {
@@ -288,6 +257,7 @@ function Inventory() {
       <Layout>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+          <p className="ml-3 text-gray-500">Loading inventory…</p>
         </div>
       </Layout>
     );
@@ -522,67 +492,29 @@ function Inventory() {
               {addStockRecord?.warehouse?.name}
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Quantity <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={stockQty}
-                onChange={(e) => setStockQty(e.target.value)}
-                placeholder="e.g. 50"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Cost Price / Unit <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={stockCost}
-                onChange={(e) => setStockCost(e.target.value)}
-                placeholder="e.g. 15000"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent"
-              />
-            </div>
-          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Supplier ID <span className="text-red-500">*</span>
+              Quantity <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
               min="1"
-              value={stockSupplierId}
-              onChange={(e) => setStockSupplierId(e.target.value)}
-              placeholder="Enter supplier ID"
+              value={stockQty}
+              onChange={(e) => setStockQty(e.target.value)}
+              placeholder="e.g. 50"
               className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Batch Number
+              Notes <span className="text-gray-400 font-normal">(optional)</span>
             </label>
-            <input
-              type="text"
-              value={stockBatchNum}
-              onChange={(e) => setStockBatchNum(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent font-mono"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Expiry Date <span className="text-gray-400 font-normal">(optional)</span>
-            </label>
-            <input
-              type="date"
-              value={stockExpiry}
-              onChange={(e) => setStockExpiry(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent"
+            <textarea
+              value={stockNotes}
+              onChange={(e) => setStockNotes(e.target.value)}
+              rows={2}
+              placeholder="e.g. Stock received from supplier"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 resize-none"
             />
           </div>
         </div>

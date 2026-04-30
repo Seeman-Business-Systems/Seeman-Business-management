@@ -25,7 +25,7 @@ class PasswordResetMailer {
     const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
     const logoUrl = this.configService.get(
       'LOGO_URL',
-      'https://ibb.co/Ng43fWG1',
+      'https://res.cloudinary.com/dcbsqeglq/image/upload/f_auto,q_auto/full-logo_i43nwd',
     );
 
     const html = getPasswordResetTemplate({

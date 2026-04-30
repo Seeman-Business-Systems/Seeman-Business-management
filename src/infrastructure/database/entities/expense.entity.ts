@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import ExpenseCategory from 'src/domain/expense/expense-category';
 import StaffEntity from './staff.entity';
@@ -45,6 +46,9 @@ class ExpenseEntity {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  deletedAt: Date | null;
 }
 
 export default ExpenseEntity;

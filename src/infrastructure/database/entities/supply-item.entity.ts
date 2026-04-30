@@ -7,6 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import SupplyEntity from './supply.entity';
+import WarehouseEntity from './warehouse.entity';
 
 @Entity({ name: 'supply_items' })
 class SupplyItemEntity {
@@ -28,6 +29,13 @@ class SupplyItemEntity {
 
   @Column()
   quantity: number;
+
+  @Column({ name: 'warehouse_id', type: 'int', nullable: true })
+  warehouseId: number | null;
+
+  @ManyToOne(() => WarehouseEntity, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'warehouse_id' })
+  warehouse: WarehouseEntity | null;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

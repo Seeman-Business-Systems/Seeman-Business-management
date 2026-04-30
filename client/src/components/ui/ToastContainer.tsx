@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useToast, type Toast, type ToastType } from '../../context/ToastContext';
 
 const toastStyles: Record<ToastType, { bg: string; icon: string; iconColor: string; progress: string }> = {
@@ -31,32 +31,64 @@ const toastStyles: Record<ToastType, { bg: string; icon: string; iconColor: stri
 function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) {
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const style = toastStyles[toast.type];
 
+  const remainingRef = useRef(toast.duration ?? 0);
+  const startTimeRef = useRef(0);
+  const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const removeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearTimers = () => {
+    if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+    if (removeTimerRef.current) clearTimeout(removeTimerRef.current);
+  };
+
+  const startTimers = (remaining: number) => {
+    clearTimers();
+    startTimeRef.current = Date.now();
+    exitTimerRef.current = setTimeout(() => setIsLeaving(true), Math.max(0, remaining - 300));
+    removeTimerRef.current = setTimeout(onRemove, remaining);
+  };
+
   useEffect(() => {
-    // Trigger enter animation
     const enterTimer = setTimeout(() => setIsVisible(true), 10);
     return () => clearTimeout(enterTimer);
   }, []);
 
   useEffect(() => {
     if (toast.duration && toast.duration > 0) {
-      // Start exit animation before removal
-      const exitTimer = setTimeout(() => {
-        setIsLeaving(true);
-      }, toast.duration - 300);
-
-      return () => clearTimeout(exitTimer);
+      remainingRef.current = toast.duration;
+      startTimers(toast.duration);
     }
-  }, [toast.duration]);
+    return clearTimers;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleMouseEnter = () => {
+    if (!toast.duration) return;
+    setIsPaused(true);
+    const elapsed = Date.now() - startTimeRef.current;
+    remainingRef.current = Math.max(0, remainingRef.current - elapsed);
+    clearTimers();
+  };
+
+  const handleMouseLeave = () => {
+    if (!toast.duration) return;
+    setIsPaused(false);
+    startTimers(remainingRef.current);
+  };
 
   const handleClose = () => {
+    clearTimers();
     setIsLeaving(true);
     setTimeout(onRemove, 300);
   };
 
   return (
     <div
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       className={`relative flex items-start gap-3 w-80 p-4 rounded-lg shadow-lg border border-gray-200 ${style.bg} transition-all duration-300 ease-out ${
         isVisible && !isLeaving
           ? 'translate-x-0 opacity-100'
@@ -84,10 +116,10 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
       {toast.duration && toast.duration > 0 && (
         <div className="absolute bottom-0 left-0 right-0 h-1 overflow-hidden rounded-b-lg">
           <div
-            className={`h-full ${style.progress} transition-all ease-linear`}
+            className={`h-full ${style.progress}`}
             style={{
-              width: '100%',
               animation: `shrink ${toast.duration}ms linear forwards`,
+              animationPlayState: isPaused ? 'paused' : 'running',
             }}
           />
         </div>

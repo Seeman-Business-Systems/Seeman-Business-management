@@ -13,7 +13,7 @@ class CreateSaleCommand extends Command<Sale> {
   constructor(
     public readonly branchId: number,
     public readonly soldBy: number,
-    public readonly paymentMethod: PaymentMethod,
+    public readonly paymentMethod: PaymentMethod | null,
     public readonly lineItems: CreateSaleLineItemInput[],
     public readonly customerId?: number | null,
     public readonly discountAmount?: number,

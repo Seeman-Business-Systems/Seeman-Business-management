@@ -25,12 +25,14 @@ import Staff from 'src/domain/staff/staff';
 import CustomerRepository from 'src/infrastructure/database/repositories/customer/customer.repository';
 import Actor from 'src/modules/auth/decorators/actor.decorator';
 import JwtAuthGuard from 'src/modules/auth/guards/jwt-auth.guard';
+import { RequirePermission } from 'src/modules/auth/decorators/role-guard.decorator';
+import { Permission } from 'src/domain/permission/permission';
 import CustomerQuery from 'src/application/customer/queries/customer.query';
 import type { CustomerFilters } from 'src/application/customer/queries/customer.filters';
 import CustomerSerialiser from 'src/presentation/serialisers/customer.serialiser';
 
 @Controller('customers')
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 class CustomerController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -41,6 +43,7 @@ class CustomerController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(Permission.CUSTOMER_CREATE)
   async create(
     @Body() dto: CreateCustomerValidator,
     @Actor() actor: Staff,
@@ -48,8 +51,7 @@ class CustomerController {
     const command = new CreateCustomerCommand(
       dto.name,
       dto.phoneNumber,
-      // actor.getId() ??
-      1,
+      actor.getId() ?? 1,
       dto.notes,
       dto.email,
       dto.companyName,
@@ -61,6 +63,7 @@ class CustomerController {
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.CUSTOMER_UPDATE)
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateCustomerValidator,
@@ -85,6 +88,7 @@ class CustomerController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @RequirePermission(Permission.CUSTOMER_DELETE)
   async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
     const command = new DeleteCustomerCommand(id);
 
@@ -93,6 +97,7 @@ class CustomerController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.CUSTOMER_READ)
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const customer = await this.customers.findById(id);
 
@@ -105,6 +110,7 @@ class CustomerController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.CUSTOMER_READ)
   async findAll(@Query() filters: CustomerFilters) {
     const customers = await this.customerQuery.findBy(filters);
 
@@ -113,6 +119,7 @@ class CustomerController {
 
   @Put(':id/credit-limit')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.CUSTOMER_UPDATE)
   async setCreditLimit(
     @Param('id', ParseIntPipe) customerId: number,
     @Body() dto: SetCreditLimitValidator,
@@ -121,8 +128,7 @@ class CustomerController {
     const command = new SetCreditLimitCommand(
       customerId,
       dto.creditLimit,
-        // actor.getId() ??
-        1,
+      actor.getId() ?? 1,
     );
 
     const customer = await this.commandBus.execute(command);

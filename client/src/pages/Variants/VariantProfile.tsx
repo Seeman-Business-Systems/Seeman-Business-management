@@ -4,10 +4,9 @@ import Layout from '../../components/layout/Layout';
 import Modal from '../../components/ui/Modal';
 import usePageTitle from '../../hooks/usePageTitle';
 import { ProductType, ProductTypeLabels, ProductStatus, ProductStatusLabels } from '../../types/product';
-import { useGetInventoryQuery, useSetReorderLevelsMutation } from '../../store/api/inventoryApi';
-import { useGetProductQuery } from '../../store/api/productsApi';
+import { useGetInventoryQuery, useSetReorderLevelsMutation, useAdjustInventoryMutation, useAddStockMutation } from '../../store/api/inventoryApi';
+import { useGetProductQuery, useUpdateProductVariantMutation } from '../../store/api/productsApi';
 import { useGetWarehousesQuery } from '../../store/api/warehousesApi';
-import { useCreateInventoryBatchMutation, useReceiveInventoryBatchMutation } from '../../store/api/inventoryBatchesApi';
 import { useToast } from '../../context/ToastContext';
 import type { InventoryRecord } from '../../types/inventory';
 
@@ -28,6 +27,7 @@ const warehouseTypeLabels: Record<number, string> = {
   2: 'Regional',
   3: 'Plaza',
   4: 'Retail Store',
+  5: 'Garage',
 };
 
 function formatPrice(price: number): string {
@@ -46,10 +46,7 @@ function VariantProfile() {
   const variantId = Number(id);
   const { showToast } = useToast();
 
-  // Fetch all inventory records for this variant
   const { data: inventoryRecords = [], isLoading: inventoryLoading } = useGetInventoryQuery({ variantId });
-
-  // Derive variant and product data from inventory records
   const variantData = inventoryRecords[0]?.variant ?? null;
   const productId = variantData?.productId;
 
@@ -61,88 +58,47 @@ function VariantProfile() {
   const { data: allWarehouses = [] } = useGetWarehousesQuery();
 
   const [setReorderLevels, { isLoading: isSavingReorder }] = useSetReorderLevelsMutation();
-  const [createBatch, { isLoading: isCreatingBatch }] = useCreateInventoryBatchMutation();
-  const [receiveBatch, { isLoading: isReceivingBatch }] = useReceiveInventoryBatchMutation();
+  const [adjustInventory, { isLoading: isAdjusting }] = useAdjustInventoryMutation();
+  const [addStock, { isLoading: isAddingStock }] = useAddStockMutation();
+  const [updateVariant, { isLoading: isUpdatingPrice }] = useUpdateProductVariantMutation();
 
-  const isAddingStock = isCreatingBatch || isReceivingBatch;
+  // Edit price
+  const [editPriceOpen, setEditPriceOpen] = useState(false);
+  const [newPrice, setNewPrice] = useState('');
 
-  // Reorder levels modal
+  // Reorder levels
   const [reorderRecord, setReorderRecord] = useState<InventoryRecord | null>(null);
   const [minQty, setMinQty] = useState('');
   const [maxQty, setMaxQty] = useState('');
 
-  // Add stock modal
+  // Add stock (existing warehouse row)
   const [addStockRecord, setAddStockRecord] = useState<InventoryRecord | null>(null);
   const [stockQty, setStockQty] = useState('');
-  const [stockCost, setStockCost] = useState('');
-  const [stockBatchNum, setStockBatchNum] = useState('');
-  const [stockSupplierId, setStockSupplierId] = useState('');
-  const [stockExpiry, setStockExpiry] = useState('');
+  const [stockNotes, setStockNotes] = useState('');
 
-  // Add to warehouse modal
+  // Add to new warehouse
   const [addToWarehouseOpen, setAddToWarehouseOpen] = useState(false);
   const [newWarehouseId, setNewWarehouseId] = useState('');
   const [newStockQty, setNewStockQty] = useState('');
-  const [newStockCost, setNewStockCost] = useState('');
-  const [newStockSupplierId, setNewStockSupplierId] = useState('');
-  const [newStockBatchNum, setNewStockBatchNum] = useState('');
-  const [newStockExpiry, setNewStockExpiry] = useState('');
+  const [newStockNotes, setNewStockNotes] = useState('');
 
-  // Warehouses where this variant has no inventory record yet
+  // Adjust stock
+  const [adjustRecord, setAdjustRecord] = useState<InventoryRecord | null>(null);
+  const [adjustType, setAdjustType] = useState<'add' | 'remove'>('add');
+  const [adjustQty, setAdjustQty] = useState('');
+  const [adjustReason, setAdjustReason] = useState('Physical count correction');
+  const [adjustNotes, setAdjustNotes] = useState('');
+
   const existingWarehouseIds = new Set(inventoryRecords.map((r) => r.warehouseId));
   const availableWarehouses = allWarehouses.filter((w) => !existingWarehouseIds.has(w.id));
 
-  const openAddToWarehouse = () => {
-    setNewWarehouseId('');
-    setNewStockQty('');
-    setNewStockCost('');
-    setNewStockSupplierId('');
-    setNewStockBatchNum(`BATCH-${Date.now()}`);
-    setNewStockExpiry('');
-    setAddToWarehouseOpen(true);
-  };
-
-  const handleAddToWarehouse = async () => {
-    const warehouseId = Number(newWarehouseId);
-    const qty = Number(newStockQty);
-    const cost = Number(newStockCost);
-    const supplierId = Number(newStockSupplierId);
-
-    if (!newWarehouseId || !warehouseId) { showToast('error', 'Please select a warehouse'); return; }
-    if (!newStockQty || qty < 1) { showToast('error', 'Quantity must be at least 1'); return; }
-    if (!newStockCost || cost < 0) { showToast('error', 'Cost price must be a valid number'); return; }
-    if (!newStockSupplierId || supplierId < 1) { showToast('error', 'Supplier ID is required'); return; }
-
-    try {
-      const batch = await createBatch({
-        variantId,
-        warehouseId,
-        batchNumber: newStockBatchNum || `BATCH-${Date.now()}`,
-        supplierId,
-        quantityReceived: qty,
-        costPricePerUnit: cost,
-        expiryDate: newStockExpiry || null,
-      }).unwrap();
-      await receiveBatch(batch.id).unwrap();
-      showToast('success', `Variant added to warehouse with ${qty} units`);
-      setAddToWarehouseOpen(false);
-    } catch {
-      showToast('error', 'Failed to add variant to warehouse');
-    }
-  };
-
-  // Computed totals
   const totalQuantity = inventoryRecords.reduce((s, r) => s + r.totalQuantity, 0);
-  const reservedQuantity = inventoryRecords.reduce((s, r) => s + r.reservedQuantity, 0);
   const availableQuantity = inventoryRecords.reduce((s, r) => s + r.availableQuantity, 0);
 
   const handleSaveReorderLevels = async () => {
     if (!reorderRecord) return;
     const min = Number(minQty);
-    if (!minQty || isNaN(min) || min < 0) {
-      showToast('error', 'Minimum quantity must be a valid number');
-      return;
-    }
+    if (!minQty || isNaN(min) || min < 0) { showToast('error', 'Minimum quantity must be a valid number'); return; }
     try {
       await setReorderLevels({
         variantId: reorderRecord.variantId,
@@ -157,40 +113,67 @@ function VariantProfile() {
     }
   };
 
-  const openAddStock = (record: InventoryRecord) => {
-    setAddStockRecord(record);
-    setStockBatchNum(`BATCH-${Date.now()}`);
-    setStockQty('');
-    setStockCost('');
-    setStockSupplierId('');
-    setStockExpiry('');
-  };
-
   const handleAddStock = async () => {
     if (!addStockRecord) return;
     const qty = Number(stockQty);
-    const cost = Number(stockCost);
-    const supplierId = Number(stockSupplierId);
-
     if (!stockQty || qty < 1) { showToast('error', 'Quantity must be at least 1'); return; }
-    if (!stockCost || cost < 0) { showToast('error', 'Cost price must be a valid number'); return; }
-    if (!stockSupplierId || supplierId < 1) { showToast('error', 'Supplier ID is required'); return; }
-
     try {
-      const batch = await createBatch({
+      await addStock({
         variantId: addStockRecord.variantId,
         warehouseId: addStockRecord.warehouseId,
-        batchNumber: stockBatchNum || `BATCH-${Date.now()}`,
-        supplierId,
-        quantityReceived: qty,
-        costPricePerUnit: cost,
-        expiryDate: stockExpiry || null,
+        quantity: qty,
+        notes: stockNotes.trim() || undefined,
       }).unwrap();
-      await receiveBatch(batch.id).unwrap();
       showToast('success', `${qty} units added to stock`);
       setAddStockRecord(null);
+      setStockQty('');
+      setStockNotes('');
     } catch {
       showToast('error', 'Failed to add stock');
+    }
+  };
+
+  const handleAddToWarehouse = async () => {
+    const warehouseId = Number(newWarehouseId);
+    const qty = Number(newStockQty);
+    if (!newWarehouseId || !warehouseId) { showToast('error', 'Please select a warehouse'); return; }
+    if (!newStockQty || qty < 1) { showToast('error', 'Quantity must be at least 1'); return; }
+    try {
+      await addStock({
+        variantId,
+        warehouseId,
+        quantity: qty,
+        notes: newStockNotes.trim() || undefined,
+      }).unwrap();
+      showToast('success', `${qty} units added to warehouse`);
+      setAddToWarehouseOpen(false);
+      setNewWarehouseId('');
+      setNewStockQty('');
+      setNewStockNotes('');
+    } catch {
+      showToast('error', 'Failed to add stock to warehouse');
+    }
+  };
+
+  const handleAdjustStock = async () => {
+    if (!adjustRecord) return;
+    const qty = Number(adjustQty);
+    if (!adjustQty || isNaN(qty) || qty < 1) { showToast('error', 'Quantity must be at least 1'); return; }
+    const adjustmentQuantity = adjustType === 'add' ? qty : -qty;
+    try {
+      await adjustInventory({
+        variantId: adjustRecord.variantId,
+        warehouseId: adjustRecord.warehouseId,
+        adjustmentQuantity,
+        notes: adjustNotes.trim() || adjustReason,
+      }).unwrap();
+      showToast('success', `Stock ${adjustType === 'add' ? 'increased' : 'reduced'} by ${qty}`);
+      setAdjustRecord(null);
+    } catch (err: unknown) {
+      const msg = err && typeof err === 'object' && 'data' in err
+        ? (err as { data?: { message?: string } }).data?.message
+        : undefined;
+      showToast('error', msg ?? 'Failed to adjust stock');
     }
   };
 
@@ -256,8 +239,17 @@ function VariantProfile() {
                 )}
               </div>
             </div>
-            <div className="text-xl font-bold text-gray-900">
-              {variantData.sellingPrice != null ? formatPrice(variantData.sellingPrice) : '—'}
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-bold text-gray-900">
+                {variantData.sellingPrice != null ? formatPrice(variantData.sellingPrice) : '—'}
+              </span>
+              <button
+                onClick={() => { setNewPrice(variantData.sellingPrice?.toString() ?? ''); setEditPriceOpen(true); }}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                title="Edit price"
+              >
+                <i className="fa-solid fa-pen text-xs" />
+              </button>
             </div>
           </div>
         </div>
@@ -271,7 +263,7 @@ function VariantProfile() {
             </h2>
             {availableWarehouses.length > 0 && (
               <button
-                onClick={openAddToWarehouse}
+                onClick={() => { setAddToWarehouseOpen(true); setNewWarehouseId(''); setNewStockQty(''); setNewStockNotes(''); }}
                 className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors text-sm font-medium cursor-pointer"
               >
                 <i className="fa-solid fa-plus" />
@@ -279,14 +271,10 @@ function VariantProfile() {
               </button>
             )}
           </div>
-          <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="grid grid-cols-2 gap-3 mb-6">
             <div className="text-center p-3 sm:p-4 bg-green-50 rounded-lg">
               <p className="text-lg sm:text-2xl font-bold text-green-700">{availableQuantity}</p>
               <p className="text-xs text-green-600 mt-1">Available</p>
-            </div>
-            <div className="text-center p-3 sm:p-4 bg-amber-50 rounded-lg">
-              <p className="text-lg sm:text-2xl font-bold text-amber-700">{reservedQuantity}</p>
-              <p className="text-xs text-amber-600 mt-1">Reserved</p>
             </div>
             <div className="text-center p-3 sm:p-4 bg-indigo-50 rounded-lg">
               <p className="text-lg sm:text-2xl font-bold text-indigo-700">{totalQuantity}</p>
@@ -303,7 +291,6 @@ function VariantProfile() {
                     <th className="text-left py-2 pr-4 font-medium text-gray-500">Warehouse</th>
                     <th className="text-left py-2 pr-4 font-medium text-gray-500 hidden sm:table-cell">Type</th>
                     <th className="text-left py-2 pr-4 font-medium text-gray-500">Available</th>
-                    <th className="text-left py-2 pr-4 font-medium text-gray-500 hidden sm:table-cell">Reserved</th>
                     <th className="text-left py-2 pr-4 font-medium text-gray-500 hidden md:table-cell">Total</th>
                     <th className="text-left py-2 pr-4 font-medium text-gray-500 hidden md:table-cell">Min</th>
                     <th className="text-left py-2 font-medium text-gray-500">Actions</th>
@@ -331,13 +318,12 @@ function VariantProfile() {
                           </span>
                         )}
                       </td>
-                      <td className="py-3 pr-4 hidden sm:table-cell text-gray-700">{record.reservedQuantity}</td>
                       <td className="py-3 pr-4 hidden md:table-cell text-gray-700">{record.totalQuantity}</td>
                       <td className="py-3 pr-4 hidden md:table-cell text-gray-500">{record.minimumQuantity}</td>
-                      <td className="py-3">
-                        <div className="flex items-center gap-2">
+                      <td className="py-3 pr-4">
+                        <div className="flex items-center gap-2 whitespace-nowrap">
                           <button
-                            onClick={() => openAddStock(record)}
+                            onClick={() => { setAddStockRecord(record); setStockQty(''); setStockNotes(''); }}
                             className="text-xs px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 font-medium cursor-pointer"
                           >
                             <i className="fa-solid fa-plus mr-1" />
@@ -349,6 +335,13 @@ function VariantProfile() {
                           >
                             <i className="fa-solid fa-sliders mr-1" />
                             Reorder
+                          </button>
+                          <button
+                            onClick={() => { setAdjustRecord(record); setAdjustType('add'); setAdjustQty(''); setAdjustReason('Physical count correction'); setAdjustNotes(''); }}
+                            className="text-xs px-2.5 py-1 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100 font-medium cursor-pointer"
+                          >
+                            <i className="fa-solid fa-arrows-up-down mr-1" />
+                            Adjust
                           </button>
                         </div>
                       </td>
@@ -364,7 +357,6 @@ function VariantProfile() {
 
         {/* Product Info + Specs Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Product Info */}
           {product && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -401,7 +393,6 @@ function VariantProfile() {
             </div>
           )}
 
-          {/* Specifications */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <i className="fa-solid fa-ruler-combined text-indigo-500" />
@@ -421,8 +412,54 @@ function VariantProfile() {
             )}
           </div>
         </div>
-
       </div>
+
+      {/* Edit Price Modal */}
+      <Modal
+        isOpen={editPriceOpen}
+        onClose={() => setEditPriceOpen(false)}
+        title="Edit Selling Price"
+        leftButton={{ text: 'Cancel', onClick: () => setEditPriceOpen(false), variant: 'secondary' }}
+        rightButton={{
+          text: isUpdatingPrice ? 'Saving…' : 'Save Price',
+          onClick: async () => {
+            const price = Number(newPrice);
+            if (!newPrice || isNaN(price) || price < 0) { showToast('error', 'Enter a valid price'); return; }
+            try {
+              await updateVariant({ productId: productId!, variantId, sellingPrice: price }).unwrap();
+              showToast('success', 'Price updated');
+              setEditPriceOpen(false);
+            } catch {
+              showToast('error', 'Failed to update price');
+            }
+          },
+          variant: 'primary',
+        }}
+      >
+        <div className="space-y-4">
+          <div className="bg-gray-50 rounded-lg p-3">
+            <p className="text-sm font-medium text-gray-900">{variantData?.variantName}</p>
+            <p className="text-xs font-mono text-gray-400 mt-0.5">{variantData?.sku}</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Selling Price (₦) <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={newPrice ? Number(newPrice).toLocaleString('en-NG') : ''}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/,/g, '');
+                if (raw === '' || !isNaN(Number(raw))) setNewPrice(raw);
+              }}
+              placeholder="e.g. 25000"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent"
+              autoFocus
+            />
+          </div>
+        </div>
+      </Modal>
 
       {/* Reorder Levels Modal */}
       <Modal
@@ -430,7 +467,7 @@ function VariantProfile() {
         onClose={() => setReorderRecord(null)}
         title="Set Reorder Levels"
         leftButton={{ text: 'Cancel', onClick: () => setReorderRecord(null), variant: 'secondary' }}
-        rightButton={{ text: isSavingReorder ? 'Saving...' : 'Save', onClick: handleSaveReorderLevels, variant: 'primary' }}
+        rightButton={{ text: isSavingReorder ? 'Saving…' : 'Save', onClick: handleSaveReorderLevels, variant: 'primary' }}
       >
         <div className="space-y-4">
           <div className="bg-gray-50 rounded-lg p-3">
@@ -444,28 +481,16 @@ function VariantProfile() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Minimum Quantity <span className="text-red-500">*</span>
             </label>
-            <input
-              type="number"
-              min="0"
-              value={minQty}
-              onChange={(e) => setMinQty(e.target.value)}
-              placeholder="e.g. 10"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent"
-            />
+            <input type="number" min="0" value={minQty} onChange={(e) => setMinQty(e.target.value)} placeholder="e.g. 10"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent" />
             <p className="text-xs text-gray-400 mt-1">Alert shown when stock falls below this level</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Maximum Quantity <span className="text-gray-400 font-normal">(optional)</span>
             </label>
-            <input
-              type="number"
-              min="0"
-              value={maxQty}
-              onChange={(e) => setMaxQty(e.target.value)}
-              placeholder="e.g. 100"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent"
-            />
+            <input type="number" min="0" value={maxQty} onChange={(e) => setMaxQty(e.target.value)} placeholder="e.g. 100"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent" />
           </div>
         </div>
       </Modal>
@@ -476,7 +501,7 @@ function VariantProfile() {
         onClose={() => setAddStockRecord(null)}
         title="Add Stock"
         leftButton={{ text: 'Cancel', onClick: () => setAddStockRecord(null), variant: 'secondary' }}
-        rightButton={{ text: isAddingStock ? 'Adding...' : 'Add Stock', onClick: handleAddStock, variant: 'primary' }}
+        rightButton={{ text: isAddingStock ? 'Adding…' : 'Add Stock', onClick: handleAddStock, variant: 'primary' }}
       >
         <div className="space-y-4">
           <div className="bg-gray-50 rounded-lg p-3">
@@ -486,76 +511,30 @@ function VariantProfile() {
               {addStockRecord?.warehouse?.name}
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Quantity <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={stockQty}
-                onChange={(e) => setStockQty(e.target.value)}
-                placeholder="e.g. 50"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Cost / Unit <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={stockCost}
-                onChange={(e) => setStockCost(e.target.value)}
-                placeholder="e.g. 15000"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent"
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Quantity <span className="text-red-500">*</span>
+            </label>
+            <input type="number" min="1" value={stockQty} onChange={(e) => setStockQty(e.target.value)} placeholder="e.g. 50"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Supplier ID <span className="text-red-500">*</span>
+              Notes <span className="text-gray-400 font-normal">(optional)</span>
             </label>
-            <input
-              type="number"
-              min="1"
-              value={stockSupplierId}
-              onChange={(e) => setStockSupplierId(e.target.value)}
-              placeholder="Enter supplier ID"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Batch Number</label>
-            <input
-              type="text"
-              value={stockBatchNum}
-              onChange={(e) => setStockBatchNum(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 font-mono focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Expiry Date <span className="text-gray-400 font-normal">(optional)</span>
-            </label>
-            <input
-              type="date"
-              value={stockExpiry}
-              onChange={(e) => setStockExpiry(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent"
-            />
+            <input type="text" value={stockNotes} onChange={(e) => setStockNotes(e.target.value)} placeholder="e.g. stock received from supplier"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent" />
           </div>
         </div>
       </Modal>
+
       {/* Add to Warehouse Modal */}
       <Modal
         isOpen={addToWarehouseOpen}
         onClose={() => setAddToWarehouseOpen(false)}
         title="Add to Warehouse"
         leftButton={{ text: 'Cancel', onClick: () => setAddToWarehouseOpen(false), variant: 'secondary' }}
-        rightButton={{ text: isAddingStock ? 'Adding...' : 'Add', onClick: handleAddToWarehouse, variant: 'primary' }}
+        rightButton={{ text: isAddingStock ? 'Adding…' : 'Add', onClick: handleAddToWarehouse, variant: 'primary' }}
       >
         <div className="space-y-4">
           <div className="bg-gray-50 rounded-lg p-3">
@@ -566,77 +545,97 @@ function VariantProfile() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Warehouse <span className="text-red-500">*</span>
             </label>
-            <select
-              value={newWarehouseId}
-              onChange={(e) => setNewWarehouseId(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white"
-            >
+            <select value={newWarehouseId} onChange={(e) => setNewWarehouseId(e.target.value)}
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white">
               <option value="">Select a warehouse</option>
               {availableWarehouses.map((w) => (
                 <option key={w.id} value={w.id}>{w.name} — {w.city}</option>
               ))}
             </select>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Quantity <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={newStockQty}
-                onChange={(e) => setNewStockQty(e.target.value)}
-                placeholder="e.g. 50"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Cost / Unit <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={newStockCost}
-                onChange={(e) => setNewStockCost(e.target.value)}
-                placeholder="e.g. 15000"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent"
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Quantity <span className="text-red-500">*</span>
+            </label>
+            <input type="number" min="1" value={newStockQty} onChange={(e) => setNewStockQty(e.target.value)} placeholder="e.g. 50"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Supplier ID <span className="text-red-500">*</span>
+              Notes <span className="text-gray-400 font-normal">(optional)</span>
             </label>
-            <input
-              type="number"
-              min="1"
-              value={newStockSupplierId}
-              onChange={(e) => setNewStockSupplierId(e.target.value)}
-              placeholder="Enter supplier ID"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent"
-            />
+            <input type="text" value={newStockNotes} onChange={(e) => setNewStockNotes(e.target.value)} placeholder="e.g. initial stock"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent" />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Batch Number</label>
-            <input
-              type="text"
-              value={newStockBatchNum}
-              onChange={(e) => setNewStockBatchNum(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 font-mono focus:border-transparent"
-            />
+        </div>
+      </Modal>
+
+      {/* Adjust Stock Modal */}
+      <Modal
+        isOpen={!!adjustRecord}
+        onClose={() => setAdjustRecord(null)}
+        title="Adjust Stock"
+        leftButton={{ text: 'Cancel', onClick: () => setAdjustRecord(null), variant: 'secondary' }}
+        rightButton={{ text: isAdjusting ? 'Saving…' : 'Save Adjustment', onClick: handleAdjustStock, variant: 'primary' }}
+      >
+        <div className="space-y-4">
+          <div className="bg-gray-50 rounded-lg p-3">
+            <p className="text-sm font-medium text-gray-900">{variantData?.variantName}</p>
+            <p className="text-xs text-gray-500 mt-1">
+              <i className="fa-solid fa-warehouse mr-1" />
+              {adjustRecord?.warehouse?.name}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Current stock: <span className="font-semibold text-gray-700">{adjustRecord?.totalQuantity ?? 0}</span>
+            </p>
+          </div>
+          <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+            <button onClick={() => setAdjustType('add')}
+              className={`flex-1 py-2.5 text-sm font-medium transition-colors cursor-pointer ${adjustType === 'add' ? 'bg-green-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+              <i className="fa-solid fa-plus mr-1.5" />Add
+            </button>
+            <button onClick={() => setAdjustType('remove')}
+              className={`flex-1 py-2.5 text-sm font-medium transition-colors cursor-pointer ${adjustType === 'remove' ? 'bg-red-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+              <i className="fa-solid fa-minus mr-1.5" />Remove
+            </button>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Expiry Date <span className="text-gray-400 font-normal">(optional)</span>
+              Quantity <span className="text-red-500">*</span>
             </label>
-            <input
-              type="date"
-              value={newStockExpiry}
-              onChange={(e) => setNewStockExpiry(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent"
-            />
+            <input type="number" min="1" value={adjustQty} onChange={(e) => setAdjustQty(e.target.value)} placeholder="e.g. 5"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent" />
+            {adjustQty && !isNaN(Number(adjustQty)) && Number(adjustQty) > 0 && (
+              <p className="text-xs mt-1.5 font-medium">
+                {adjustType === 'add' ? (
+                  <span className="text-green-600">New total: {(adjustRecord?.totalQuantity ?? 0) + Number(adjustQty)}</span>
+                ) : (
+                  <span className={(adjustRecord?.totalQuantity ?? 0) - Number(adjustQty) < 0 ? 'text-red-600' : 'text-gray-600'}>
+                    New total: {(adjustRecord?.totalQuantity ?? 0) - Number(adjustQty)}
+                    {(adjustRecord?.totalQuantity ?? 0) - Number(adjustQty) < 0 && ' (will fail — not enough stock)'}
+                  </span>
+                )}
+              </p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Reason</label>
+            <select value={adjustReason} onChange={(e) => setAdjustReason(e.target.value)}
+              className="w-full appearance-none px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white cursor-pointer">
+              <option>Physical count correction</option>
+              <option>Damaged / Write-off</option>
+              <option>Found stock</option>
+              <option>Theft / Loss</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Notes <span className="text-gray-400 font-normal">(optional)</span>
+            </label>
+            <textarea value={adjustNotes} onChange={(e) => setAdjustNotes(e.target.value)} rows={2}
+              placeholder="Additional details…"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 resize-none" />
           </div>
         </div>
       </Modal>

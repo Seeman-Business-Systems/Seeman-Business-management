@@ -3,14 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import Customer from 'src/domain/customer/customer';
 import StaffRepository from 'src/infrastructure/database/repositories/staff/staff.repository';
-import { StaffSerialiser } from './staff.serialiser';
+import { BaseStaffSerialiser } from './base-staff.serialiser';
 import SaleEntity from 'src/infrastructure/database/entities/sale.entity';
 
 @Injectable()
 class CustomerSerialiser {
   constructor(
     private readonly staff: StaffRepository,
-    private readonly staffSerialiser: StaffSerialiser,
+    private readonly baseStaffSerialiser: BaseStaffSerialiser,
     @InjectRepository(SaleEntity)
     private readonly salesRepository: Repository<SaleEntity>,
   ) {}
@@ -43,7 +43,7 @@ class CustomerSerialiser {
       creditLimit: customer.getCreditLimit(),
       outstandingBalance,
       availableCredit: customer.getAvailableCredit(),
-      createdBy: creator ? this.staffSerialiser.serialise(creator) : null,
+      createdBy: creator ? this.baseStaffSerialiser.serialise(creator) : null,
       createdAt: customer.getCreatedAt(),
       updatedAt: customer.getUpdatedAt(),
       deletedAt: customer.getDeletedAt(),

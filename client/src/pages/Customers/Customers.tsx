@@ -227,6 +227,11 @@ function Customers() {
 
         {/* Table */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          {customers.length > 0 && (
+            <div className="px-4 sm:px-6 py-3 border-b border-gray-200">
+              <p className="text-sm text-gray-600">Showing {customers.length} customer{customers.length !== 1 ? 's' : ''}</p>
+            </div>
+          )}
           {customers.length === 0 ? (
             <div className="px-4 py-16 text-center text-gray-400">
               <i className="fa-solid fa-users text-4xl mb-3" />

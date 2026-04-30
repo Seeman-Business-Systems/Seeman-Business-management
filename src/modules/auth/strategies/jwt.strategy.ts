@@ -36,6 +36,12 @@ class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException();
     }
 
+    if (!staff.initialPasswordChanged) {
+      throw new UnauthorizedException(
+        'Account setup incomplete. Please check your email for the setup link.',
+      );
+    }
+
     return staff; // This becomes req.user
   }
 }

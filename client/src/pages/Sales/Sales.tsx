@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import Layout from '../../components/layout/Layout';
 import SalesTable from './SalesTable';
 import usePageTitle from '../../hooks/usePageTitle';
@@ -18,11 +19,24 @@ const tabs: { key: TabType; label: string; status?: SaleStatus }[] = [
 
 function Sales() {
   usePageTitle('Sales');
+  const { can } = useAuth();
+
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
-  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>('all');
+  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>(
+    searchParams.get('paymentStatus') ?? 'all',
+  );
+
+  useEffect(() => {
+    if (searchParams.has('paymentStatus')) {
+      searchParams.delete('paymentStatus');
+      setSearchParams(searchParams, { replace: true });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -89,13 +103,15 @@ function Sales() {
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Sales</h1>
             <p className="text-sm text-gray-500 mt-0.5">{total} total sale{total !== 1 ? 's' : ''}</p>
           </div>
-          <Link
-            to="/sales/new"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
-          >
-            <i className="fa-solid fa-plus" />
-            New Sale
-          </Link>
+          {can('sale:create') && (
+            <Link
+              to="/sales/new"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+            >
+              <i className="fa-solid fa-plus" />
+              Record Sale
+            </Link>
+          )}
         </div>
 
         {/* Tabs */}

@@ -6,6 +6,7 @@ interface NavItem {
   name: string;
   path: string;
   icon: string;
+  permission?: string;
 }
 
 interface SidebarProps {
@@ -17,35 +18,30 @@ interface SidebarProps {
 
 const menuItems: NavItem[] = [
   { name: 'Dashboard', path: '/', icon: 'fa-gauge-high' },
-  { name: 'Products', path: '/products', icon: 'fa-box' },
-  { name: 'Inventory', path: '/inventory', icon: 'fa-boxes-stacked' },
-  { name: 'Sales', path: '/sales', icon: 'fa-cart-shopping' },
-  { name: 'Supplies', path: '/supplies', icon: 'fa-truck-fast' },
-  { name: 'Customers', path: '/customers', icon: 'fa-users' },
-  { name: 'Expenses', path: '/expenses', icon: 'fa-money-bill-trend-up' },
-  { name: 'Activities', path: '/activities', icon: 'fa-clock-rotate-left' },
-  { name: 'Reports', path: '/reports', icon: 'fa-chart-line' },
-  { name: 'Staff', path: '/staff', icon: 'fa-id-card' },
-  { name: 'Branches', path: '/branches', icon: 'fa-code-branch' },
+  { name: 'Products', path: '/products', icon: 'fa-box', permission: 'product:read' },
+  { name: 'Inventory', path: '/inventory', icon: 'fa-boxes-stacked', permission: 'inventory:read' },
+  { name: 'Sales', path: '/sales', icon: 'fa-cart-shopping', permission: 'sale:read' },
+  { name: 'Supplies', path: '/supplies', icon: 'fa-truck-fast', permission: 'supply:read' },
+  { name: 'Customers', path: '/customers', icon: 'fa-users', permission: 'customer:read' },
+  { name: 'Expenses', path: '/expenses', icon: 'fa-money-bill-trend-up', permission: 'expense:read' },
+  { name: 'Activities', path: '/activities', icon: 'fa-clock-rotate-left', permission: 'activity:read' },
+  { name: 'Reports', path: '/reports', icon: 'fa-chart-line', permission: 'analytics:read' },
+  { name: 'Manage Staff', path: '/staff', icon: 'fa-id-card', permission: 'staff:read' },
+  { name: 'Branches', path: '/branches', icon: 'fa-code-branch', permission: 'branch:read' },
 ];
 
 const supportItems: NavItem[] = [
   { name: 'Profile', path: '/me', icon: 'fa-user' },
   { name: 'Help', path: '/help', icon: 'fa-circle-question' },
-  { name: 'Settings', path: '/settings', icon: 'fa-gear' },
+  { name: 'Settings', path: '/system-settings', icon: 'fa-gear', permission: 'settings:manage' },
   { name: 'Report Issue', path: '/report-issue', icon: 'fa-bug' },
 ];
 
 function Sidebar({ collapsed, onToggle, isMobile = false, isOpen = false }: SidebarProps) {
-  const { user, logout } = useAuth();
+  const { logout, can } = useAuth();
 
-  // Filter menu items based on user role
-  const filteredMenuItems = menuItems.filter(item => {
-    if (item.name === 'Staff') {
-      return user?.role?.isManagement === true;
-    }
-    return true;
-  });
+  const filteredMenuItems = menuItems.filter(item => !item.permission || can(item.permission));
+  const filteredSupportItems = supportItems.filter(item => !item.permission || can(item.permission));
 
   const renderNavItems = (items: NavItem[], closeMobileMenu?: () => void) => (
     <ul className="space-y-1">
@@ -92,7 +88,7 @@ function Sidebar({ collapsed, onToggle, isMobile = false, isOpen = false }: Side
           {renderNavItems(filteredMenuItems, onToggle)}
 
           <p className="text-xs text-gray-500 tracking-wider mt-8 mb-4 px-3">Support</p>
-          {renderNavItems(supportItems, onToggle)}
+          {renderNavItems(filteredSupportItems, onToggle)}
         </nav>
 
         {/* Logout */}
@@ -153,7 +149,7 @@ function Sidebar({ collapsed, onToggle, isMobile = false, isOpen = false }: Side
           </p>
         )}
         {collapsed && <div className="mt-8" />}
-        {renderNavItems(supportItems)}
+        {renderNavItems(filteredSupportItems)}
       </nav>
 
       {/* Logout */}

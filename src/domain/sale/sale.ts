@@ -3,29 +3,6 @@ import PaymentStatus from './payment-status';
 import PaymentMethod from './payment-method';
 import SaleLineItem from './sale-line-item';
 import SalePayment from './sale-payment';
-
-export interface SaleCustomer {
-  id: number;
-  name: string;
-  phoneNumber: string;
-  email: string | null;
-}
-
-export interface SaleSoldBy {
-  id: number;
-  firstName: string;
-  lastName: string;
-}
-
-export interface SaleBranch {
-  id: number;
-  name: string;
-  address: string | null;
-  city: string | null;
-  state: string | null;
-  phoneNumber: string | null;
-}
-
 class Sale {
   constructor(
     private id: number | undefined,
@@ -34,8 +11,8 @@ class Sale {
     private soldBy: number,
     private branchId: number,
     private status: SaleStatus,
-    private paymentStatus: PaymentStatus,
-    private paymentMethod: PaymentMethod,
+    private paymentStatus: PaymentStatus | null,
+    private paymentMethod: PaymentMethod | null,
     private subtotal: number,
     private discountAmount: number,
     private totalAmount: number,
@@ -46,10 +23,6 @@ class Sale {
     private deletedAt: Date | null,
     private lineItems: SaleLineItem[],
     private payments: SalePayment[],
-    // Extra display data from joined entities
-    private customer?: SaleCustomer | null,
-    private soldByData?: SaleSoldBy | null,
-    private branchData?: SaleBranch | null,
   ) {}
 
   getId(): number | undefined {
@@ -96,19 +69,19 @@ class Sale {
     this.status = status;
   }
 
-  getPaymentStatus(): PaymentStatus {
+  getPaymentStatus(): PaymentStatus | null {
     return this.paymentStatus;
   }
 
-  setPaymentStatus(paymentStatus: PaymentStatus): void {
+  setPaymentStatus(paymentStatus: PaymentStatus | null): void {
     this.paymentStatus = paymentStatus;
   }
 
-  getPaymentMethod(): PaymentMethod {
+  getPaymentMethod(): PaymentMethod | null {
     return this.paymentMethod;
   }
 
-  setPaymentMethod(paymentMethod: PaymentMethod): void {
+  setPaymentMethod(paymentMethod: PaymentMethod | null): void {
     this.paymentMethod = paymentMethod;
   }
 
@@ -190,18 +163,6 @@ class Sale {
 
   setPayments(payments: SalePayment[]): void {
     this.payments = payments;
-  }
-
-  getCustomer(): SaleCustomer | null | undefined {
-    return this.customer;
-  }
-
-  getSoldByData(): SaleSoldBy | null | undefined {
-    return this.soldByData;
-  }
-
-  getBranchData(): SaleBranch | null | undefined {
-    return this.branchData;
   }
 }
 

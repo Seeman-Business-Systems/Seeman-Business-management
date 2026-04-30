@@ -28,6 +28,8 @@ import BranchRepository from 'src/infrastructure/database/repositories/branch/br
 import BranchQuery from 'src/application/branch/queries/branch.query';
 import type { BranchFilters } from 'src/application/branch/queries/branch.filters';
 import BranchSerialiser from 'src/presentation/serialisers/branch.serialiser';
+import { RequirePermission } from 'src/modules/auth/decorators/role-guard.decorator';
+import { Permission } from 'src/domain/permission/permission';
 
 @Controller('branches')
 @UseGuards(JwtAuthGuard)
@@ -41,6 +43,7 @@ class BranchController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(Permission.BRANCH_CREATE)
   async create(@Body() dto: CreateBranchValidator, @Actor() actor: Staff) {
     const command = new CreateBranchCommand(
       dto.name,
@@ -63,6 +66,7 @@ class BranchController {
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.BRANCH_UPDATE)
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateBranchValidator,
@@ -88,6 +92,7 @@ class BranchController {
 
   @Delete()
   @HttpCode(HttpStatus.NO_CONTENT)
+  @RequirePermission(Permission.BRANCH_UPDATE)
   async deleteMany(@Body() dto: { ids: number[] }): Promise<void> {
     await Promise.all(
       dto.ids.map((id) => this.commandBus.execute(new DeleteBranchCommand(id))),
@@ -96,6 +101,7 @@ class BranchController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @RequirePermission(Permission.BRANCH_UPDATE)
   async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
     const command = new DeleteBranchCommand(id);
 
@@ -104,6 +110,7 @@ class BranchController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.BRANCH_READ)
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const branch = await this.branches.findById(id);
 
@@ -114,6 +121,7 @@ class BranchController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.BRANCH_READ)
   async findAll(@Query() filters: BranchFilters) {
     const result = await this.branchQuery.findBy(filters);
 

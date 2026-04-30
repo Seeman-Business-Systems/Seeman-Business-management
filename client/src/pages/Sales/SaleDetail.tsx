@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import Modal from '../../components/ui/Modal';
 import usePageTitle from '../../hooks/usePageTitle';
-import { useGetSaleQuery, useRecordPaymentMutation, useCancelSaleMutation } from '../../store/api/salesApi';
+import { useGetSaleQuery, useRecordPaymentMutation, useCancelSaleMutation, useUpdateSaleMutation } from '../../store/api/salesApi';
 import { useToast } from '../../context/ToastContext';
 import { SaleStatus, PaymentStatus, PaymentMethod } from '../../types/sale';
 
@@ -61,6 +61,7 @@ function SaleDetail() {
   const { data: sale, isLoading } = useGetSaleQuery(Number(id));
   const [recordPayment, { isLoading: isRecordingPayment }] = useRecordPaymentMutation();
   const [cancelSale, { isLoading: isCancelling }] = useCancelSaleMutation();
+  const [updateSale, { isLoading: isUpdating }] = useUpdateSaleMutation();
 
   // Payment modal state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -68,6 +69,14 @@ function SaleDetail() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.CASH);
   const [paymentReference, setPaymentReference] = useState('');
   const [paymentNotes, setPaymentNotes] = useState('');
+
+  // Edit modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editNotes, setEditNotes] = useState('');
+  const [editPaymentMethod, setEditPaymentMethod] = useState<PaymentMethod | ''>('');
+
+  // Fulfil confirmation modal state
+  const [showFulfilModal, setShowFulfilModal] = useState(false);
 
   // Cancel confirmation modal state
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -110,6 +119,39 @@ function SaleDetail() {
     }
   };
 
+  const handleFulfilSale = async () => {
+    try {
+      await updateSale({ id: Number(id), data: { status: 'FULFILLED' } }).unwrap();
+      showToast('success', 'Sale fulfilled');
+      setShowFulfilModal(false);
+    } catch {
+      showToast('error', 'Failed to fulfil sale');
+    }
+  };
+
+  const openEditModal = () => {
+    if (!sale) return;
+    setEditNotes(sale.notes ?? '');
+    setEditPaymentMethod(sale.paymentMethod ?? '');
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      await updateSale({
+        id: Number(id),
+        data: {
+          notes: editNotes.trim() || null,
+          paymentMethod: editPaymentMethod || null,
+        },
+      }).unwrap();
+      showToast('success', 'Sale updated');
+      setShowEditModal(false);
+    } catch {
+      showToast('error', 'Failed to update sale');
+    }
+  };
+
   if (isLoading) {
     return (
       <Layout>
@@ -147,7 +189,7 @@ function SaleDetail() {
               <div className="flex items-center gap-3 flex-wrap">
                 <h1 className="text-xl font-bold text-gray-900 font-mono">{sale.saleNumber}</h1>
                 <StatusBadge status={sale.status} />
-                <PaymentStatusBadge status={sale.paymentStatus} />
+                {sale.paymentStatus && <PaymentStatusBadge status={sale.paymentStatus} />}
               </div>
               <p className="text-sm text-gray-500 mt-0.5">{formatDateTime(sale.soldAt)}</p>
             </div>
@@ -161,9 +203,25 @@ function SaleDetail() {
               <i className="fa-solid fa-print" />
               Print Receipt
             </Link>
-            {sale.status === SaleStatus.FULFILLED && (
+            {sale.status !== SaleStatus.CANCELLED && (
               <>
-                {sale.paymentStatus !== PaymentStatus.PAID && (
+                <button
+                  onClick={openEditModal}
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  <i className="fa-solid fa-pen" />
+                  Edit
+                </button>
+                {sale.status === SaleStatus.DRAFT && (
+                  <button
+                    onClick={() => setShowFulfilModal(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors cursor-pointer"
+                  >
+                    <i className="fa-solid fa-circle-check" />
+                    Fulfil
+                  </button>
+                )}
+                {sale.status === SaleStatus.FULFILLED && sale.paymentStatus !== PaymentStatus.PAID && (
                   <button
                     onClick={() => setShowPaymentModal(true)}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors cursor-pointer"
@@ -324,6 +382,65 @@ function SaleDetail() {
         </div>
       </div>
 
+      {/* Fulfil Confirmation Modal */}
+      <Modal
+        isOpen={showFulfilModal}
+        onClose={() => setShowFulfilModal(false)}
+        title="Fulfil Sale"
+        leftButton={{ text: 'Cancel', onClick: () => setShowFulfilModal(false), variant: 'secondary' }}
+        rightButton={{ text: isUpdating ? 'Fulfilling...' : 'Fulfil Sale', onClick: handleFulfilSale, variant: 'primary' }}
+      >
+        <div className="space-y-3">
+          <p className="text-sm text-gray-600">
+            Mark sale <span className="font-semibold font-mono">{sale.saleNumber}</span> as fulfilled?
+          </p>
+          <p className="text-sm text-gray-500">This will change the status from Draft to Fulfilled.</p>
+        </div>
+      </Modal>
+
+      {/* Edit Sale Modal */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        title="Edit Sale"
+        leftButton={{ text: 'Cancel', onClick: () => setShowEditModal(false), variant: 'secondary' }}
+        rightButton={{ text: isUpdating ? 'Saving...' : 'Save Changes', onClick: handleSaveEdit, variant: 'primary' }}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Payment Method <span className="text-gray-400 font-normal">(optional)</span>
+            </label>
+            <div className="relative">
+              <select
+                value={editPaymentMethod}
+                onChange={(e) => setEditPaymentMethod(e.target.value as PaymentMethod | '')}
+                className="w-full appearance-none px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white cursor-pointer"
+              >
+                <option value="">— Not specified —</option>
+                <option value={PaymentMethod.CASH}>Cash</option>
+                <option value={PaymentMethod.CARD}>Card</option>
+                <option value={PaymentMethod.TRANSFER}>Transfer</option>
+                <option value={PaymentMethod.CREDIT}>Credit</option>
+              </select>
+              <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Notes <span className="text-gray-400 font-normal">(optional)</span>
+            </label>
+            <textarea
+              value={editNotes}
+              onChange={(e) => setEditNotes(e.target.value)}
+              rows={3}
+              placeholder="Add a note..."
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 resize-none"
+            />
+          </div>
+        </div>
+      </Modal>
+
       {/* Record Payment Modal */}
       <Modal
         isOpen={showPaymentModal}
@@ -347,11 +464,13 @@ function SaleDetail() {
               Amount <span className="text-red-500">*</span>
             </label>
             <input
-              type="number"
-              min="0.01"
-              step="0.01"
-              value={paymentAmount}
-              onChange={(e) => setPaymentAmount(e.target.value)}
+              type="text"
+              inputMode="numeric"
+              value={paymentAmount ? Number(paymentAmount).toLocaleString('en-NG') : ''}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/,/g, '');
+                if (raw === '' || !isNaN(Number(raw))) setPaymentAmount(raw);
+              }}
               placeholder={`e.g. ${Math.max(0, balanceDue).toFixed(0)}`}
               className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent"
             />

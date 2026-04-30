@@ -5,7 +5,7 @@ class SalePayment {
     private id: number | undefined,
     private saleId: number | undefined,
     private amount: number,
-    private paymentMethod: PaymentMethod,
+    private paymentMethod: PaymentMethod | undefined,
     private reference: string | null,
     private notes: string | null,
     private recordedBy: number,
@@ -34,7 +34,7 @@ class SalePayment {
     this.amount = amount;
   }
 
-  getPaymentMethod(): PaymentMethod {
+  getPaymentMethod(): PaymentMethod | undefined {
     return this.paymentMethod;
   }
 

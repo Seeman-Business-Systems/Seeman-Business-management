@@ -1,11 +1,30 @@
 import { Injectable } from '@nestjs/common';
 import Sale from 'src/domain/sale/sale';
 import SalePayment from 'src/domain/sale/sale-payment';
+import StaffRepository from 'src/infrastructure/database/repositories/staff/staff.repository';
+import BranchRepository from 'src/infrastructure/database/repositories/branch/branch.repository';
+import CustomerRepository from 'src/infrastructure/database/repositories/customer/customer.repository';
+import { BaseStaffSerialiser } from './base-staff.serialiser';
+import { BaseBranchSerialiser } from './base-branch.serialiser';
 
 @Injectable()
 class SaleSerialiser {
+  constructor(
+    private readonly staffRepo: StaffRepository,
+    private readonly branchRepo: BranchRepository,
+    private readonly customerRepo: CustomerRepository,
+    private readonly baseStaffSerialiser: BaseStaffSerialiser,
+    private readonly baseBranchSerialiser: BaseBranchSerialiser,
+  ) {}
+
   async serialise(sale: Sale) {
-    const result: any = {
+    const [staff, branch, customer] = await Promise.all([
+      this.staffRepo.findById(sale.getSoldBy()),
+      this.branchRepo.findById(sale.getBranchId()),
+      sale.getCustomerId() ? this.customerRepo.findById(sale.getCustomerId()!) : null,
+    ]);
+
+    return {
       id: sale.getId(),
       saleNumber: sale.getSaleNumber(),
       status: sale.getStatus(),
@@ -17,9 +36,9 @@ class SaleSerialiser {
       notes: sale.getNotes(),
       soldAt: sale.getSoldAt(),
       createdAt: sale.getCreatedAt(),
-      customer: sale.getCustomer() ?? null,
-      soldBy: sale.getSoldByData() ?? null,
-      branch: sale.getBranchData() ?? null,
+      customer: customer ? { id: customer.getId(), name: customer.getName(), phoneNumber: customer.getPhoneNumber() } : null,
+      soldBy: this.baseStaffSerialiser.serialise(staff!),
+      branch: this.baseBranchSerialiser.serialise(branch!),
       lineItems: sale.getLineItems().map((item) => ({
         id: item.getId(),
         variantId: item.getVariantId(),
@@ -39,11 +58,15 @@ class SaleSerialiser {
         recordedAt: payment.getRecordedAt(),
       })),
     };
-
-    return result;
   }
 
   async serialiseList(sale: Sale) {
+    const [staff, branch, customer] = await Promise.all([
+      this.staffRepo.findById(sale.getSoldBy()),
+      this.branchRepo.findById(sale.getBranchId()),
+      sale.getCustomerId() ? this.customerRepo.findById(sale.getCustomerId()!) : null,
+    ]);
+
     return {
       id: sale.getId(),
       saleNumber: sale.getSaleNumber(),
@@ -56,9 +79,9 @@ class SaleSerialiser {
       notes: sale.getNotes(),
       soldAt: sale.getSoldAt(),
       createdAt: sale.getCreatedAt(),
-      customer: sale.getCustomer() ?? null,
-      soldBy: sale.getSoldByData() ?? null,
-      branch: sale.getBranchData() ?? null,
+      customer: customer ? { id: customer.getId(), name: customer.getName(), phoneNumber: customer.getPhoneNumber() } : null,
+      soldBy: this.baseStaffSerialiser.serialise(staff!),
+      branch: this.baseBranchSerialiser.serialise(branch!),
       itemCount: sale.getLineItems().length,
     };
   }

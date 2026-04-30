@@ -20,6 +20,7 @@ import BranchSerialiser from 'src/presentation/serialisers/branch.serialiser';
 import { StaffSerialiser } from 'src/presentation/serialisers/staff.serialiser';
 import { RoleSerialiser } from 'src/presentation/serialisers/role.serialiser';
 import { BaseStaffSerialiser } from 'src/presentation/serialisers/base-staff.serialiser';
+import { BaseBranchSerialiser } from 'src/presentation/serialisers/base-branch.serialiser';
 
 @Module({
   imports: [
@@ -45,11 +46,12 @@ import { BaseStaffSerialiser } from 'src/presentation/serialisers/base-staff.ser
     StaffSerialiser,
     RoleSerialiser,
     BaseStaffSerialiser,
+    BaseBranchSerialiser,
     BranchSeed,
     CreateBranchHandler,
     UpdateBranchHandler,
     DeleteBranchHandler,
   ],
-  exports: [BranchRepository, BranchSeed, BranchSerialiser],
+  exports: [BranchRepository, BranchSeed, BranchSerialiser, BaseBranchSerialiser],
 })
 export class BranchModule {}

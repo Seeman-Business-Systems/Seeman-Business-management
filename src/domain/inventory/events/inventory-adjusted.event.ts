@@ -1,6 +1,6 @@
 class InventoryAdjusted {
   constructor(
-    public readonly batchId: number,
+    public readonly inventoryId: number,
     public readonly warehouseId: number,
     public readonly variantId: number,
     public readonly adjustmentQuantity: number,

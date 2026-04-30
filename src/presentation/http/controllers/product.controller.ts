@@ -33,9 +33,11 @@ import ProductQuery, {
 } from 'src/application/product/queries/product.query';
 import ProductSerialiser from 'src/presentation/serialisers/product.serialiser';
 import JwtAuthGuard from 'src/modules/auth/guards/jwt-auth.guard';
+import { RequirePermission } from 'src/modules/auth/decorators/role-guard.decorator';
+import { Permission } from 'src/domain/permission/permission';
 
 @Controller('products')
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 class ProductController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -47,6 +49,7 @@ class ProductController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(Permission.PRODUCT_CREATE)
   async create(@Body() dto: CreateProductValidator, @Actor() actor: Staff) {
     const command = new CreateProductCommand(
       dto.name,
@@ -64,6 +67,7 @@ class ProductController {
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.PRODUCT_UPDATE)
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateProductValidator,
@@ -84,6 +88,7 @@ class ProductController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @RequirePermission(Permission.PRODUCT_DELETE)
   async delete(@Param('id', ParseIntPipe) id: number) {
     const command = new DeleteProductCommand(id);
     await this.commandBus.execute(command);
@@ -91,6 +96,7 @@ class ProductController {
 
   @Post(':id/variants')
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(Permission.PRODUCT_CREATE)
   async createVariant(
     @Param('id', ParseIntPipe) productId: number,
     @Body() dto: CreateProductVariantValidator,
@@ -116,6 +122,7 @@ class ProductController {
 
   @Put(':productId/variants/:variantId')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.PRODUCT_UPDATE)
   async updateVariant(
     @Param('productId', ParseIntPipe) productId: number,
     @Param('variantId', ParseIntPipe) variantId: number,
@@ -140,6 +147,7 @@ class ProductController {
 
   @Delete(':productId/variants/:variantId')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @RequirePermission(Permission.PRODUCT_DELETE)
   async deleteVariant(
     @Param('productId', ParseIntPipe) productId: number,
     @Param('variantId', ParseIntPipe) variantId: number,
@@ -155,6 +163,7 @@ class ProductController {
 
   @Get(':id/variants')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.PRODUCT_READ)
   async getProductVariants(@Param('id', ParseIntPipe) id: number) {
     const product = await this.products.findById(id);
     if (!product) {
@@ -166,6 +175,7 @@ class ProductController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.PRODUCT_READ)
   async findById(
     @Param('id', ParseIntPipe) id: number,
     @Query('includeRelations') includeRelations?: string,
@@ -182,6 +192,7 @@ class ProductController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.PRODUCT_READ)
   async findBy(
     @Query('ids') ids?: string,
     @Query('name') name?: string,

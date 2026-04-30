@@ -14,6 +14,8 @@ import SaleController from 'src/presentation/http/controllers/sale.controller';
 import CreateSaleHandler from 'src/application/sale/commands/create-sale/create-sale';
 import RecordSalePaymentHandler from 'src/application/sale/commands/record-payment/record-payment';
 import CancelSaleHandler from 'src/application/sale/commands/cancel-sale/cancel-sale';
+import UpdateSaleHandler from 'src/application/sale/commands/update-sale/update-sale.handler';
+import OnSupplyFulfilledHandler from 'src/application/sale/event-handlers/on-supply-fulfilled.handler';
 import SaleQuery from 'src/application/sale/queries/sale.query';
 import SaleSerialiser from 'src/presentation/serialisers/sale.serialiser';
 import { SaleSeed } from 'src/infrastructure/database/seeds/sale.seed';
@@ -49,6 +51,8 @@ import { CustomerModule } from '../customer/customer.module';
     CreateSaleHandler,
     RecordSalePaymentHandler,
     CancelSaleHandler,
+    UpdateSaleHandler,
+    OnSupplyFulfilledHandler,
   ],
   exports: [SaleRepository, SaleSerialiser, SaleSeed],
 })

@@ -3,7 +3,8 @@ import { Link, useParams } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import Modal from '../../components/ui/Modal';
 import usePageTitle from '../../hooks/usePageTitle';
-import { useGetSupplyQuery, useFulfilSupplyMutation, useCancelSupplyMutation } from '../../store/api/suppliesApi';
+import { useGetSupplyQuery, useFulfilSupplyMutation, useCancelSupplyMutation, useAssignSupplyItemWarehouseMutation } from '../../store/api/suppliesApi';
+import { useGetWarehousesQuery } from '../../store/api/warehousesApi';
 import type { SupplyStatus } from '../../types/supply';
 import { useToast } from '../../context/ToastContext';
 
@@ -29,6 +30,8 @@ function SupplyDetail() {
   const { data: supply, isLoading, error } = useGetSupplyQuery(supplyId!, { skip: !supplyId });
   const [fulfilSupply, { isLoading: isFulfilling }] = useFulfilSupplyMutation();
   const [cancelSupply, { isLoading: isCancelling }] = useCancelSupplyMutation();
+  const [assignWarehouse, { isLoading: isAssigning }] = useAssignSupplyItemWarehouseMutation();
+  const { data: warehouses = [] } = useGetWarehousesQuery();
 
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showFulfilModal, setShowFulfilModal] = useState(false);
@@ -41,6 +44,9 @@ function SupplyDetail() {
       setShowFulfilModal(false);
       setFulfilNotes('');
       showToast('success', 'Supply marked as fulfilled');
+      if (supply?.saleId) {
+        showToast('info', `Sale ${supply.saleNumber} has been fulfilled automatically`);
+      }
     } catch {
       showToast('error', 'Failed to fulfil supply');
     }
@@ -164,14 +170,41 @@ function SupplyDetail() {
                 <thead>
                   <tr className="border-b border-gray-100">
                     <th className="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Product / Variant</th>
+                    <th className="text-left py-3 pr-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Warehouse</th>
                     <th className="text-right py-3 pr-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {supply.items.map((item) => (
                     <tr key={item.id}>
-                      <td className="py-3 text-sm text-gray-900">
+                      <td className="py-3 pr-4 text-sm text-gray-900">
                         {item.variantName ?? <span className="text-gray-400 italic">Unknown variant</span>}
+                      </td>
+                      <td className="py-3 pr-4 text-sm">
+                        {supply.status === 'DRAFT' ? (
+                          <select
+                            value={item.warehouseId ?? ''}
+                            onChange={async (e) => {
+                              const wId = Number(e.target.value);
+                              if (!wId) return;
+                              try {
+                                await assignWarehouse({ supplyId: supply.id, itemId: item.id, warehouseId: wId }).unwrap();
+                                showToast('success', 'Warehouse assigned');
+                              } catch {
+                                showToast('error', 'Failed to assign warehouse');
+                              }
+                            }}
+                            disabled={isAssigning}
+                            className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                          >
+                            <option value="">— select —</option>
+                            {warehouses.map((w) => (
+                              <option key={w.id} value={w.id}>{w.name}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="text-gray-700">{item.warehouseName ?? <span className="text-gray-400 italic">None</span>}</span>
+                        )}
                       </td>
                       <td className="py-3 pr-4 text-sm text-gray-700 text-right font-medium">
                         {item.quantity}
@@ -182,6 +215,7 @@ function SupplyDetail() {
                 <tfoot>
                   <tr className="border-t border-gray-200">
                     <td className="pt-3 text-sm font-semibold text-gray-900">Total units</td>
+                    <td />
                     <td className="pt-3 pr-4 text-sm font-semibold text-gray-900 text-right">{totalItems}</td>
                   </tr>
                 </tfoot>

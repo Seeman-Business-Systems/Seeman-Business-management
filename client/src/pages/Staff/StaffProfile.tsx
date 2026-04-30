@@ -43,6 +43,18 @@ function StaffProfile({ staffId: propStaffId, isMyprofile }: StaffProfileProps) 
     });
   };
 
+  const formatDateTime = (dateString: string | null) => {
+    if (!dateString) return 'Never';
+    return new Date(dateString).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
   const handleTransfer = async () => {
     if (!staffId || !transferBranchId) return;
     try {
@@ -305,9 +317,9 @@ function StaffProfile({ staffId: propStaffId, isMyprofile }: StaffProfileProps) 
                 <i className="fa-solid fa-rotate text-gray-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Last Updated</p>
+                <p className="text-sm text-gray-500">Last Login</p>
                 <p className="text-gray-900 font-medium">
-                  {formatDate(staff.updatedAt)}
+                  {formatDateTime(staff.lastLoginAt)}
                 </p>
               </div>
             </div>

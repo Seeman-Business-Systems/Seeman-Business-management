@@ -3,6 +3,8 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
+  Param,
+  ParseIntPipe,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -15,6 +17,9 @@ import { Public } from './decorators/public.decorator';
 import ForgotPasswordValidator from 'src/application/staff/commands/auth/forgot-password.validator';
 import ResetPasswordWithTokenValidator from 'src/application/staff/commands/auth/reset-password-with-token.validator';
 import { StaffSerialiser } from 'src/presentation/serialisers/staff.serialiser';
+import RolePermissionRepository from 'src/infrastructure/database/repositories/role-permission/role-permission.repository';
+import RoleRepository from 'src/infrastructure/database/repositories/role/role.repository';
+import { SUPERADMIN_ROLE } from 'src/domain/permission/permission';
 
 @Controller('auth')
 @UseGuards(JwtAuthGuard)
@@ -22,6 +27,8 @@ class AuthController {
   constructor(
     private authService: AuthService,
     private staffSerialiser: StaffSerialiser,
+    private permissionRepo: RolePermissionRepository,
+    private roleRepo: RoleRepository,
   ) {}
 
   @Post('register')
@@ -41,8 +48,6 @@ class AuthController {
 
     const result = await this.authService.register(staffData);
     return {
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
       staff: await this.staffSerialiser.serialise(result.staff),
     };
   }
@@ -95,10 +100,32 @@ class AuthController {
   /**
    * Get current authenticated user profile
    */
+  @Post('impersonate/:staffId')
+  @HttpCode(HttpStatus.OK)
+  async impersonate(
+    @Param('staffId', ParseIntPipe) staffId: number,
+    @Actor() actor: Staff,
+  ) {
+    const result = await this.authService.impersonate(staffId);
+    return {
+      accessToken: result.accessToken,
+      staff: await this.staffSerialiser.serialise(result.staff),
+      impersonatedBy: actor.getId(),
+    };
+  }
+
   @Post('me')
   @HttpCode(HttpStatus.OK)
   async getProfile(@Actor() actor: Staff) {
-    return { staff: await this.staffSerialiser.serialise(actor) };
+    const role = await this.roleRepo.findByIdOrName(actor.getRoleId());
+    const roleName = role?.getName() ?? '';
+    const permissions = roleName === SUPERADMIN_ROLE
+      ? ['*']
+      : await this.permissionRepo.getGrantedForRole(roleName);
+    return {
+      staff: await this.staffSerialiser.serialise(actor),
+      permissions,
+    };
   }
 }
 

@@ -111,7 +111,9 @@ function StaffForm({ initialData, onSubmit, submitLabel, isSubmitting }: StaffFo
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Name Section */}
-      <p className="text-sm text-gray-500">Fields marked with <span className="text-red-500">*</span> are required</p>
+      <p className="text-sm text-gray-500">
+        Fields marked with <span className="text-red-500">*</span> are required
+      </p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -189,7 +191,7 @@ function StaffForm({ initialData, onSubmit, submitLabel, isSubmitting }: StaffFo
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Email
+            Email <span className="text-red-500">*</span>
           </label>
           <input
             type="email"

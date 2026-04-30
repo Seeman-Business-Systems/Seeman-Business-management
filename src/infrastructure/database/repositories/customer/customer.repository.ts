@@ -1,5 +1,4 @@
 import Customer from 'src/domain/customer/customer';
-import InventoryReservation from 'src/domain/inventory/inventory-reservation';
 import CustomerEntity from '../../entities/customer.entity';
 import { Injectable } from '@nestjs/common';
 

@@ -6,12 +6,10 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-  OneToMany,
   Unique,
 } from 'typeorm';
 import ProductVariantEntity from './product-variant.entity';
 import WarehouseEntity from './warehouse.entity';
-import InventoryBatchEntity from './inventory-batch.entity';
 
 @Entity({ name: 'inventory' })
 @Unique(['variant', 'warehouse'])
@@ -44,9 +42,6 @@ class InventoryEntity {
 
   @Column({ type: 'int', default: 0 })
   reservedQuantity: number;
-
-  @OneToMany(() => InventoryBatchEntity, (batch) => batch.inventory)
-  batches: InventoryBatchEntity[];
 
   @CreateDateColumn()
   createdAt: Date;

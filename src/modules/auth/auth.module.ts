@@ -10,6 +10,7 @@ import JwtStrategy from './strategies/jwt.strategy';
 import { RefreshTokenModule } from '../tokens/refresh-token.module';
 import { PasswordResetTokenModule } from '../tokens/password-reset-token.module';
 import MailersModule from 'src/mailers/mailers.module';
+import { PermissionModule } from '../permission/permission.module';
 @Module({
   imports: [
     ConfigModule,
@@ -19,6 +20,7 @@ import MailersModule from 'src/mailers/mailers.module';
     RefreshTokenModule,
     PasswordResetTokenModule,
     MailersModule,
+    PermissionModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

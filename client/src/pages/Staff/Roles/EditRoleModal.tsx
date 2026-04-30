@@ -17,13 +17,12 @@ function EditRoleModal({ isOpen, onClose, role, onRoleUpdated }: EditRoleModalPr
   const [isManagement, setIsManagement] = useState(false);
   const [updateRole, { isLoading: saving }] = useUpdateRoleMutation();
 
-  // Reset form when role changes
   useEffect(() => {
-    if (role) {
+    if (role && isOpen) {
       setName(role.name);
       setIsManagement(role.isManagement);
     }
-  }, [role]);
+  }, [role, isOpen]);
 
   const handleSubmit = async () => {
     if (!role) return;

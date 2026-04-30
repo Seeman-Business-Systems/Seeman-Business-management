@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Delete,
   Get,
+  UseGuards,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import CreateBrandCommand from 'src/application/product/commands/brand/create/create-brand.command';
@@ -21,8 +22,12 @@ import Staff from 'src/domain/staff/staff';
 import { ActorType } from 'src/domain/common/actor-type';
 import BrandRepository from 'src/infrastructure/database/repositories/product/brand.repository';
 import BrandSerialiser from 'src/presentation/serialisers/brand.serialiser';
+import JwtAuthGuard from 'src/modules/auth/guards/jwt-auth.guard';
+import { RequirePermission } from 'src/modules/auth/decorators/role-guard.decorator';
+import { Permission } from 'src/domain/permission/permission';
 
 @Controller('brands')
+@UseGuards(JwtAuthGuard)
 class BrandController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -32,6 +37,7 @@ class BrandController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(Permission.BRAND_MANAGE)
   async create(
     @Body() dto: CreateBrandValidator,
     @Actor() actor: Staff,
@@ -48,6 +54,7 @@ class BrandController {
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.BRAND_MANAGE)
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateBrandValidator,
@@ -60,6 +67,7 @@ class BrandController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @RequirePermission(Permission.BRAND_MANAGE)
   async delete(@Param('id', ParseIntPipe) id: number) {
     const command = new DeleteBrandCommand(id);
     await this.commandBus.execute(command);
@@ -67,6 +75,7 @@ class BrandController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.BRAND_MANAGE)
   async findById(@Param('id', ParseIntPipe) id: number) {
     const brand = await this.brands.findById(id);
     if (!brand) {
@@ -77,6 +86,7 @@ class BrandController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequirePermission(Permission.BRAND_MANAGE)
   async findAll() {
     const brands = await this.brands.findAll();
     return await this.brandSerialiser.serialiseMany(brands);
