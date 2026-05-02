@@ -16,5 +16,9 @@ export const DatabaseConfig = TypeOrmModule.forRootAsync({
     autoLoadEntities: true,
     namingStrategy: new SnakeNamingStrategy(),
     synchronize: true,
+    ssl:
+      config.get('DB_SSL', 'false') === 'true'
+        ? { rejectUnauthorized: false }
+        : false,
   }),
 });
