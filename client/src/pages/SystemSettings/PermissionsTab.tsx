@@ -99,58 +99,6 @@ const PERMISSION_GROUPS = [
 
 const EXCLUDED_ROLES = ['Super Admin'];
 
-function RoleColumn({ roleName }: { roleName: string }) {
-  const { data: permissions = [], isLoading } = useGetRolePermissionsQuery(roleName);
-  const [updatePermission] = useUpdatePermissionMutation();
-  const { showToast } = useToast();
-
-  const grantedSet = new Set(permissions.filter((p) => p.granted).map((p) => p.permission));
-
-  const toggle = async (permission: string, current: boolean) => {
-    try {
-      await updatePermission({ roleName, permission, granted: !current }).unwrap();
-    } catch {
-      showToast('error', 'Failed to update permission');
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-4">
-        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      {PERMISSION_GROUPS.map((group) => (
-        <div key={group.label}>
-          {group.permissions.map((p) => {
-            const granted = grantedSet.has(p.key);
-            return (
-              <div key={p.key} className="flex justify-center py-2 border-b border-gray-50">
-                <button
-                  onClick={() => toggle(p.key, granted)}
-                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                    granted ? 'bg-indigo-600' : 'bg-gray-200'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
-                      granted ? 'translate-x-4.5' : 'translate-x-0.5'
-                    }`}
-                  />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function PermissionsTab() {
   const { data: allRoles = [] } = useGetRolesQuery();
   const managedRoles = allRoles.filter((r) => !EXCLUDED_ROLES.includes(r.name));

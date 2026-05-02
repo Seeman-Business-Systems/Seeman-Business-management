@@ -10,7 +10,7 @@ import {
   ProductType,
   ProductTypeLabels,
 } from '../../types/product';
-import type { VariantFormData } from '../../types/product';
+import type { ProductVariant, VariantFormData } from '../../types/product';
 import {
   useGetProductQuery,
   useDeleteProductMutation,
@@ -99,7 +99,7 @@ function ProductProfile() {
     setShowVariantModal(true);
   };
 
-  const openEditVariant = (variant: typeof product.variants[0]) => {
+  const openEditVariant = (variant: ProductVariant) => {
     setEditingVariant({
       id: variant.id,
       sku: variant.sku,

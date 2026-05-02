@@ -3,8 +3,6 @@ import type {
   Product,
   ProductVariant,
   ProductFilters,
-  ProductFormData,
-  VariantFormData,
   ProductType,
   ProductStatus,
 } from '../../types/product';

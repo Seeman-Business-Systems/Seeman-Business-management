@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import usePageTitle from '../../hooks/usePageTitle';
 import type { Warehouse } from '../../types/inventory';

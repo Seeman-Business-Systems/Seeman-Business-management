@@ -41,7 +41,8 @@ function StatusBadge({ status }: { status: SaleStatus }) {
   );
 }
 
-function PaymentStatusBadge({ status }: { status: PaymentStatus }) {
+function PaymentStatusBadge({ status }: { status: PaymentStatus | null }) {
+  if (!status) return <span className="text-xs text-gray-400">—</span>;
   const config = {
     [PaymentStatus.PAID]: 'bg-green-100 text-green-700',
     [PaymentStatus.PARTIAL]: 'bg-yellow-100 text-yellow-700',
@@ -54,7 +55,8 @@ function PaymentStatusBadge({ status }: { status: PaymentStatus }) {
   );
 }
 
-function PaymentMethodBadge({ method }: { method: PaymentMethod }) {
+function PaymentMethodBadge({ method }: { method: PaymentMethod | null }) {
+  if (!method) return <span className="text-xs text-gray-400">—</span>;
   const icons: Record<PaymentMethod, string> = {
     [PaymentMethod.CASH]: 'fa-money-bill',
     [PaymentMethod.CARD]: 'fa-credit-card',

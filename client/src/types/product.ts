@@ -6,11 +6,12 @@ export interface BaseStaff {
 }
 
 // Product Type enum (matches backend)
-export enum ProductType {
-  TYRE = 1,
-  BATTERY = 2,
-  SPARE_PART = 3,
-}
+export const ProductType = {
+  TYRE: 1,
+  BATTERY: 2,
+  SPARE_PART: 3,
+} as const;
+export type ProductType = (typeof ProductType)[keyof typeof ProductType];
 
 export const ProductTypeLabels: Record<ProductType, string> = {
   [ProductType.TYRE]: 'Tyre',
@@ -19,11 +20,12 @@ export const ProductTypeLabels: Record<ProductType, string> = {
 };
 
 // Product Status enum (matches backend)
-export enum ProductStatus {
-  ACTIVE = 1,
-  INACTIVE = 2,
-  DISCONTINUED = 3,
-}
+export const ProductStatus = {
+  ACTIVE: 1,
+  INACTIVE: 2,
+  DISCONTINUED: 3,
+} as const;
+export type ProductStatus = (typeof ProductStatus)[keyof typeof ProductStatus];
 
 export const ProductStatusLabels: Record<ProductStatus, string> = {
   [ProductStatus.ACTIVE]: 'Active',

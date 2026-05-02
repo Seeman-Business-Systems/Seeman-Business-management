@@ -1,21 +1,24 @@
-export enum SaleStatus {
-  DRAFT = 'DRAFT',
-  FULFILLED = 'FULFILLED',
-  CANCELLED = 'CANCELLED',
-}
+export const SaleStatus = {
+  DRAFT: 'DRAFT',
+  FULFILLED: 'FULFILLED',
+  CANCELLED: 'CANCELLED',
+} as const;
+export type SaleStatus = (typeof SaleStatus)[keyof typeof SaleStatus];
 
-export enum PaymentStatus {
-  PENDING = 'PENDING',
-  PARTIAL = 'PARTIAL',
-  PAID = 'PAID',
-}
+export const PaymentStatus = {
+  PENDING: 'PENDING',
+  PARTIAL: 'PARTIAL',
+  PAID: 'PAID',
+} as const;
+export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus];
 
-export enum PaymentMethod {
-  CASH = 'CASH',
-  CARD = 'CARD',
-  TRANSFER = 'TRANSFER',
-  CREDIT = 'CREDIT',
-}
+export const PaymentMethod = {
+  CASH: 'CASH',
+  CARD: 'CARD',
+  TRANSFER: 'TRANSFER',
+  CREDIT: 'CREDIT',
+} as const;
+export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod];
 
 export interface SaleLineItem {
   id: number;
