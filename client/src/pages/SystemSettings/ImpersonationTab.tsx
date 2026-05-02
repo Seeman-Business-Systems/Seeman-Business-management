@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useGetStaffListQuery } from '../../store/api/staffApi';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -9,6 +10,7 @@ function ImpersonationTab() {
   const [search, setSearch] = useState('');
   const [loadingId, setLoadingId] = useState<number | null>(null);
   const { impersonate } = useAuth();
+  const navigate = useNavigate();
   const { showToast } = useToast();
 
   const { data, isLoading } = useGetStaffListQuery({ take: 1000 });
@@ -28,8 +30,9 @@ function ImpersonationTab() {
     setLoadingId(staffId);
     try {
       const { data: result } = await api.post(`/auth/impersonate/${staffId}`);
-      impersonate(result.accessToken, result.staff);
+      await impersonate(result.accessToken, result.staff);
       showToast('success', `Now viewing as ${name}`);
+      navigate('/');
     } catch {
       showToast('error', 'Failed to impersonate staff');
     } finally {

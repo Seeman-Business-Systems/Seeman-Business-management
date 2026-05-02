@@ -33,7 +33,6 @@ class InventorySerialiser {
       totalQuantity: inventory.getTotalQuantity(),
       minimumQuantity: inventory.getMinimumQuantity(),
       maximumQuantity: inventory.getMaximumQuantity(),
-      reservedQuantity: inventory.getReservedQuantity(),
       availableQuantity: inventory.getAvailableQuantity(),
       isLowInventory: inventory.isLowInventory(),
       createdAt: inventory.getCreatedAt(),

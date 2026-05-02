@@ -38,7 +38,7 @@ const supportItems: NavItem[] = [
 ];
 
 function Sidebar({ collapsed, onToggle, isMobile = false, isOpen = false }: SidebarProps) {
-  const { logout, can } = useAuth();
+  const { logout, can, isImpersonating } = useAuth();
 
   const filteredMenuItems = menuItems.filter(item => !item.permission || can(item.permission));
   const filteredSupportItems = supportItems.filter(item => !item.permission || can(item.permission));
@@ -72,7 +72,7 @@ function Sidebar({ collapsed, onToggle, isMobile = false, isOpen = false }: Side
   if (isMobile) {
     return (
       <aside
-        className={`fixed left-0 top-0 h-screen w-[65%] max-w-xs bg-white shadow-lg flex flex-col z-50 transition-transform duration-300 ${
+        className={`fixed left-0 ${isImpersonating ? 'top-10' : 'top-0'} h-screen w-[65%] max-w-xs bg-white shadow-lg flex flex-col z-50 transition-transform duration-300 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -110,7 +110,7 @@ function Sidebar({ collapsed, onToggle, isMobile = false, isOpen = false }: Side
 
   // Desktop sidebar
   return (
-    <aside className={`fixed left-0 top-0 h-screen ${collapsed ? 'w-16' : 'w-64'} bg-white shadow-md flex flex-col transition-all duration-300`}>
+    <aside className={`fixed left-0 ${isImpersonating ? 'top-10' : 'top-0'} h-screen ${collapsed ? 'w-16' : 'w-64'} bg-white shadow-md flex flex-col transition-all duration-300`}>
       {/* Logo */}
       <div className={`${collapsed ? 'px-2' : 'px-6'} py-4`}>
         {collapsed ? (

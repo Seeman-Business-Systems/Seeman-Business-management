@@ -97,7 +97,6 @@ class InventoryDBRepository extends InventoryRepository {
     entity.totalQuantity = inventory.getTotalQuantity();
     entity.minimumQuantity = inventory.getMinimumQuantity();
     entity.maximumQuantity = inventory.getMaximumQuantity();
-    entity.reservedQuantity = inventory.getReservedQuantity();
     entity.createdAt = inventory.getCreatedAt();
     entity.updatedAt = inventory.getUpdatedAt();
 
@@ -122,7 +121,6 @@ class InventoryDBRepository extends InventoryRepository {
       entity.totalQuantity,
       entity.minimumQuantity,
       entity.maximumQuantity,
-      entity.reservedQuantity,
       entity.createdAt,
       entity.updatedAt,
     );

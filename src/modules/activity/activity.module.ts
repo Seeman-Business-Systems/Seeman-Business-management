@@ -20,6 +20,7 @@ import OnSupplyCreatedActivityHandler from 'src/application/activity/event-handl
 import OnSupplyFulfilledActivityHandler from 'src/application/activity/event-handlers/on-supply-fulfilled.handler';
 import OnStaffTransferredActivityHandler from 'src/application/activity/event-handlers/on-staff-transferred.handler';
 import OnExpenseCreatedActivityHandler from 'src/application/activity/event-handlers/on-expense-created.handler';
+import OnContainerOffloadedActivityHandler from 'src/application/activity/event-handlers/on-container-offloaded.handler';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import OnExpenseCreatedActivityHandler from 'src/application/activity/event-hand
     OnSupplyFulfilledActivityHandler,
     OnStaffTransferredActivityHandler,
     OnExpenseCreatedActivityHandler,
+    OnContainerOffloadedActivityHandler,
   ],
   exports: [ActivitySerialiser],
 })

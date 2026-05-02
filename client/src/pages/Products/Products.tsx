@@ -7,7 +7,7 @@ import ProductsTable from './ProductsTable';
 import BrandsModal from './BrandsModal';
 import usePageTitle from '../../hooks/usePageTitle';
 import useDebounce from '../../hooks/useDebounce';
-import { ProductType, ProductStatus, ProductStatusLabels } from '../../types/product';
+import { ProductType, ProductStatus, ProductStatusLabels, type Category } from '../../types/product';
 import { useGetProductsQuery, useDeleteProductMutation } from '../../store/api/productsApi';
 import { useGetBrandsQuery } from '../../store/api/brandsApi';
 import { useGetCategoriesQuery } from '../../store/api/categoriesApi';
@@ -175,7 +175,9 @@ function Products() {
       <div className="space-y-3">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Products</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+            Products
+          </h1>
           <div className="flex items-center gap-2 sm:gap-3">
             {can('brand:manage') && (
               <button
@@ -248,7 +250,9 @@ function Products() {
                 >
                   <option value="all">All statuses</option>
                   {Object.entries(ProductStatusLabels).map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
                   ))}
                 </select>
                 <i className="fa-solid fa-circle-check absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
@@ -264,7 +268,9 @@ function Products() {
                 >
                   <option value="all">All brands</option>
                   {brands.map((brand) => (
-                    <option key={brand.id} value={brand.id}>{brand.name}</option>
+                    <option key={brand.id} value={brand.id}>
+                      {brand.name}
+                    </option>
                   ))}
                 </select>
                 <i className="fa-solid fa-tag absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
@@ -279,8 +285,10 @@ function Products() {
                   className="w-full appearance-none pl-9 pr-8 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white cursor-pointer"
                 >
                   <option value="all">All categories</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  {categories.map((cat: Category) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
                   ))}
                 </select>
                 <i className="fa-solid fa-folder absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
@@ -340,18 +348,24 @@ function Products() {
                       key={index}
                       onClick={() => setCurrentPage(page)}
                       className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                        currentPage === page ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+                        currentPage === page
+                          ? 'bg-indigo-600 text-white'
+                          : 'text-gray-600 hover:bg-gray-100'
                       }`}
                     >
                       {page}
                     </button>
                   ) : (
-                    <span key={index} className="px-2 text-gray-400">{page}</span>
-                  )
+                    <span key={index} className="px-2 text-gray-400">
+                      {page}
+                    </span>
+                  ),
                 )}
               </div>
               <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
                 disabled={currentPage === totalPages}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -366,11 +380,19 @@ function Products() {
       {/* Delete Modal */}
       <Modal
         isOpen={showDeleteModal}
-        onClose={() => { setShowDeleteModal(false); setSingleDeleteId(null); setActionValue(''); }}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setSingleDeleteId(null);
+          setActionValue('');
+        }}
         title="Delete Product"
         leftButton={{
           text: 'Cancel',
-          onClick: () => { setShowDeleteModal(false); setSingleDeleteId(null); setActionValue(''); },
+          onClick: () => {
+            setShowDeleteModal(false);
+            setSingleDeleteId(null);
+            setActionValue('');
+          },
           variant: 'secondary',
         }}
         rightButton={{
@@ -381,14 +403,26 @@ function Products() {
       >
         <p className="text-gray-600">
           {singleDeleteId ? (
-            <>Are you sure you want to delete <span className="font-semibold text-gray-900">{products.find((p) => p.id === singleDeleteId)?.name}</span>? This action cannot be undone.</>
+            <>
+              Are you sure you want to delete{' '}
+              <span className="font-semibold text-gray-900">
+                {products.find((p) => p.id === singleDeleteId)?.name}
+              </span>
+              ? This action cannot be undone.
+            </>
           ) : (
-            <>Are you sure you want to delete {selectedIds.size} product{selectedIds.size > 1 ? 's' : ''}? This action cannot be undone.</>
+            <>
+              Are you sure you want to delete {selectedIds.size} product
+              {selectedIds.size > 1 ? 's' : ''}? This action cannot be undone.
+            </>
           )}
         </p>
       </Modal>
 
-      <BrandsModal isOpen={showBrandsModal} onClose={() => setShowBrandsModal(false)} />
+      <BrandsModal
+        isOpen={showBrandsModal}
+        onClose={() => setShowBrandsModal(false)}
+      />
     </Layout>
   );
 }

@@ -2,12 +2,15 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import StaffEntity from './staff.entity';
 
+@Index(['staffId'])
+@Index(['token']) // if you look up by token value
 @Entity('refresh_tokens')
 class RefreshTokenEntity {
   @PrimaryGeneratedColumn()

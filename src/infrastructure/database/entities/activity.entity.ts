@@ -5,10 +5,16 @@ import {
   CreateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import StaffEntity from './staff.entity';
 import ActivityType from 'src/domain/activity/activity-type';
 
+@Index(['actorId'])
+@Index(['branchId'])
+@Index(['warehouseId'])
+@Index(['entityType', 'entityId'])
+@Index(['createdAt'])
 @Entity({ name: 'activities' })
 class ActivityEntity {
   @PrimaryGeneratedColumn()

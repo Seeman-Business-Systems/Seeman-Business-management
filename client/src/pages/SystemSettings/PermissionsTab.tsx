@@ -2,6 +2,7 @@ import { Fragment } from 'react';
 import { useGetRolesQuery } from '../../store/api/rolesApi';
 import { useGetRolePermissionsQuery, useUpdatePermissionMutation } from '../../store/api/permissionsApi';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 
 const PERMISSION_GROUPS = [
   {
@@ -203,6 +204,7 @@ function RoleColumnCell({ roleName, permission }: { roleName: string; permission
   const { data: permissions = [], isLoading } = useGetRolePermissionsQuery(roleName);
   const [updatePermission] = useUpdatePermissionMutation();
   const { showToast } = useToast();
+  const { user, refreshPermissions } = useAuth();
 
   const record = permissions.find((p) => p.permission === permission);
   const granted = record?.granted ?? false;
@@ -213,6 +215,9 @@ function RoleColumnCell({ roleName, permission }: { roleName: string; permission
       await updatePermission({ roleName, permission, granted: next }).unwrap();
       const label = PERMISSION_LABEL[permission] ?? permission;
       showToast('success', `${label} ${next ? 'granted to' : 'revoked from'} ${roleName}`);
+      if (user?.role?.name === roleName) {
+        await refreshPermissions();
+      }
     } catch {
       showToast('error', 'Failed to update permission');
     }

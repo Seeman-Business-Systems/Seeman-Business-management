@@ -15,6 +15,6 @@ export const DatabaseConfig = TypeOrmModule.forRootAsync({
     logging: true,
     autoLoadEntities: true,
     namingStrategy: new SnakeNamingStrategy(),
-    synchronize: true, // Note: Set to false in production and use migrations
+    synchronize: true,
   }),
 });

@@ -8,7 +8,10 @@ import RolePermissionRepository from 'src/infrastructure/database/repositories/r
 @Controller('permissions')
 @UseGuards(JwtAuthGuard, RoleGuard)
 class PermissionController {
-  constructor(private readonly repo: RolePermissionRepository) {}
+  constructor(
+    private readonly repo: RolePermissionRepository,
+    private readonly roleGuard: RoleGuard,
+  ) {}
 
   @Get(':roleName')
   @HttpCode(HttpStatus.OK)
@@ -25,6 +28,7 @@ class PermissionController {
     @Body() dto: { permission: string; granted: boolean },
   ) {
     await this.repo.setPermission(roleName, dto.permission, dto.granted);
+    this.roleGuard.invalidateCache(roleName);
     return this.repo.getAllForRole(roleName);
   }
 }

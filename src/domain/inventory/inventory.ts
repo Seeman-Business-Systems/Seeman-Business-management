@@ -2,11 +2,10 @@ class Inventory {
   constructor(
     private id: number | undefined,
     private variantId: number,
-    private warehouseId: number, //why is this here?
+    private warehouseId: number,
     private totalQuantity: number,
     private minimumQuantity: number,
     private maximumQuantity: number | null,
-    private reservedQuantity: number,
     private createdAt: Date,
     private updatedAt: Date,
   ) {}
@@ -55,14 +54,6 @@ class Inventory {
     this.maximumQuantity = maximumQuantity;
   }
 
-  getReservedQuantity(): number {
-    return this.reservedQuantity;
-  }
-
-  setReservedQuantity(reservedQuantity: number): void {
-    this.reservedQuantity = reservedQuantity;
-  }
-
   getCreatedAt(): Date {
     return this.createdAt;
   }
@@ -80,7 +71,7 @@ class Inventory {
   }
 
   getAvailableQuantity(): number {
-    return this.totalQuantity - this.reservedQuantity;
+    return this.totalQuantity;
   }
 
   isLowInventory(): boolean {

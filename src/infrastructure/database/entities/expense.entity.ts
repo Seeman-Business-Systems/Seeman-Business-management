@@ -7,10 +7,13 @@ import {
   ManyToOne,
   JoinColumn,
   DeleteDateColumn,
+  Index,
 } from 'typeorm';
 import ExpenseCategory from 'src/domain/expense/expense-category';
 import StaffEntity from './staff.entity';
 
+@Index(['branchId', 'date']) // composite — analytics always filters both
+@Index(['category'])
 @Entity({ name: 'expenses' })
 class ExpenseEntity {
   @PrimaryGeneratedColumn()

@@ -8,6 +8,7 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import BrandEntity from './brand.entity';
 import CategoryEntity from './category.entity';
@@ -15,6 +16,10 @@ import ProductVariantEntity from './product-variant.entity';
 import ProductType from 'src/domain/product/product-type';
 import ProductStatus from 'src/domain/product/product-status';
 
+@Index(['brand'])
+@Index(['category'])
+@Index(['status'])
+@Index(['productType'])
 @Entity('products')
 class ProductEntity {
   @PrimaryGeneratedColumn()

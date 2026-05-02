@@ -8,6 +8,7 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import CustomerEntity from './customer.entity';
 import StaffEntity from './staff.entity';
@@ -18,6 +19,11 @@ import SaleStatus from 'src/domain/sale/sale-status';
 import PaymentStatus from 'src/domain/sale/payment-status';
 import PaymentMethod from 'src/domain/sale/payment-method';
 
+@Index(['customerId'])
+@Index(['branchId'])
+@Index(['status', 'soldAt'])
+@Index(['paymentStatus'])
+@Index(['soldAt'])
 @Entity({ name: 'sales' })
 class SaleEntity {
   @PrimaryGeneratedColumn()
@@ -50,16 +56,33 @@ class SaleEntity {
   @Column({ type: 'enum', enum: SaleStatus, default: SaleStatus.FULFILLED })
   status: SaleStatus;
 
-  @Column({ type: 'enum', enum: PaymentStatus, name: 'payment_status', nullable: true, default: PaymentStatus.PENDING })
+  @Column({
+    type: 'enum',
+    enum: PaymentStatus,
+    name: 'payment_status',
+    nullable: true,
+    default: PaymentStatus.PENDING,
+  })
   paymentStatus: PaymentStatus | null;
 
-  @Column({ type: 'enum', enum: PaymentMethod, name: 'payment_method', nullable: true })
+  @Column({
+    type: 'enum',
+    enum: PaymentMethod,
+    name: 'payment_method',
+    nullable: true,
+  })
   paymentMethod: PaymentMethod | null;
 
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   subtotal: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, name: 'discount_amount', default: 0 })
+  @Column({
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    name: 'discount_amount',
+    default: 0,
+  })
   discountAmount: number;
 
   @Column({ type: 'decimal', precision: 12, scale: 2, name: 'total_amount' })
@@ -68,13 +91,21 @@ class SaleEntity {
   @Column({ type: 'text', nullable: true })
   notes: string | null;
 
-  @Column({ type: 'timestamp', name: 'sold_at', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    type: 'timestamp',
+    name: 'sold_at',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   soldAt: Date;
 
-  @OneToMany(() => SaleLineItemEntity, (lineItem) => lineItem.sale, { cascade: true })
+  @OneToMany(() => SaleLineItemEntity, (lineItem) => lineItem.sale, {
+    cascade: true,
+  })
   lineItems: SaleLineItemEntity[];
 
-  @OneToMany(() => SalePaymentEntity, (payment) => payment.sale, { cascade: true })
+  @OneToMany(() => SalePaymentEntity, (payment) => payment.sale, {
+    cascade: true,
+  })
   payments: SalePaymentEntity[];
 
   @CreateDateColumn({ name: 'created_at' })

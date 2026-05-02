@@ -49,7 +49,6 @@ export class InventorySeed {
         data.totalQuantity,
         data.minimumQuantity,
         data.maximumQuantity,
-        0,
         new Date(),
         new Date(),
       );

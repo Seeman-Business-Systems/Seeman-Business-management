@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
+import { useAuth } from '../../context/AuthContext';
 
 interface LayoutProps {
   children: ReactNode;
@@ -9,6 +10,7 @@ interface LayoutProps {
 function Layout({ children }: LayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isImpersonating } = useAuth();
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
@@ -23,7 +25,7 @@ function Layout({ children }: LayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen bg-gray-50${isImpersonating ? ' pt-10' : ''}`}>
       {/* Sidebar - hidden on mobile, shown on desktop */}
       <div className="hidden md:block">
         <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />

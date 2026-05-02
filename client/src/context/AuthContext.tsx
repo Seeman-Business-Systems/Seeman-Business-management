@@ -15,6 +15,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   impersonate: (accessToken: string, staff: Staff) => Promise<void>;
   exitImpersonation: () => Promise<void>;
+  refreshPermissions: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -104,13 +105,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('accessToken', accessToken);
     setUser(staff);
     setIsImpersonating(true);
+    setPermissions([]);
     try {
       const { data } = await api.post('/auth/me');
       setPermissions(data.permissions ?? []);
     } catch {
       setPermissions([]);
     }
-    navigate('/');
+    // Navigation is the caller's responsibility — do not navigate here.
+    // This ensures state is committed before the caller navigates.
+  };
+
+  const refreshPermissions = async () => {
+    try {
+      const { data } = await api.post('/auth/me');
+      setPermissions(data.permissions ?? []);
+    } catch {
+      // silently ignore — stale permissions remain until next auth action
+    }
   };
 
   const exitImpersonation = async () => {
@@ -144,6 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         impersonate,
         exitImpersonation,
+        refreshPermissions,
       }}
     >
       {children}

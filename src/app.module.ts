@@ -24,6 +24,7 @@ import { SupplyModule } from './modules/supply/supply.module';
 import { ExpenseModule } from './modules/expense/expense.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { PermissionModule } from './modules/permission/permission.module';
+import { IssueReportModule } from './modules/issue-report/issue-report.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { PermissionModule } from './modules/permission/permission.module';
     ExpenseModule,
     AnalyticsModule,
     PermissionModule,
+    IssueReportModule,
   ],
   controllers: [AppController],
   providers: [

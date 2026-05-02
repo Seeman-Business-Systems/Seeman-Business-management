@@ -10,6 +10,7 @@ interface JwtPayload {
   email: string | null;
   iat: number;
   exp: number;
+  isImpersonation?: boolean;
 }
 
 @Injectable()
@@ -29,18 +30,16 @@ class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload) {
-    console.log('Validating JWT for staff ID:', payload);
     const staff = await this.staff.findById(payload.sub);
 
     if (!staff) {
       throw new UnauthorizedException();
     }
 
-    if (!staff.initialPasswordChanged) {
-      throw new UnauthorizedException(
-        'Account setup incomplete. Please check your email for the setup link.',
-      );
-    }
+    // The initial-password gate belongs at login, not on every request.
+    // Re-checking it here breaks impersonation of seeded users (whose initial
+    // password was never changed) and would silently invalidate live tokens
+    // if an admin ever toggled the flag.
 
     return staff; // This becomes req.user
   }

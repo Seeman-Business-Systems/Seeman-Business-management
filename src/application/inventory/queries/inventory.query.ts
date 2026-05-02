@@ -76,7 +76,6 @@ class InventoryQuery {
 
   async getInventorySummary(variantId: number): Promise<{
     totalQuantity: number;
-    totalReserved: number;
     totalAvailable: number;
     warehouses: Inventory[];
   }> {
@@ -86,10 +85,6 @@ class InventoryQuery {
       (sum, inv) => sum + inv.getTotalQuantity(),
       0,
     );
-    const totalReserved = inventories.reduce(
-      (sum, inv) => sum + inv.getReservedQuantity(),
-      0,
-    );
     const totalAvailable = inventories.reduce(
       (sum, inv) => sum + inv.getAvailableQuantity(),
       0,
@@ -97,7 +92,6 @@ class InventoryQuery {
 
     return {
       totalQuantity,
-      totalReserved,
       totalAvailable,
       warehouses: inventories,
     };

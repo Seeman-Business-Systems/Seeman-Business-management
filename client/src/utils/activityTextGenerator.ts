@@ -76,6 +76,9 @@ const generators: Record<ActivityType, Generator> = {
     const cat = String(meta.category ?? '').charAt(0) + String(meta.category ?? '').slice(1).toLowerCase();
     return `Recorded ${amount} expense (${cat}) — "${meta.description}"`;
   },
+
+  CONTAINER_OFFLOADED: (meta) =>
+    `Offloaded container ${meta.batchNumber} — ${meta.itemCount} item(s), ${meta.totalUnits} units`,
 };
 
 export function generateActivityText(activity: Activity): string {

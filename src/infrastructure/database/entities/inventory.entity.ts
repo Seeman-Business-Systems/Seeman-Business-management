@@ -7,10 +7,15 @@ import {
   ManyToOne,
   JoinColumn,
   Unique,
+  Index,
 } from 'typeorm';
 import ProductVariantEntity from './product-variant.entity';
 import WarehouseEntity from './warehouse.entity';
 
+
+@Index(['variantId'])
+@Index(['warehouseId'])
+@Index(['totalQuantity', 'minimumQuantity'])
 @Entity({ name: 'inventory' })
 @Unique(['variant', 'warehouse'])
 class InventoryEntity {

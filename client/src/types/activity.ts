@@ -12,7 +12,8 @@ export type ActivityType =
   | 'SUPPLY_CREATED'
   | 'SUPPLY_FULFILLED'
   | 'STAFF_TRANSFERRED'
-  | 'EXPENSE_RECORDED';
+  | 'EXPENSE_RECORDED'
+  | 'CONTAINER_OFFLOADED';
 
 export interface Activity {
   id: number;

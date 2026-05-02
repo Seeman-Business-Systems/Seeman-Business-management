@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import Modal from '../../components/ui/Modal';
 import InventoryTable from './InventoryTable';
@@ -277,6 +277,13 @@ function Inventory() {
               </p>
             )}
           </div>
+          <Link
+            to="/inventory/containers"
+            className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+          >
+            <i className="fa-solid fa-ship" />
+            Containers
+          </Link>
         </div>
 
         {/* Tabs */}

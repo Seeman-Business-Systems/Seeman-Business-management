@@ -20,6 +20,7 @@ const TYPE_ICONS: Record<ActivityType, string> = {
   SUPPLY_FULFILLED:       'fa-circle-check',
   STAFF_TRANSFERRED:      'fa-right-left',
   EXPENSE_RECORDED:       'fa-money-bill-trend-up',
+  CONTAINER_OFFLOADED:    'fa-box-open',
 };
 
 // Maps entityType → base path for building entity links
@@ -55,6 +56,7 @@ const TYPE_LABELS: Record<ActivityType, string> = {
   SUPPLY_FULFILLED:       'Supply Fulfilled',
   STAFF_TRANSFERRED:      'Staff Transferred',
   EXPENSE_RECORDED:       'Expense Recorded',
+  CONTAINER_OFFLOADED:    'Container Offloaded',
 };
 
 // ── Single activity row ───────────────────────────────────────────────────────

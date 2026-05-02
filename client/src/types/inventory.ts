@@ -24,7 +24,6 @@ export interface InventoryRecord {
   totalQuantity: number;
   minimumQuantity: number;
   maximumQuantity: number | null;
-  reservedQuantity: number;
   availableQuantity: number;
   isLowInventory: boolean;
   createdAt: string;

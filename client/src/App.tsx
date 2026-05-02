@@ -17,6 +17,9 @@ import Roles from './pages/Staff/Roles/Roles';
 import { Branches, BranchProfile, BranchActivities, CreateBranch, EditBranch } from './pages/Branches';
 import { Products, ProductProfile, CreateProduct, EditProduct } from './pages/Products';
 import { Inventory } from './pages/Inventory';
+import Containers from './pages/Inventory/Containers';
+import CreateContainer from './pages/Inventory/CreateContainer';
+import ContainerDetail from './pages/Inventory/ContainerDetail';
 import { VariantProfile } from './pages/Variants';
 import { Warehouses, WarehouseProfile, WarehouseActivities, CreateWarehouse, EditWarehouse } from './pages/Warehouses';
 import { Sales, CreateSale, SaleDetail, SaleReceipt } from './pages/Sales';
@@ -25,6 +28,9 @@ import { Customers, CustomerProfile } from './pages/Customers';
 import { Reservations, ReservationDetail } from './pages/Reservations';
 import { Activities } from './pages/Activities';
 import { Expenses } from './pages/Expenses';
+import { Reports } from './pages/Reports';
+import { Help } from './pages/Help';
+import { ReportIssue } from './pages/ReportIssue';
 import { SystemSettings } from './pages/SystemSettings';
 import ImpersonationBanner from './components/ImpersonationBanner';
 
@@ -194,6 +200,30 @@ function App() {
           }
         />
         <Route
+          path="/inventory/containers"
+          element={
+            <ProtectedRoute>
+              <Containers />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inventory/containers/new"
+          element={
+            <ProtectedRoute>
+              <CreateContainer />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inventory/containers/:id"
+          element={
+            <ProtectedRoute>
+              <ContainerDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/variants/:id"
           element={
             <ProtectedRoute>
@@ -334,6 +364,30 @@ function App() {
           element={
             <ProtectedRoute>
               <ReservationDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <Reports />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/report-issue"
+          element={
+            <ProtectedRoute>
+              <ReportIssue />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/help"
+          element={
+            <ProtectedRoute>
+              <Help />
             </ProtectedRoute>
           }
         />

@@ -23,7 +23,6 @@ class SetReorderLevels implements ICommandHandler<SetReorderLevelsCommand> {
         0, // totalQuantity
         command.minimumQuantity,
         command.maximumQuantity,
-        0, // reservedQuantity
         new Date(),
         new Date(),
       );

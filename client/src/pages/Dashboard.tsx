@@ -8,9 +8,15 @@ import { useGetBranchesQuery } from '../store/api/branchesApi';
 import { useGetActivitiesQuery } from '../store/api/activitiesApi';
 import { generateActivityText } from '../utils/activityTextGenerator';
 
-type DatePreset = 'thisWeek' | 'thisMonth' | 'lastMonth' | 'last7days' | 'custom';
+type DatePreset =
+  | 'thisWeek'
+  | 'thisMonth'
+  | 'lastMonth'
+  | 'last7days'
+  | 'custom';
 
-const fmt = (n: number) => new Intl.NumberFormat('en-NG', { maximumFractionDigits: 0 }).format(n);
+const fmt = (n: number) =>
+  new Intl.NumberFormat('en-NG', { maximumFractionDigits: 0 }).format(n);
 const fmtCurrency = (n: number) => `₦${fmt(n)}`;
 const formatDate = (d: Date) => d.toISOString().split('T')[0];
 
@@ -25,8 +31,9 @@ const valueToPct = (val: number): number => {
   if (m >= Y_TICKS_M[last]) return 1;
   for (let i = 1; i < Y_TICKS_M.length; i++) {
     if (m <= Y_TICKS_M[i]) {
-      const segRatio = (m - Y_TICKS_M[i - 1]) / (Y_TICKS_M[i] - Y_TICKS_M[i - 1]);
-      return ((i - 1) + segRatio) / last;
+      const segRatio =
+        (m - Y_TICKS_M[i - 1]) / (Y_TICKS_M[i] - Y_TICKS_M[i - 1]);
+      return (i - 1 + segRatio) / last;
     }
   }
   return 1;
@@ -42,7 +49,10 @@ const getPresetRange = (preset: DatePreset): { from: string; to: string } => {
     return { from: formatDate(d), to };
   }
   if (preset === 'thisMonth') {
-    return { from: formatDate(new Date(today.getFullYear(), today.getMonth(), 1)), to };
+    return {
+      from: formatDate(new Date(today.getFullYear(), today.getMonth(), 1)),
+      to,
+    };
   }
   if (preset === 'lastMonth') {
     return {
@@ -94,6 +104,7 @@ const ACTIVITY_ICONS: Record<string, string> = {
   SUPPLY_FULFILLED: 'fa-circle-check',
   STAFF_TRANSFERRED: 'fa-right-left',
   EXPENSE_RECORDED: 'fa-money-bill-trend-up',
+  CONTAINER_OFFLOADED: 'fa-box-open',
 };
 
 const PRESETS: { key: DatePreset; label: string }[] = [
@@ -107,25 +118,48 @@ const PRESETS: { key: DatePreset; label: string }[] = [
 const CHART_H = 160;
 
 function StatCard({
-  label, value, sub, colorClass, icon, loading, to,
+  label,
+  value,
+  sub,
+  colorClass,
+  icon,
+  loading,
+  to,
 }: {
-  label: string; value: string; sub?: string;
-  colorClass: string; icon: string; loading?: boolean; to?: string;
+  label: string;
+  value: string;
+  sub?: string;
+  colorClass: string;
+  icon: string;
+  loading?: boolean;
+  to?: string;
 }) {
   const inner = (
-    <div className={`bg-white rounded-xl p-4 shadow-sm border border-gray-100 ${to ? 'hover:border-indigo-200 transition-colors' : ''}`}>
+    <div
+      className={`bg-white rounded-xl p-4 shadow-sm border border-gray-100 ${to ? 'hover:border-indigo-200 transition-colors' : ''}`}
+    >
       <div className="flex items-center justify-between mb-3">
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</p>
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${colorClass}`}>
+        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+          {label}
+        </p>
+        <div
+          className={`w-8 h-8 rounded-lg flex items-center justify-center ${colorClass}`}
+        >
           <i className={`fa-solid ${icon} text-sm text-white`} />
         </div>
       </div>
       {loading ? (
         <div className="h-7 w-28 bg-gray-100 animate-pulse rounded" />
       ) : (
-        <p className={`font-bold text-gray-900 truncate ${value.length > 13 ? 'text-base' : value.length > 10 ? 'text-lg' : 'text-xl'}`}>{value}</p>
+        <p
+          className={`font-bold text-gray-900 truncate ${value.length > 13 ? 'text-base' : value.length > 10 ? 'text-lg' : 'text-xl'}`}
+        >
+          {value}
+        </p>
       )}
-      <p className="text-xs text-gray-400 mt-1 min-h-[16px]">{!loading && (sub ?? '')}</p>
+      <p className="text-xs text-gray-400 mt-1 min-h-[16px]">
+        {!loading && (sub ?? '')}
+      </p>
     </div>
   );
   return to ? <Link to={to}>{inner}</Link> : inner;
@@ -135,15 +169,19 @@ const GLOBAL_ROLES = ['CEO', 'Super Admin'];
 
 function Dashboard() {
   usePageTitle('Dashboard');
-  const { user } = useAuth();
+  const { user, can } = useAuth();
 
   const isGlobalView = GLOBAL_ROLES.includes(user?.role?.name ?? '');
-  const scopedBranchId = !isGlobalView ? (user?.branch?.id ?? undefined) : undefined;
+  const scopedBranchId = !isGlobalView
+    ? (user?.branch?.id ?? undefined)
+    : undefined;
 
   const [preset, setPreset] = useState<DatePreset>('thisMonth');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
-  const [selectedBranchId, setSelectedBranchId] = useState<number | undefined>(undefined);
+  const [selectedBranchId, setSelectedBranchId] = useState<number | undefined>(
+    undefined,
+  );
 
   // Global roles can pick any branch; scoped roles are fixed to their branch
   const branchId = isGlobalView ? selectedBranchId : scopedBranchId;
@@ -153,7 +191,10 @@ function Dashboard() {
   useEffect(() => {
     if (!newMenuOpen) return;
     const onClick = (e: MouseEvent) => {
-      if (newMenuRef.current && !newMenuRef.current.contains(e.target as Node)) {
+      if (
+        newMenuRef.current &&
+        !newMenuRef.current.contains(e.target as Node)
+      ) {
         setNewMenuOpen(false);
       }
     };
@@ -175,11 +216,11 @@ function Dashboard() {
 
   const yTicksDesc = useMemo(() => [...Y_TICKS_M].reverse(), []);
 
-  const { data: activitiesData, isLoading: activitiesLoading } = useGetActivitiesQuery({
-    take: 8,
-    ...(branchId ? { branchId } : {}),
-  });
-
+  const { data: activitiesData, isLoading: activitiesLoading } =
+    useGetActivitiesQuery({
+      take: 8,
+      ...(branchId ? { branchId } : {}),
+    });
 
   return (
     <Layout>
@@ -193,13 +234,16 @@ function Dashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Link
-              to="/sales/new"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm"
-            >
-              <i className="fa-solid fa-plus" />
-              Record Sale
-            </Link>
+            {can('sale:create') && (
+              <Link
+                to="/sales/new"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm"
+              >
+                <i className="fa-solid fa-plus" />
+                Record Sale
+              </Link>
+            )}
+
             <div className="relative" ref={newMenuRef}>
               <button
                 onClick={() => setNewMenuOpen((v) => !v)}
@@ -213,22 +257,26 @@ function Dashboard() {
               </button>
               {newMenuOpen && (
                 <div className="absolute right-0 top-full mt-1 w-52 bg-white border border-gray-100 rounded-lg shadow-lg py-1 z-30">
-                  <Link
-                    to="/expenses?action=create"
-                    onClick={() => setNewMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                  >
-                    <i className="fa-solid fa-money-bill-wave w-4 text-rose-500" />
-                    Record Expense
-                  </Link>
-                  <Link
-                    to="/sales?paymentStatus=unpaid"
-                    onClick={() => setNewMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                  >
-                    <i className="fa-solid fa-hand-holding-dollar w-4 text-emerald-500" />
-                    Record Payment
-                  </Link>
+                  {can('expense:create') && (
+                    <Link
+                      to="/expenses?action=create"
+                      onClick={() => setNewMenuOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      <i className="fa-solid fa-money-bill-wave w-4 text-rose-500" />
+                      Record Expense
+                    </Link>
+                  )}
+                  {can('payment:record') && (
+                    <Link
+                      to="/sales?paymentStatus=unpaid"
+                      onClick={() => setNewMenuOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      <i className="fa-solid fa-hand-holding-dollar w-4 text-emerald-500" />
+                      Record Payment
+                    </Link>
+                  )}
                 </div>
               )}
             </div>
@@ -242,7 +290,9 @@ function Dashboard() {
             <select
               value={selectedBranchId ?? ''}
               onChange={(e) =>
-                setSelectedBranchId(e.target.value ? Number(e.target.value) : undefined)
+                setSelectedBranchId(
+                  e.target.value ? Number(e.target.value) : undefined,
+                )
               }
               className="w-full sm:w-30 border border-gray-200 rounded-lg px-2 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >

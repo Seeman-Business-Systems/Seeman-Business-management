@@ -121,9 +121,6 @@ function InventoryTable({
                         Available: <AvailableBadge value={record.availableQuantity} low={record.isLowInventory} />
                       </span>
                       <span className="text-gray-500">
-                        Reserved: <span className="font-medium text-gray-700">{record.reservedQuantity}</span>
-                      </span>
-                      <span className="text-gray-500">
                         Total: <span className="font-medium text-gray-700">{record.totalQuantity}</span>
                       </span>
                     </div>
@@ -184,7 +181,6 @@ function InventoryTable({
               <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 hidden lg:table-cell">Brand</th>
               <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 hidden lg:table-cell">Warehouse</th>
               <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Available</th>
-              <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 hidden lg:table-cell">Reserved</th>
               <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 hidden xl:table-cell">Total</th>
               <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 hidden xl:table-cell">Min</th>
               <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 hidden lg:table-cell">Price</th>
@@ -195,7 +191,7 @@ function InventoryTable({
           <tbody>
             {records.length === 0 ? (
               <tr>
-                <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
                   No inventory records found
                 </td>
               </tr>
@@ -227,9 +223,6 @@ function InventoryTable({
                   </td>
                   <td className="px-6 py-4">
                     <AvailableBadge value={record.availableQuantity} low={record.isLowInventory} />
-                  </td>
-                  <td className="px-6 py-4 hidden lg:table-cell">
-                    <span className="text-gray-700">{record.reservedQuantity}</span>
                   </td>
                   <td className="px-6 py-4 hidden xl:table-cell">
                     <span className="text-gray-700">{record.totalQuantity}</span>

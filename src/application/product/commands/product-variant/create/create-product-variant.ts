@@ -40,7 +40,6 @@ class CreateProductVariant implements ICommandHandler<CreateProductVariantComman
           0,
           0,
           null,
-          0,
           new Date(),
           new Date(),
         );

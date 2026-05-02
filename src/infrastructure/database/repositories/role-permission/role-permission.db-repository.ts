@@ -29,13 +29,16 @@ class RolePermissionDBRepository extends RolePermissionRepository {
   }
 
   async seedDefaults(roleName: string, grantedPermissions: string[]): Promise<void> {
+    const existing = await this.repo.count({ where: { roleName } });
+    if (existing > 0) return;
+
     const granted = new Set(grantedPermissions);
     const rows = Object.values(Permission).map((p) => ({
       roleName,
       permission: p,
       granted: granted.has(p),
     }));
-    await this.repo.upsert(rows, ['roleName', 'permission']);
+    await this.repo.insert(rows);
   }
 }
 

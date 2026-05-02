@@ -28,7 +28,6 @@ class AddStockHandler implements ICommandHandler<AddStockCommand> {
         command.quantity,
         0,
         null,
-        0,
         new Date(),
         new Date(),
       );

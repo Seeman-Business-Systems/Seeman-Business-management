@@ -31,6 +31,15 @@ api.interceptors.response.use(
 
     // If 401, not an auth endpoint, and we haven't already retried
     if (error.response?.status === 401 && !isAuthEndpoint && !originalRequest._retry) {
+      // While impersonating, the stored refresh token belongs to the original
+      // (super admin) user. Refreshing would silently swap the impersonation
+      // token for a super admin token and the impersonated session would
+      // appear to have super admin permissions. Don't refresh — propagate.
+      //NOTE: This change fixed impersonation
+      if (localStorage.getItem('originalToken')) {
+        return Promise.reject(error);
+      }
+
       originalRequest._retry = true;
 
       try {
