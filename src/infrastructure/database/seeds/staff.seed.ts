@@ -22,16 +22,16 @@ export class StaffSeed {
 
     const defaultStaff = [
       {
-        firstName: 'Chukwuemeka',
-        lastName: 'Okonkwo',
-        middleName: 'Obiora',
-        phoneNumber: '+234-803-123-4567',
-        email: 'chukwuemeka.okonkwo@seeman.com',
-        roleId: 1, // CEO
+        firstName: 'Paschal',
+        lastName: 'Ezenwobi',
+        middleName: 'Kenechukwu',
+        phoneNumber: '07861318504',
+        email: 'humblekez308@gmail.com',
+        roleId: 1, // Super Admin
         branchId: 1,
-        password: defaultPassword,
+        password: 'password',
         createdBy: ActorType.SYSTEM_ACTOR,
-        initialPasswordChanged: false,
+        initialPasswordChanged: true,
       },
       {
         firstName: 'Chidinma',
@@ -43,7 +43,7 @@ export class StaffSeed {
         branchId: 1,
         password: defaultPassword,
         createdBy: ActorType.SYSTEM_ACTOR,
-        initialPasswordChanged: false,
+        initialPasswordChanged: true,
       },
       {
         firstName: 'Ikenna',
@@ -55,7 +55,7 @@ export class StaffSeed {
         branchId: 1,
         password: defaultPassword,
         createdBy: ActorType.SYSTEM_ACTOR,
-        initialPasswordChanged: false,
+        initialPasswordChanged: true,
       },
       {
         firstName: 'Olisa',
@@ -67,7 +67,7 @@ export class StaffSeed {
         branchId: 1,
         password: defaultPassword,
         createdBy: ActorType.SYSTEM_ACTOR,
-        initialPasswordChanged: false,
+        initialPasswordChanged: true,
       },
     ];
 

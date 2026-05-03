@@ -84,7 +84,7 @@ class AuthService {
       (await this.staff.findByEmail(identifier));
 
     if (!staff) {
-      throw new UnauthorizedException('Staff not found');
+      throw new UnauthorizedException('Staff not found. Please check your credentials and try again.');
     }
 
     if (!await this.passwordsMatch(password, staff.getPassword())) {
@@ -218,7 +218,7 @@ class AuthService {
     const staff = await this.staff.findById(resetToken.getStaffId());
 
     if (!staff) {
-      throw new NotFoundException('Staff not found');
+      throw new NotFoundException('Staff not found. Please check the reset link and try again.');
     }
 
     if (await this.passwordsMatch(newPassword, staff.getPassword())) {
