@@ -34,11 +34,11 @@ export class StaffSeed {
         initialPasswordChanged: true,
       },
       {
-        firstName: 'Chidinma',
-        lastName: 'Nwosu',
-        middleName: 'Adaeze',
-        phoneNumber: '+234-805-234-5678',
-        email: 'chidinma.nwosu@seeman.com',
+        firstName: 'Sunday',
+        lastName: 'Ezenwobi',
+        middleName: null,
+        phoneNumber: '+234-802-920-0666',
+        email: 'seemanauto@yahoo.com',
         roleId: 2, // Branch Manager
         branchId: 1,
         password: defaultPassword,

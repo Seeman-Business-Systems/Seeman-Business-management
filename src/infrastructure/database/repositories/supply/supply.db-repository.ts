@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import Supply from 'src/domain/supply/supply';
 import SupplyItem from 'src/domain/supply/supply-item';
+import TransactionContext from 'src/application/shared/transactions/transaction-context';
+import TypeOrmTransactionContext from '../../transactions/typeorm-transaction-context';
 import SupplyEntity from '../../entities/supply.entity';
 import SupplyItemEntity from '../../entities/supply-item.entity';
 import SupplyRepository from './supply.repository';
@@ -14,6 +16,11 @@ class SupplyDBRepository extends SupplyRepository {
     private readonly repository: Repository<SupplyEntity>,
   ) {
     super();
+  }
+
+  private repoFor(tx?: TransactionContext): Repository<SupplyEntity> {
+    const manager = TypeOrmTransactionContext.unwrap(tx);
+    return manager ? manager.getRepository(SupplyEntity) : this.repository;
   }
 
   async findById(id: number): Promise<Supply | null> {
@@ -32,7 +39,8 @@ class SupplyDBRepository extends SupplyRepository {
     return record ? this.toDomain(record) : null;
   }
 
-  async commit(supply: Supply): Promise<Supply> {
+  async commit(supply: Supply, tx?: TransactionContext): Promise<Supply> {
+    const repo = this.repoFor(tx);
     const entity = new SupplyEntity();
     if (supply.getId()) {
       entity.id = supply.getId()!;
@@ -45,9 +53,9 @@ class SupplyDBRepository extends SupplyRepository {
     entity.notes = supply.getNotes();
     entity.suppliedBy = supply.getSuppliedBy();
 
-    const saved = await this.repository.save(entity);
+    const saved = await repo.save(entity);
 
-    const full = await this.repository.findOne({
+    const full = await repo.findOne({
       where: { id: saved.id },
       relations: ['items', 'branch', 'suppliedByStaff'],
     });

@@ -76,7 +76,7 @@ export class CustomerSeed {
         customerData.altPhoneNumber,
         0, // creditLimit - default to 0
         0, // outstandingBalance - starts at 0
-        1,
+        2,
         new Date(),
         new Date(),
         undefined,

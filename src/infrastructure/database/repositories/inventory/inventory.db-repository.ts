@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import Inventory from 'src/domain/inventory/inventory';
+import TransactionContext from 'src/application/shared/transactions/transaction-context';
+import TypeOrmTransactionContext from '../../transactions/typeorm-transaction-context';
 import InventoryEntity from '../../entities/inventory.entity';
 import InventoryRepository from './inventory.repository';
 
@@ -12,6 +14,11 @@ class InventoryDBRepository extends InventoryRepository {
     private readonly repository: Repository<InventoryEntity>,
   ) {
     super();
+  }
+
+  private repoFor(tx?: TransactionContext): Repository<InventoryEntity> {
+    const manager = TypeOrmTransactionContext.unwrap(tx);
+    return manager ? manager.getRepository(InventoryEntity) : this.repository;
   }
 
   async findById(id: number): Promise<Inventory | null> {
@@ -30,13 +37,35 @@ class InventoryDBRepository extends InventoryRepository {
   async findByVariantAndWarehouse(
     variantId: number,
     warehouseId: number,
+    tx?: TransactionContext,
   ): Promise<Inventory | null> {
-    const record = await this.repository.findOne({
+    const record = await this.repoFor(tx).findOne({
       where: {
         variant: { id: variantId },
         warehouse: { id: warehouseId },
       },
       relations: ['variant', 'warehouse'],
+    });
+
+    if (!record) {
+      return null;
+    }
+
+    return this.toDomain(record);
+  }
+
+  async findByVariantAndWarehouseForUpdate(
+    variantId: number,
+    warehouseId: number,
+    tx: TransactionContext,
+  ): Promise<Inventory | null> {
+    const record = await this.repoFor(tx).findOne({
+      where: {
+        variant: { id: variantId },
+        warehouse: { id: warehouseId },
+      },
+      relations: ['variant', 'warehouse'],
+      lock: { mode: 'pessimistic_write' },
     });
 
     if (!record) {
@@ -87,7 +116,8 @@ class InventoryDBRepository extends InventoryRepository {
     return records.map((entity: InventoryEntity) => this.toDomain(entity));
   }
 
-  async commit(inventory: Inventory): Promise<Inventory> {
+  async commit(inventory: Inventory, tx?: TransactionContext): Promise<Inventory> {
+    const repo = this.repoFor(tx);
     const entity = new InventoryEntity();
     if (inventory.getId()) {
       entity.id = inventory.getId()!;
@@ -100,8 +130,8 @@ class InventoryDBRepository extends InventoryRepository {
     entity.createdAt = inventory.getCreatedAt();
     entity.updatedAt = inventory.getUpdatedAt();
 
-    const savedEntity = await this.repository.save(entity);
-    const fullEntity = await this.repository.findOne({
+    const savedEntity = await repo.save(entity);
+    const fullEntity = await repo.findOne({
       where: { id: savedEntity.id },
       relations: ['variant', 'warehouse'],
     });

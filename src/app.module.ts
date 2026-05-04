@@ -25,6 +25,7 @@ import { ExpenseModule } from './modules/expense/expense.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { PermissionModule } from './modules/permission/permission.module';
 import { IssueReportModule } from './modules/issue-report/issue-report.module';
+import { TransactionModule } from './modules/database/transaction.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { IssueReportModule } from './modules/issue-report/issue-report.module';
     }),
     CacheConfig,
     DatabaseConfig,
+    TransactionModule,
     AuthModule,
     StaffModule,
     BranchModule,
