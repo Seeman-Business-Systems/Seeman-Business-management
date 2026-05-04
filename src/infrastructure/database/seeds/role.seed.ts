@@ -10,13 +10,6 @@ export class RoleSeed {
   ) {}
 
   async seed() {
-    const existingRoles: Role[] = await this.roles.findAll();
-
-    if (existingRoles.length > 0) {
-      console.log('Roles already exist. Skipping seed.');
-      return;
-    }
-
     const defaultRoles = [
       {
         name: 'Super Admin',
@@ -45,10 +38,14 @@ export class RoleSeed {
       },
     ];
 
-    defaultRoles.forEach((defaultRole: Role) => {
-       this.roles.commit(defaultRole);
-    })
+    let inserted = 0;
+    for (const defaultRole of defaultRoles) {
+      const existing = await this.roles.findByIdOrName(undefined, defaultRole.name);
+      if (existing) continue;
+      await this.roles.commit(defaultRole as Role);
+      inserted++;
+    }
 
-    console.log('✅ Default roles seeded successfully');
+    console.log(`✅ Roles seed: ${inserted} inserted, ${defaultRoles.length - inserted} already present`);
   }
 }
