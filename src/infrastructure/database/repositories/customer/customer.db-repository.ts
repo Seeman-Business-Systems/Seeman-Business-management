@@ -75,6 +75,7 @@ class CustomerDBRepository extends CustomerRepository {
       Number(entity.creditLimit),
       Number(entity.outstandingBalance),
       entity.createdBy,
+      entity.branchId,
       entity.createdAt,
       entity.updatedAt,
     );
@@ -89,6 +90,7 @@ class CustomerDBRepository extends CustomerRepository {
     entity.name = customer.getName();
     entity.phoneNumber = customer.getPhoneNumber();
     entity.createdBy = customer.getCreatedBy();
+    entity.branchId = customer.getBranchId();
     entity.createdAt = customer.getCreatedAt();
     entity.updatedAt = customer.getUpdatedAt();
     entity.notes = customer.getNotes();

@@ -6,6 +6,7 @@ class CreateCustomerCommand extends Command<Customer> {
     public readonly name: string,
     public readonly phoneNumber: string,
     public readonly createdBy: number,
+    public readonly branchId: number,
     public readonly notes: string | null,
     public readonly email: string | null,
     public readonly companyName: string | null,

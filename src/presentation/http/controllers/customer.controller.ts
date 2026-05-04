@@ -52,6 +52,7 @@ class CustomerController {
       dto.name,
       dto.phoneNumber,
       actor.getId() ?? 1,
+      actor.getBranchId(),
       dto.notes,
       dto.email,
       dto.companyName,
