@@ -43,6 +43,7 @@ class CustomerSerialiser {
       creditLimit: customer.getCreditLimit(),
       outstandingBalance,
       availableCredit: customer.getAvailableCredit(),
+      branchId: customer.getBranchId(),
       createdBy: creator ? this.baseStaffSerialiser.serialise(creator) : null,
       createdAt: customer.getCreatedAt(),
       updatedAt: customer.getUpdatedAt(),

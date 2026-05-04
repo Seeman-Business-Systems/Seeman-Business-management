@@ -9,6 +9,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import StaffEntity from './staff.entity';
+import BranchEntity from './branch.entity';
 
 @Entity('customers')
 class CustomerEntity {
@@ -55,6 +56,13 @@ class CustomerEntity {
   @ManyToOne(() => StaffEntity)
   @JoinColumn({ name: 'created_by' })
   createdByStaff: StaffEntity;
+
+  @Column({ type: 'int', name: 'branch_id' })
+  branchId: number;
+
+  @ManyToOne(() => BranchEntity)
+  @JoinColumn({ name: 'branch_id' })
+  branch: BranchEntity;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
