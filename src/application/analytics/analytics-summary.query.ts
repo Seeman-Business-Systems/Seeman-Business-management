@@ -75,11 +75,16 @@ class AnalyticsSummaryQuery {
       ),
 
       this.dataSource.query(
-        `SELECT COALESCE(SUM(total_amount), 0)::numeric AS pending
-         FROM sales
-         WHERE payment_status IN ('PENDING', 'PARTIAL')
-           AND status != 'CANCELLED'
-           AND ($1::int IS NULL OR branch_id = $1::int)`,
+        `SELECT COALESCE(SUM(s.total_amount - COALESCE(p.paid, 0)), 0)::numeric AS pending
+         FROM sales s
+         LEFT JOIN (
+           SELECT sale_id, SUM(amount) AS paid
+           FROM sale_payments
+           GROUP BY sale_id
+         ) p ON p.sale_id = s.id
+         WHERE s.payment_status IN ('PENDING', 'PARTIAL')
+           AND s.status != 'CANCELLED'
+           AND ($1::int IS NULL OR s.branch_id = $1::int)`,
         [bp],
       ),
 

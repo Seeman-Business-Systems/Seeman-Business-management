@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, IsISO8601, IsNotEmpty, IsOptional, IsPositive, IsString } from 'class-validator';
+import { IsEnum, IsInt, IsISO8601, IsOptional, IsPositive, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import ExpenseCategory from 'src/domain/expense/expense-category';
 
@@ -11,8 +11,8 @@ class UpdateExpenseValidator {
   category: ExpenseCategory;
 
   @IsString()
-  @IsNotEmpty()
-  description: string;
+  @IsOptional()
+  description: string = '';
 
   @IsInt()
   @IsPositive()

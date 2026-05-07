@@ -42,7 +42,7 @@ class CreateSaleHandler implements ICommandHandler<CreateSaleCommand> {
       command.customerId ?? null,
       command.soldBy,
       command.branchId,
-      SaleStatus.FULFILLED,
+      SaleStatus.DRAFT,
       PaymentStatus.PENDING,
       command.paymentMethod,
       subtotal,

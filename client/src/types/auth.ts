@@ -58,6 +58,7 @@ export interface Staff {
   phoneNumber: string;
   role: Role | null;
   branch: Branch | null;
+  branchId: number;
   joinedAt: string | null;
   lastLoginAt: string | null;
   createdAt: string;

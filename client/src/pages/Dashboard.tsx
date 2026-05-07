@@ -173,7 +173,7 @@ function Dashboard() {
 
   const isGlobalView = GLOBAL_ROLES.includes(user?.role?.name ?? '');
   const scopedBranchId = !isGlobalView
-    ? (user?.branch?.id ?? undefined)
+    ? (user?.branch?.id ?? user?.branchId ?? undefined)
     : undefined;
 
   const [preset, setPreset] = useState<DatePreset>('thisMonth');
