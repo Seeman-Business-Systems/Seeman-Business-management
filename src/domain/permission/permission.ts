@@ -69,6 +69,9 @@ export const Permission = {
 
   // Settings (SuperAdmin only)
   SETTINGS_MANAGE: 'settings:manage',
+
+  // Cross-branch filtering — granted to roles that should see data across branches
+  FILTER_BY_BRANCH: 'filter:by-branch',
 } as const;
 
 export type PermissionKey = (typeof Permission)[keyof typeof Permission];

@@ -48,6 +48,12 @@ class ActivityQuery {
       qb.andWhere('activity.entityId = :entityId', { entityId: filters.entityId });
     }
 
+    if (filters.variantId) {
+      qb.andWhere(`(activity.metadata->>'variantId')::int = :variantId`, {
+        variantId: filters.variantId,
+      });
+    }
+
     if (filters.type) {
       qb.andWhere('activity.type = :type', { type: filters.type });
     }

@@ -21,11 +21,13 @@ import OnSupplyFulfilledActivityHandler from 'src/application/activity/event-han
 import OnStaffTransferredActivityHandler from 'src/application/activity/event-handlers/on-staff-transferred.handler';
 import OnExpenseCreatedActivityHandler from 'src/application/activity/event-handlers/on-expense-created.handler';
 import OnContainerOffloadedActivityHandler from 'src/application/activity/event-handlers/on-container-offloaded.handler';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
     CqrsModule,
     TypeOrmModule.forFeature([ActivityEntity]),
+    AuthModule,
   ],
   controllers: [ActivityController],
   providers: [

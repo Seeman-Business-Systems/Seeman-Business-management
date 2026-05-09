@@ -165,16 +165,11 @@ function StatCard({
   return to ? <Link to={to}>{inner}</Link> : inner;
 }
 
-const GLOBAL_ROLES = ['CEO', 'Super Admin'];
-
 function Dashboard() {
   usePageTitle('Dashboard');
   const { user, can } = useAuth();
 
-  const isGlobalView = GLOBAL_ROLES.includes(user?.role?.name ?? '');
-  const scopedBranchId = !isGlobalView
-    ? (user?.branch?.id ?? user?.branchId ?? undefined)
-    : undefined;
+  const isGlobalView = can('filter:by-branch');
 
   const [preset, setPreset] = useState<DatePreset>('thisMonth');
   const [customFrom, setCustomFrom] = useState('');
@@ -183,8 +178,8 @@ function Dashboard() {
     undefined,
   );
 
-  // Global roles can pick any branch; scoped roles are fixed to their branch
-  const branchId = isGlobalView ? selectedBranchId : scopedBranchId;
+  // Backend enforces branch scoping for non-global users. Global users may filter via dropdown.
+  const branchId = isGlobalView ? selectedBranchId : undefined;
 
   const [newMenuOpen, setNewMenuOpen] = useState(false);
   const newMenuRef = useRef<HTMLDivElement>(null);

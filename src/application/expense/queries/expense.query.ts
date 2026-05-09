@@ -22,6 +22,7 @@ class ExpenseQuery {
       .createQueryBuilder('expense')
       .leftJoinAndSelect('expense.recorder', 'recorder')
       .orderBy('expense.date', 'DESC')
+      .addOrderBy('expense.id', 'DESC')
       .take(take)
       .skip(skip);
 

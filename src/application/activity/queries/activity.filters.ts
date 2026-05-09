@@ -6,6 +6,7 @@ export default interface ActivityFilters {
   warehouseId?: number;
   entityType?: string;
   entityId?: number;
+  variantId?: number;
   type?: ActivityType;
   dateFrom?: string;
   dateTo?: string;

@@ -4,6 +4,9 @@ import AnalyticsSummaryQuery from 'src/application/analytics/analytics-summary.q
 import { ReportsQuery } from 'src/application/analytics/reports.query';
 import { RequirePermission } from 'src/modules/auth/decorators/role-guard.decorator';
 import { Permission } from 'src/domain/permission/permission';
+import Actor from 'src/modules/auth/decorators/actor.decorator';
+import BranchScope from 'src/modules/auth/services/branch-scope.service';
+import Staff from 'src/domain/staff/staff';
 
 @Controller('analytics')
 @UseGuards(JwtAuthGuard)
@@ -11,11 +14,16 @@ class AnalyticsController {
   constructor(
     private readonly summaryQuery: AnalyticsSummaryQuery,
     private readonly reportsQuery: ReportsQuery,
+    private readonly branchScope: BranchScope,
   ) {}
+
+  private async resolveBranchId(actor: Staff, raw: unknown): Promise<number | undefined> {
+    return this.branchScope.resolve(actor, raw ? Number(raw) : undefined);
+  }
 
   @Get('summary')
   @RequirePermission(Permission.ANALYTICS_READ)
-  async getSummary(@Query() query: any) {
+  async getSummary(@Query() query: any, @Actor() actor: Staff) {
     const today = new Date();
     const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
       .toISOString()
@@ -25,65 +33,65 @@ class AnalyticsController {
     return this.summaryQuery.getSummary({
       dateFrom: query.dateFrom ?? firstOfMonth,
       dateTo: query.dateTo ?? todayStr,
-      branchId: query.branchId ? Number(query.branchId) : undefined,
+      branchId: await this.resolveBranchId(actor, query.branchId),
     });
   }
 
   @Get('reports/sales')
   @RequirePermission(Permission.ANALYTICS_READ)
-  async getSalesReport(@Query() query: any) {
+  async getSalesReport(@Query() query: any, @Actor() actor: Staff) {
     return this.reportsQuery.getSalesReport({
       dateFrom: query.dateFrom ?? this.firstOfMonth(),
       dateTo: query.dateTo ?? this.today(),
-      branchId: query.branchId ? Number(query.branchId) : undefined,
+      branchId: await this.resolveBranchId(actor, query.branchId),
     });
   }
 
   @Get('reports/expenses')
   @RequirePermission(Permission.ANALYTICS_READ)
-  async getExpensesReport(@Query() query: any) {
+  async getExpensesReport(@Query() query: any, @Actor() actor: Staff) {
     return this.reportsQuery.getExpensesReport({
       dateFrom: query.dateFrom ?? this.firstOfMonth(),
       dateTo: query.dateTo ?? this.today(),
-      branchId: query.branchId ? Number(query.branchId) : undefined,
+      branchId: await this.resolveBranchId(actor, query.branchId),
     });
   }
 
   @Get('reports/inventory')
   @RequirePermission(Permission.ANALYTICS_READ)
-  async getInventoryReport(@Query() query: any) {
+  async getInventoryReport(@Query() query: any, @Actor() actor: Staff) {
     return this.reportsQuery.getInventoryReport({
-      branchId: query.branchId ? Number(query.branchId) : undefined,
+      branchId: await this.resolveBranchId(actor, query.branchId),
     });
   }
 
   @Get('reports/products')
   @RequirePermission(Permission.ANALYTICS_READ)
-  async getProductsReport(@Query() query: any) {
+  async getProductsReport(@Query() query: any, @Actor() actor: Staff) {
     return this.reportsQuery.getProductsReport({
       dateFrom: query.dateFrom ?? this.firstOfMonth(),
       dateTo: query.dateTo ?? this.today(),
-      branchId: query.branchId ? Number(query.branchId) : undefined,
+      branchId: await this.resolveBranchId(actor, query.branchId),
     });
   }
 
   @Get('reports/customers')
   @RequirePermission(Permission.ANALYTICS_READ)
-  async getCustomersReport(@Query() query: any) {
+  async getCustomersReport(@Query() query: any, @Actor() actor: Staff) {
     return this.reportsQuery.getCustomersReport({
       dateFrom: query.dateFrom ?? this.firstOfMonth(),
       dateTo: query.dateTo ?? this.today(),
-      branchId: query.branchId ? Number(query.branchId) : undefined,
+      branchId: await this.resolveBranchId(actor, query.branchId),
     });
   }
 
   @Get('reports/staff')
   @RequirePermission(Permission.ANALYTICS_READ)
-  async getStaffReport(@Query() query: any) {
+  async getStaffReport(@Query() query: any, @Actor() actor: Staff) {
     return this.reportsQuery.getStaffReport({
       dateFrom: query.dateFrom ?? this.firstOfMonth(),
       dateTo: query.dateTo ?? this.today(),
-      branchId: query.branchId ? Number(query.branchId) : undefined,
+      branchId: await this.resolveBranchId(actor, query.branchId),
     });
   }
 

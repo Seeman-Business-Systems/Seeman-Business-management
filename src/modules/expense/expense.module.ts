@@ -13,11 +13,13 @@ import UpdateExpenseHandler from 'src/application/expense/commands/update/update
 import BranchRepository from 'src/infrastructure/database/repositories/branch/branch.repository';
 import BranchDBRepository from 'src/infrastructure/database/repositories/branch/branch.db-repository';
 import BranchEntity from 'src/infrastructure/database/entities/branch.entity';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
     CqrsModule,
     TypeOrmModule.forFeature([ExpenseEntity, BranchEntity]),
+    AuthModule,
   ],
   controllers: [ExpenseController],
   providers: [

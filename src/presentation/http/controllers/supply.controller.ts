@@ -18,6 +18,7 @@ import JwtAuthGuard from 'src/modules/auth/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/modules/auth/decorators/role-guard.decorator';
 import { Permission } from 'src/domain/permission/permission';
 import Actor from 'src/modules/auth/decorators/actor.decorator';
+import BranchScope from 'src/modules/auth/services/branch-scope.service';
 import Staff from 'src/domain/staff/staff';
 import SupplyQuery from 'src/application/supply/queries/supply.query';
 import SupplySerialiser from 'src/presentation/serialisers/supply.serialiser';
@@ -46,17 +47,23 @@ class SupplyController {
     private readonly supplyQuery: SupplyQuery,
     private readonly serialiser: SupplySerialiser,
     private readonly supplyItemRepo: SupplyItemDBRepository,
+    private readonly branchScope: BranchScope,
   ) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
   @RequirePermission(Permission.SUPPLY_READ)
-  async findAll(@Query() filters: SupplyFilters) {
+  async findAll(@Query() filters: SupplyFilters, @Actor() actor: Staff) {
+    const branchId = await this.branchScope.resolve(
+      actor,
+      filters.branchId ? Number(filters.branchId) : undefined,
+    );
+
     const result = await this.supplyQuery.findBy({
       ...filters,
       take: filters.take ? Number(filters.take) : 20,
       skip: filters.skip ? Number(filters.skip) : 0,
-      branchId: filters.branchId ? Number(filters.branchId) : undefined,
+      branchId,
       saleId: filters.saleId ? Number(filters.saleId) : undefined,
       suppliedBy: filters.suppliedBy ? Number(filters.suppliedBy) : undefined,
     });

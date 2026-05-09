@@ -20,6 +20,7 @@ const tabs: { key: TabType; label: string; status?: SaleStatus }[] = [
 function Sales() {
   usePageTitle('Sales');
   const { can } = useAuth();
+  const isGlobalView = can('filter:by-branch');
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -153,21 +154,23 @@ function Sales() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              {/* Branch filter */}
-              <div className="relative flex-1 min-w-[140px]">
-                <select
-                  value={selectedBranch}
-                  onChange={(e) => setSelectedBranch(e.target.value)}
-                  className="w-full appearance-none pl-9 pr-8 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white cursor-pointer"
-                >
-                  <option value="all">All branches</option>
-                  {branches.map((b: any) => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
-                  ))}
-                </select>
-                <i className="fa-solid fa-code-branch absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
-                <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
-              </div>
+              {/* Branch filter — only visible to global roles; backend enforces scoping otherwise */}
+              {isGlobalView && (
+                <div className="relative flex-1 min-w-[140px]">
+                  <select
+                    value={selectedBranch}
+                    onChange={(e) => setSelectedBranch(e.target.value)}
+                    className="w-full appearance-none pl-9 pr-8 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white cursor-pointer"
+                  >
+                    <option value="all">All branches</option>
+                    {branches.map((b: any) => (
+                      <option key={b.id} value={b.id}>{b.name}</option>
+                    ))}
+                  </select>
+                  <i className="fa-solid fa-code-branch absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                  <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
+                </div>
+              )}
 
               {/* Payment status filter */}
               <div className="relative flex-1 min-w-[150px]">

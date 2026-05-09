@@ -17,8 +17,6 @@ import type { ExpenseCategory } from '../../types/expense';
 type Tab = 'sales' | 'expenses' | 'inventory' | 'products' | 'customers' | 'staff';
 type DatePreset = 'thisWeek' | 'thisMonth' | 'lastMonth' | 'last7days' | 'custom';
 
-const GLOBAL_ROLES = ['CEO', 'Super Admin'];
-
 const fmt = (n: number) => new Intl.NumberFormat('en-NG', { maximumFractionDigits: 0 }).format(n);
 const fmtCurrency = (n: number) => `₦${fmt(n)}`;
 const fmtDate = (s: string) =>
@@ -193,10 +191,9 @@ function DownloadBar({
 
 function Reports() {
   usePageTitle('Reports');
-  const { user } = useAuth();
+  const { can } = useAuth();
 
-  const isGlobalView = GLOBAL_ROLES.includes(user?.role?.name ?? '');
-  const scopedBranchId = !isGlobalView ? (user?.branch?.id ?? undefined) : undefined;
+  const isGlobalView = can('filter:by-branch');
 
   const [activeTab, setActiveTab] = useState<Tab>('sales');
   const [preset, setPreset] = useState<DatePreset>('thisMonth');
@@ -204,7 +201,8 @@ function Reports() {
   const [customTo, setCustomTo] = useState('');
   const [selectedBranchId, setSelectedBranchId] = useState<number | undefined>(undefined);
 
-  const branchId = isGlobalView ? selectedBranchId : scopedBranchId;
+  // Backend enforces branch scoping for non-global users. Global users may filter via dropdown.
+  const branchId = isGlobalView ? selectedBranchId : undefined;
 
   const { from: dateFrom, to: dateTo } = useMemo(() => {
     if (preset !== 'custom') return getPresetRange(preset);

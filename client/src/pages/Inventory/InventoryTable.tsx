@@ -139,7 +139,7 @@ function InventoryTable({
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                         >
                           <i className="fa-solid fa-eye text-gray-400 w-4" />
-                          View Variant
+                          View size
                         </Link>
                         <button
                           onClick={() => { setOpenMenuId(null); onAddStock(record); }}
@@ -177,7 +177,7 @@ function InventoryTable({
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-200">
-              <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Variant</th>
+              <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Size</th>
               <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 hidden lg:table-cell">Brand</th>
               <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 hidden lg:table-cell">Warehouse</th>
               <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Available</th>
@@ -263,7 +263,7 @@ function InventoryTable({
                             className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                           >
                             <i className="fa-solid fa-eye text-gray-400 w-4" />
-                            View Variant
+                            View size
                           </Link>
                           <button
                             onClick={() => { setOpenMenuId(null); onAddStock(record); }}
