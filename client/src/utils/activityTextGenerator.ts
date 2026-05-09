@@ -74,7 +74,7 @@ const generators: Record<ActivityType, Generator> = {
   EXPENSE_RECORDED: (meta) => {
     const amount = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(meta.amount ?? 0));
     const cat = String(meta.category ?? '').charAt(0) + String(meta.category ?? '').slice(1).toLowerCase();
-    return `Recorded ${amount} expense (${cat}) — "${meta.description}"`;
+    return `Recorded ${amount} expense (${cat})${meta.description ? ` — "${meta.description}"` : ''}`;
   },
 
   CONTAINER_OFFLOADED: (meta) =>

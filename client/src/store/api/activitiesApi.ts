@@ -7,6 +7,7 @@ interface GetActivitiesParams {
   warehouseId?: number;
   entityType?: string;
   entityId?: number;
+  variantId?: number;
   type?: string;
   dateFrom?: string;
   dateTo?: string;

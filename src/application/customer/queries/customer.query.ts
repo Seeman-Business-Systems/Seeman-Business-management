@@ -42,6 +42,12 @@ class CustomerQuery {
       });
     }
 
+    if (filters.branchId) {
+      query.andWhere('customer.branch_id = :branchId', {
+        branchId: Number(filters.branchId),
+      });
+    }
+
     // Handle array filters for IDs
     if (filters.ids) {
       if (Array.isArray(filters.ids)) {

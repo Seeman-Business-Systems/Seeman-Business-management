@@ -85,6 +85,7 @@ const PERMISSION_GROUPS = [
     permissions: [
       { key: 'analytics:read', label: 'View Reports' },
       { key: 'activity:read', label: 'View Activities' },
+      { key: 'filter:by-branch', label: 'Filter by Branch' },
     ],
   },
   {

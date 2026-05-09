@@ -10,10 +10,19 @@ class Customer {
     public creditLimit: number,
     public outstandingBalance: number,
     public createdBy: number,
+    public branchId: number,
     public createdAt: Date,
     public updatedAt: Date,
     public deletedAt?: Date,
   ) {}
+
+  getBranchId(): number {
+    return this.branchId;
+  }
+
+  setBranchId(branchId: number): void {
+    this.branchId = branchId;
+  }
 
   getId(): number {
     return this.id!;

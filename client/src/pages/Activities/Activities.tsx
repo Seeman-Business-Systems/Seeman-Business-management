@@ -6,14 +6,11 @@ import { useGetBranchesQuery } from '../../store/api/branchesApi';
 import { useGetStaffListQuery } from '../../store/api/staffApi';
 import { useAuth } from '../../context/AuthContext';
 
-const GLOBAL_ROLES = ['CEO', 'Super Admin'];
-
 function Activities() {
   usePageTitle('Activities');
-  const { user } = useAuth();
+  const { user, can } = useAuth();
 
-  const isGlobalView = GLOBAL_ROLES.includes(user?.role?.name ?? '');
-  const scopedBranchId = !isGlobalView ? (user?.branch?.id ?? undefined) : undefined;
+  const isGlobalView = can('filter:by-branch');
 
   // Read the old timestamp synchronously so it's available on first render, then update it
   const [prevLastViewed] = useState<string | null>(() =>
@@ -45,8 +42,8 @@ function Activities() {
     return Array.from(map.values()).sort((a, b) => a.branchName.localeCompare(b.branchName));
   }, [allStaff]);
 
-  // Branch-scoped users: branchId is locked; global users: use dropdown
-  const activeBranchId = scopedBranchId ?? (selectedBranch ? Number(selectedBranch) : undefined);
+  // Backend enforces branch scoping for non-global users. Global users may filter via dropdown.
+  const activeBranchId = isGlobalView && selectedBranch ? Number(selectedBranch) : undefined;
 
   const fixedParams = {
     ...(activeBranchId ? { branchId: activeBranchId } : {}),

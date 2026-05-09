@@ -6,6 +6,7 @@ import usePageTitle from '../../hooks/usePageTitle';
 import { useGetSuppliesQuery, useFulfilSupplyMutation } from '../../store/api/suppliesApi';
 import { useGetBranchesQuery } from '../../store/api/branchesApi';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import type { Supply, SupplyStatus } from '../../types/supply';
 
 type TabKey = 'all' | 'DRAFT' | 'FULFILLED' | 'CANCELLED';
@@ -27,6 +28,8 @@ const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
 function Supplies() {
   usePageTitle('Supplies');
+  const { can } = useAuth();
+  const isGlobalView = can('filter:by-branch');
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabKey>(
@@ -64,8 +67,8 @@ function Supplies() {
       if (fulfilled.saleId) {
         showToast('info', `Sale ${fulfilled.saleNumber} has been fulfilled automatically`);
       }
-    } catch {
-      showToast('error', 'Failed to fulfil supply');
+    } catch (error) {
+      showToast('error', error instanceof Error ? error.message : 'Failed to mark supply as fulfilled');
     }
   };
 
@@ -131,20 +134,22 @@ function Supplies() {
 
           {/* Filters */}
           <div className="p-4 flex flex-col sm:flex-row gap-3 border-b border-gray-100">
-            <div className="relative flex-1 min-w-[140px]">
-              <select
-                value={selectedBranch}
-                onChange={(e) => setSelectedBranch(e.target.value)}
-                className="w-full appearance-none pl-9 pr-8 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white cursor-pointer"
-              >
-                <option value="all">All branches</option>
-                {branches.map((b) => (
-                  <option key={b.id} value={b.id}>{b.name}</option>
-                ))}
-              </select>
-              <i className="fa-solid fa-building absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
-              <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
-            </div>
+            {isGlobalView && (
+              <div className="relative flex-1 min-w-[140px]">
+                <select
+                  value={selectedBranch}
+                  onChange={(e) => setSelectedBranch(e.target.value)}
+                  className="w-full appearance-none pl-9 pr-8 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white cursor-pointer"
+                >
+                  <option value="all">All branches</option>
+                  {branches.map((b) => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
+                <i className="fa-solid fa-building absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
+              </div>
+            )}
             <div className="flex gap-3">
               <input
                 type="date"

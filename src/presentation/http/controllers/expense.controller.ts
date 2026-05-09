@@ -17,6 +17,7 @@ import JwtAuthGuard from 'src/modules/auth/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/modules/auth/decorators/role-guard.decorator';
 import { Permission } from 'src/domain/permission/permission';
 import Actor from 'src/modules/auth/decorators/actor.decorator';
+import BranchScope from 'src/modules/auth/services/branch-scope.service';
 import Staff from 'src/domain/staff/staff';
 import CreateExpenseCommand from 'src/application/expense/commands/create/create-expense.command';
 import CreateExpenseValidator from 'src/application/expense/commands/create/create-expense.validator';
@@ -35,14 +36,20 @@ class ExpenseController {
     private readonly commandBus: CommandBus,
     private readonly expenseQuery: ExpenseQuery,
     private readonly expenseSerialiser: ExpenseSerialiser,
+    private readonly branchScope: BranchScope,
   ) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
   @RequirePermission(Permission.EXPENSE_READ)
-  async getAll(@Query() query: any) {
+  async getAll(@Query() query: any, @Actor() actor: Staff) {
+    const branchId = await this.branchScope.resolve(
+      actor,
+      query.branchId ? Number(query.branchId) : undefined,
+    );
+
     const filters: ExpenseFilters = {
-      branchId: query.branchId ? Number(query.branchId) : undefined,
+      branchId,
       category: query.category as ExpenseCategory | undefined,
       dateFrom: query.dateFrom,
       dateTo: query.dateTo,

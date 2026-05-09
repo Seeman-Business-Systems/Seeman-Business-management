@@ -29,16 +29,19 @@ class RolePermissionDBRepository extends RolePermissionRepository {
   }
 
   async seedDefaults(roleName: string, grantedPermissions: string[]): Promise<void> {
-    const existing = await this.repo.count({ where: { roleName } });
-    if (existing > 0) return;
-
+    // Backfill any permissions that don't yet have a row for this role, preserving
+    // any existing rows so admin overrides are never clobbered by re-seeding.
+    const existingRows = await this.repo.find({ where: { roleName } });
+    const existing = new Set(existingRows.map((r) => r.permission));
     const granted = new Set(grantedPermissions);
-    const rows = Object.values(Permission).map((p) => ({
-      roleName,
-      permission: p,
-      granted: granted.has(p),
-    }));
-    await this.repo.insert(rows);
+
+    const missing = Object.values(Permission)
+      .filter((p) => !existing.has(p))
+      .map((p) => ({ roleName, permission: p, granted: granted.has(p) }));
+
+    if (missing.length > 0) {
+      await this.repo.insert(missing);
+    }
   }
 }
 

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { InventoryModule } from '../inventory/inventory.module';
+import { AuthModule } from '../auth/auth.module';
 import SupplyEntity from 'src/infrastructure/database/entities/supply.entity';
 import SupplyItemEntity from 'src/infrastructure/database/entities/supply-item.entity';
 import SupplyRepository from 'src/infrastructure/database/repositories/supply/supply.repository';
@@ -20,6 +21,7 @@ import CancelSupplyHandler from 'src/application/supply/commands/cancel-supply/c
     CqrsModule,
     TypeOrmModule.forFeature([SupplyEntity, SupplyItemEntity]),
     InventoryModule,
+    AuthModule,
   ],
   controllers: [SupplyController],
   providers: [

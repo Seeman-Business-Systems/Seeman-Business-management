@@ -284,7 +284,7 @@ class AuthService {
 
     const token = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 30);
+    expiresAt.setDate(expiresAt.getDate() + 7);
 
     await this.passwordResetTokens.commit(
       new PasswordResetToken(undefined, token, staff.getId()!, expiresAt, new Date(), undefined),

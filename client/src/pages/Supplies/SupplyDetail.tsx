@@ -47,8 +47,11 @@ function SupplyDetail() {
       if (supply?.saleId) {
         showToast('info', `Sale ${supply.saleNumber} has been fulfilled automatically`);
       }
-    } catch {
-      showToast('error', 'Failed to fulfil supply');
+    } catch (err: unknown) {
+      const msg = err && typeof err === 'object' && 'data' in err
+        ? (err as { data?: { message?: string } }).data?.message
+        : undefined;
+      showToast('error', msg ?? 'Failed to fulfil supply');
     }
   };
 

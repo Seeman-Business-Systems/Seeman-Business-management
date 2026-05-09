@@ -15,8 +15,20 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('returns the API banner payload', () => {
+      expect(appController.getHello()).toEqual({
+        name: 'Seeman Auto API',
+        status: 'running',
+        version: '1.0.0',
+      });
+    });
+  });
+
+  describe('health', () => {
+    it('reports an ok status with an ISO timestamp', () => {
+      const health = appController.getHealth();
+      expect(health.status).toBe('ok');
+      expect(() => new Date(health.timestamp).toISOString()).not.toThrow();
     });
   });
 });

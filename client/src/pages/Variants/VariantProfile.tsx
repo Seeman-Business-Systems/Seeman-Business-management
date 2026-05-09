@@ -250,6 +250,13 @@ function VariantProfile() {
               >
                 <i className="fa-solid fa-pen text-xs" />
               </button>
+              <Link
+                to={`/variants/${variantId}/activities`}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium ml-2"
+              >
+                <i className="fa-solid fa-clock-rotate-left" />
+                <span className="hidden sm:inline">View Activities</span>
+              </Link>
             </div>
           </div>
         </div>

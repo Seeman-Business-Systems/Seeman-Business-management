@@ -20,6 +20,7 @@ import { StaffSerialiser } from 'src/presentation/serialisers/staff.serialiser';
 import RolePermissionRepository from 'src/infrastructure/database/repositories/role-permission/role-permission.repository';
 import RoleRepository from 'src/infrastructure/database/repositories/role/role.repository';
 import { SUPERADMIN_ROLE } from 'src/domain/permission/permission';
+import { RequirePermission } from './decorators/role-guard.decorator';
 
 @Controller('auth')
 @UseGuards(JwtAuthGuard)
@@ -33,6 +34,7 @@ class AuthController {
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission('staff:create')
   async register(@Body() dto: RegisterStaffValidator, @Actor() actor: Staff) {
     const staffData = {
       firstName: dto.firstName,

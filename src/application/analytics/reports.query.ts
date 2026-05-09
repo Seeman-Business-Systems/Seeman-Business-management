@@ -19,16 +19,26 @@ export class ReportsQuery {
       this.dataSource.query(
         `SELECT
            COUNT(*)::int AS total_sales,
-           COALESCE(SUM(total_amount), 0)::numeric AS total_revenue,
-           COALESCE(AVG(total_amount), 0)::numeric AS avg_order_value,
-           COUNT(*) FILTER (WHERE payment_status = 'PAID')::int AS paid_count,
-           COUNT(*) FILTER (WHERE payment_status = 'PARTIAL')::int AS partial_count,
-           COUNT(*) FILTER (WHERE payment_status = 'PENDING')::int AS pending_count,
-           COALESCE(SUM(total_amount) FILTER (WHERE payment_status IN ('PENDING','PARTIAL')), 0)::numeric AS outstanding_amount
-         FROM sales
-         WHERE status != 'CANCELLED'
-           AND sold_at >= $1::date AND sold_at < $2::date + INTERVAL '1 day'
-           AND ($3::int IS NULL OR branch_id = $3::int)`,
+           COALESCE(SUM(s.total_amount), 0)::numeric AS total_revenue,
+           COALESCE(AVG(s.total_amount), 0)::numeric AS avg_order_value,
+           COUNT(*) FILTER (WHERE s.payment_status = 'PAID')::int AS paid_count,
+           COUNT(*) FILTER (WHERE s.payment_status = 'PARTIAL')::int AS partial_count,
+           COUNT(*) FILTER (WHERE s.payment_status = 'PENDING')::int AS pending_count,
+           COALESCE(SUM(
+             CASE WHEN s.payment_status IN ('PENDING','PARTIAL')
+                  THEN s.total_amount - COALESCE(p.paid, 0)
+                  ELSE 0
+             END
+           ), 0)::numeric AS outstanding_amount
+         FROM sales s
+         LEFT JOIN (
+           SELECT sale_id, SUM(amount) AS paid
+           FROM sale_payments
+           GROUP BY sale_id
+         ) p ON p.sale_id = s.id
+         WHERE s.status != 'CANCELLED'
+           AND s.sold_at >= $1::date AND s.sold_at < $2::date + INTERVAL '1 day'
+           AND ($3::int IS NULL OR s.branch_id = $3::int)`,
         [dateFrom, dateTo, bp],
       ),
       this.dataSource.query(
@@ -284,11 +294,12 @@ export class ReportsQuery {
       this.dataSource.query(
         `SELECT COUNT(*)::int AS total_customers,
                 COALESCE(SUM(outstanding_balance), 0)::numeric AS total_outstanding
-         FROM customers`,
+         FROM customers
+         WHERE deleted_at IS NULL`,
       ),
       this.dataSource.query(
         `SELECT
-           c.id, c.name, c.email, c.phone,
+           c.id, c.name, c.email, c.phone_number AS phone,
            c.credit_limit::numeric, c.outstanding_balance::numeric,
            COUNT(s.id)::int AS total_orders,
            COALESCE(SUM(s.total_amount), 0)::numeric AS total_revenue
@@ -297,7 +308,8 @@ export class ReportsQuery {
            AND s.status != 'CANCELLED'
            AND s.sold_at >= $1::date AND s.sold_at < $2::date + INTERVAL '1 day'
            AND ($3::int IS NULL OR s.branch_id = $3::int)
-         GROUP BY c.id, c.name, c.email, c.phone, c.credit_limit, c.outstanding_balance
+         WHERE c.deleted_at IS NULL
+         GROUP BY c.id, c.name, c.email, c.phone_number, c.credit_limit, c.outstanding_balance
          ORDER BY total_revenue DESC, c.name`,
         [dateFrom, dateTo, bp],
       ),
