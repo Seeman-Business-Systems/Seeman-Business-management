@@ -27,6 +27,7 @@ export class StaffSerialiser {
       phoneNumber: staff.getPhoneNumber(),
       role: role ? await this.roleSerialiser.serialise(role) : null,
       branch: branch ? this.applyBranch(branch) : null,
+      branchId: staff.getBranchId(),
       middleName: staff.getMiddleName(),
       fullName: staff.getFullName(),
       joinedAt: staff.getJoinedAt(),

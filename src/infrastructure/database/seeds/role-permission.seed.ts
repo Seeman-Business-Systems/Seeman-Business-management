@@ -15,6 +15,7 @@ const DEFAULTS: Record<string, string[]> = {
     Permission.BRANCH_READ,
     Permission.WAREHOUSE_READ,
     Permission.ROLE_READ,
+    Permission.FILTER_BY_BRANCH,
   ],
 
   'Branch Manager': [

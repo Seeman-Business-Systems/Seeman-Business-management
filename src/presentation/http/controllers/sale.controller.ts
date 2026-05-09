@@ -18,6 +18,7 @@ import JwtAuthGuard from 'src/modules/auth/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/modules/auth/decorators/role-guard.decorator';
 import { Permission } from 'src/domain/permission/permission';
 import Actor from 'src/modules/auth/decorators/actor.decorator';
+import BranchScope from 'src/modules/auth/services/branch-scope.service';
 import Staff from 'src/domain/staff/staff';
 import CreateSaleCommand from 'src/application/sale/commands/create-sale/create-sale.command';
 import CreateSaleValidator from 'src/application/sale/commands/create-sale/create-sale.validator';
@@ -37,6 +38,7 @@ class SaleController {
     private readonly commandBus: CommandBus,
     private readonly saleQuery: SaleQuery,
     private readonly saleSerialiser: SaleSerialiser,
+    private readonly branchScope: BranchScope,
   ) {}
 
   @Post()
@@ -64,9 +66,15 @@ class SaleController {
   @Get()
   @HttpCode(HttpStatus.OK)
   @RequirePermission(Permission.SALE_READ)
-  async findAll(@Query() filters: SaleFilters) {
+  async findAll(@Query() filters: SaleFilters, @Actor() actor: Staff) {
+    const branchId = await this.branchScope.resolve(
+      actor,
+      filters.branchId ? Number(filters.branchId) : undefined,
+    );
+
     const result = await this.saleQuery.findBy({
       ...filters,
+      branchId,
       take: filters.take ? Number(filters.take) : 10,
       skip: filters.skip ? Number(filters.skip) : 0,
     });

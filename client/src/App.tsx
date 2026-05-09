@@ -20,7 +20,7 @@ import { Inventory } from './pages/Inventory';
 import Containers from './pages/Inventory/Containers';
 import CreateContainer from './pages/Inventory/CreateContainer';
 import ContainerDetail from './pages/Inventory/ContainerDetail';
-import { VariantProfile } from './pages/Variants';
+import { VariantProfile, VariantActivities } from './pages/Variants';
 import { Warehouses, WarehouseProfile, WarehouseActivities, CreateWarehouse, EditWarehouse } from './pages/Warehouses';
 import { Sales, CreateSale, SaleDetail, SaleReceipt } from './pages/Sales';
 import { Supplies, SupplyDetail } from './pages/Supplies';
@@ -228,6 +228,14 @@ function App() {
           element={
             <ProtectedRoute>
               <VariantProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/variants/:id/activities"
+          element={
+            <ProtectedRoute>
+              <VariantActivities />
             </ProtectedRoute>
           }
         />

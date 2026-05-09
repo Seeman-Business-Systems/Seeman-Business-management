@@ -115,6 +115,7 @@ interface ActivityFeedProps {
     warehouseId?: number;
     entityType?: string;
     entityId?: number;
+    variantId?: number;
   };
   lastViewedAt?: string;
 }

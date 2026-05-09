@@ -341,14 +341,14 @@ function ProductProfile() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <i className="fa-solid fa-boxes-stacked text-indigo-500" />
-              Variants ({product.variants?.length || 0})
+              Sizes ({product.variants?.length || 0})
             </h2>
             <button
               onClick={openAddVariant}
               className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors cursor-pointer"
             >
               <i className="fa-solid fa-plus" />
-              Add Variant
+              Add Size
             </button>
           </div>
 
@@ -364,7 +364,7 @@ function ProductProfile() {
                   <tr className="border-b border-gray-200">
                     <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">SKU</th>
                     <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">
-                      Variant Name
+                      Size Name
                     </th>
                     <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">
                       Selling Price

@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import AuthController from './auth.controller';
 import AuthService from './auth.service';
+import BranchScope from './services/branch-scope.service';
 import { StaffModule } from '../staff/staff.module';
 import { RoleModule } from '../role/role.module';
 import JwtStrategy from './strategies/jwt.strategy';
@@ -33,7 +34,7 @@ import { PermissionModule } from '../permission/permission.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService, JwtModule],
+  providers: [AuthService, JwtStrategy, BranchScope],
+  exports: [AuthService, JwtModule, BranchScope],
 })
 export class AuthModule {}

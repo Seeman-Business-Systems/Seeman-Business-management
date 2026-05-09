@@ -22,12 +22,13 @@ class StaffQuery {
   ) {}
 
   async findBy(filters: StaffFilters): Promise<PaginatedStaff> {
-    const query = this.staff.createQueryBuilder('staff');
+    const query = this.staff.createQueryBuilder('staff')
+      .where('staff.deletedAt IS NULL');
 
     // Handle search (firstName, lastName, email) - case insensitive
     if (filters.search) {
       query.andWhere(
-        '(staff.firstName IILIKE :search OR staff.lastName IILIKE :search OR staff.email IILIKE :search)',
+        '(staff.firstName ILIKE :search OR staff.lastName ILIKE :search OR staff.email ILIKE :search)',
         { search: `%${filters.search}%` },
       );
     }

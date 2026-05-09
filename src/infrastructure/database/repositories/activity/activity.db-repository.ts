@@ -32,7 +32,9 @@ class ActivityDBRepository extends ActivityRepository {
   toDomain(entity: ActivityEntity): Activity {
     const actorName = entity.actor
       ? `${entity.actor.firstName} ${entity.actor.lastName}`
-      : null;
+      : entity.actorId === 0
+        ? 'System Actor'
+        : null;
 
     return new Activity(
       entity.id,

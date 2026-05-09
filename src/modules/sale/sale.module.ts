@@ -22,6 +22,7 @@ import { SaleSeed } from 'src/infrastructure/database/seeds/sale.seed';
 import { StaffModule } from '../staff/staff.module';
 import { BranchModule } from '../branch/branch.module';
 import { CustomerModule } from '../customer/customer.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { CustomerModule } from '../customer/customer.module';
     StaffModule,
     BranchModule,
     CustomerModule,
+    AuthModule,
   ],
   controllers: [SaleController],
   providers: [
