@@ -2,6 +2,7 @@ import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import SupplyRepository from 'src/infrastructure/database/repositories/supply/supply.repository';
 import InventoryRepository from 'src/infrastructure/database/repositories/inventory/inventory.repository';
+import TransactionRunner from 'src/application/shared/transactions/transaction-runner';
 import SupplyStatus from 'src/domain/supply/supply-status';
 import SupplyFulfilled from 'src/domain/supply/events/supply-fulfilled.event';
 import FulfilSupplyCommand from './fulfil-supply.command';
@@ -12,6 +13,7 @@ class FulfilSupplyHandler implements ICommandHandler<FulfilSupplyCommand> {
   constructor(
     private readonly supplies: SupplyRepository,
     private readonly inventories: InventoryRepository,
+    private readonly transactions: TransactionRunner,
     private readonly eventBus: EventBus,
   ) {}
 
@@ -28,7 +30,6 @@ class FulfilSupplyHandler implements ICommandHandler<FulfilSupplyCommand> {
 
     const items = supply.getItems();
 
-    // Validate all items have a warehouse assigned
     const missingWarehouse = items.filter((item) => !item.getWarehouseId());
     if (missingWarehouse.length > 0) {
       const names = missingWarehouse.map((i) => i.getVariantName() ?? `Variant #${i.getVariantId()}`).join(', ');
@@ -37,37 +38,39 @@ class FulfilSupplyHandler implements ICommandHandler<FulfilSupplyCommand> {
       );
     }
 
-    // Deduct inventory for each item
-    for (const item of items) {
-      const inventory = await this.inventories.findByVariantAndWarehouse(
-        item.getVariantId(),
-        item.getWarehouseId()!,
-      );
-
-      if (!inventory) {
-        throw new BadRequestException(
-          `No inventory record found for "${item.getVariantName() ?? `Variant #${item.getVariantId()}`}" at the selected warehouse.`,
+    const saved = await this.transactions.run(async (tx) => {
+      for (const item of items) {
+        const inventory = await this.inventories.findByVariantAndWarehouseForUpdate(
+          item.getVariantId(),
+          item.getWarehouseId()!,
+          tx,
         );
+
+        if (!inventory) {
+          throw new BadRequestException(
+            `No inventory record found for "${item.getVariantName() ?? `Variant #${item.getVariantId()}`}" at the selected warehouse.`,
+          );
+        }
+
+        if (inventory.getTotalQuantity() < item.getQuantity()) {
+          throw new BadRequestException(
+            `Insufficient stock for "${item.getVariantName() ?? `Variant #${item.getVariantId()}`}". Available: ${inventory.getTotalQuantity()}, Required: ${item.getQuantity()}.`,
+          );
+        }
+
+        inventory.setTotalQuantity(inventory.getTotalQuantity() - item.getQuantity());
+        inventory.setUpdatedAt(new Date());
+        await this.inventories.commit(inventory, tx);
       }
 
-      if (inventory.getTotalQuantity() < item.getQuantity()) {
-        throw new BadRequestException(
-          `Insufficient stock for "${item.getVariantName() ?? `Variant #${item.getVariantId()}`}". Available: ${inventory.getTotalQuantity()}, Required: ${item.getQuantity()}.`,
-        );
+      supply.setStatus(SupplyStatus.FULFILLED);
+      supply.setSuppliedBy(command.fulfilledBy);
+      if (command.notes !== null) {
+        supply.setNotes(command.notes);
       }
 
-      inventory.setTotalQuantity(inventory.getTotalQuantity() - item.getQuantity());
-      inventory.setUpdatedAt(new Date());
-      await this.inventories.commit(inventory);
-    }
-
-    supply.setStatus(SupplyStatus.FULFILLED);
-    supply.setSuppliedBy(command.fulfilledBy);
-    if (command.notes !== null) {
-      supply.setNotes(command.notes);
-    }
-
-    const saved = await this.supplies.commit(supply);
+      return this.supplies.commit(supply, tx);
+    });
 
     this.eventBus.publish(
       new SupplyFulfilled(
