@@ -12,6 +12,11 @@ class CreateExpenseHandler implements ICommandHandler<CreateExpenseCommand> {
   ) {}
 
   async execute(command: CreateExpenseCommand): Promise<Expense> {
+    if (command.idempotencyKey) {
+      const existing = await this.expenses.findByIdempotencyKey(command.idempotencyKey);
+      if (existing) return existing;
+    }
+
     const expense = new Expense(
       undefined,
       command.amount,
@@ -24,6 +29,7 @@ class CreateExpenseHandler implements ICommandHandler<CreateExpenseCommand> {
       command.notes,
       new Date(),
       new Date(),
+      command.idempotencyKey,
     );
 
     const saved = await this.expenses.commit(expense);

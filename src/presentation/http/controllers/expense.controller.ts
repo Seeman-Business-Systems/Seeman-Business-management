@@ -75,6 +75,7 @@ class ExpenseController {
       actor.getId(),
       new Date(dto.date),
       dto.notes ?? null,
+      dto.idempotencyKey ?? null,
     );
     const expense = await this.commandBus.execute(command);
     return this.expenseSerialiser.serialise(expense);

@@ -13,6 +13,7 @@ class Expense {
     private notes: string | null,
     private createdAt: Date,
     private updatedAt: Date,
+    private idempotencyKey: string | null = null,
   ) {}
 
   getId(): number | undefined { return this.id; }
@@ -26,6 +27,7 @@ class Expense {
   getNotes(): string | null { return this.notes; }
   getCreatedAt(): Date { return this.createdAt; }
   getUpdatedAt(): Date { return this.updatedAt; }
+  getIdempotencyKey(): string | null { return this.idempotencyKey; }
 
   setAmount(amount: number): void { this.amount = amount; }
   setCategory(category: ExpenseCategory): void { this.category = category; }

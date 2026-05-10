@@ -6,12 +6,14 @@ import Modal from '../../components/ui/Modal';
 import usePageTitle from '../../hooks/usePageTitle';
 import {
   useGetExpensesQuery,
-  useCreateExpenseMutation,
   useUpdateExpenseMutation,
   useDeleteExpenseMutation,
 } from '../../store/api/expensesApi';
 import { useGetBranchesQuery } from '../../store/api/branchesApi';
 import { useToast } from '../../context/ToastContext';
+import { useCreateExpenseOffline } from '../../lib/offline/useCreateExpenseOffline';
+import { useOutboxEntries } from '../../lib/offline/useOutbox';
+import { useOnlineStatus } from '../../lib/offline/useOnlineStatus';
 import { EXPENSE_CATEGORY_LABELS } from '../../types/expense';
 import type {
   ExpenseCategory,
@@ -22,6 +24,40 @@ import type {
 
 const CATEGORIES = Object.keys(EXPENSE_CATEGORY_LABELS) as ExpenseCategory[];
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
+
+type PendingExpense = Expense & {
+  _pending: true;
+  _outboxId: string;
+  _failed: boolean;
+};
+
+type RenderableExpense = Expense | PendingExpense;
+
+function isPending(e: RenderableExpense): e is PendingExpense {
+  return (e as PendingExpense)._pending === true;
+}
+
+function PendingBadge({ online, failed }: { online: boolean; failed: boolean }) {
+  if (failed) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-rose-100 text-rose-700">
+        <i className="fa-solid fa-triangle-exclamation" /> Failed to sync
+      </span>
+    );
+  }
+  if (!online) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-800">
+        <i className="fa-solid fa-cloud-bolt" /> Saved offline
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700">
+      <i className="fa-solid fa-cloud-arrow-up animate-pulse" /> Syncing…
+    </span>
+  );
+}
 
 const CATEGORY_COLORS: Record<ExpenseCategory, string> = {
   RENT: 'bg-blue-100 text-blue-800',
@@ -110,7 +146,7 @@ function Expenses() {
   });
 
   const { data: branches = [] } = useGetBranchesQuery();
-  const [createExpense, { isLoading: isCreating }] = useCreateExpenseMutation();
+  const { submit: submitExpense, isLoading: isCreating } = useCreateExpenseOffline();
   const [updateExpense, { isLoading: isUpdating }] = useUpdateExpenseMutation();
   const [deleteExpense, { isLoading: isDeleting }] = useDeleteExpenseMutation();
 
@@ -142,18 +178,44 @@ function Expenses() {
     }
   };
 
-  const expenses = data?.data ?? [];
+  const pendingEntries = useOutboxEntries('expense');
+  const isOnline = useOnlineStatus();
+
+  const pendingExpenses: PendingExpense[] = pendingEntries.map((entry) => {
+    const body = entry.body as unknown as CreateExpenseRequest;
+    const branch = branches.find((b) => b.id === body.branchId);
+    return {
+      id: 0,
+      amount: body.amount,
+      category: body.category,
+      description: body.description,
+      branchId: body.branchId,
+      branchName: branch?.name ?? null,
+      recordedBy: user?.id ?? 0,
+      recordedByName: user?.fullName ?? null,
+      date: body.date,
+      notes: body.notes ?? null,
+      createdAt: new Date(entry.createdAt).toISOString(),
+      updatedAt: new Date(entry.updatedAt).toISOString(),
+      _pending: true,
+      _outboxId: entry.id,
+      _failed: entry.status === 'failed',
+    };
+  });
+
+  const realExpenses = data?.data ?? [];
+  const expenses: RenderableExpense[] = [...pendingExpenses, ...realExpenses];
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / pageSize);
-  const totalAmount = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalAmount = realExpenses.reduce((sum, e) => sum + e.amount, 0);
 
   const handleCreate = async () => {
     if (!form.amount || !form.branchId) return;
     try {
-      await createExpense({ ...form, notes: form.notes || undefined }).unwrap();
+      const { queued } = await submitExpense({ ...form, notes: form.notes || undefined });
       setShowCreateModal(false);
       setForm(emptyForm);
-      showToast('success', 'Expense recorded');
+      showToast('success', queued ? 'Saved offline — will sync when reconnected' : 'Expense recorded');
     } catch {
       showToast('error', 'Failed to record expense');
     }
@@ -319,60 +381,69 @@ function Expenses() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {expenses.map((expense, i) => (
-                      <tr
-                        key={expense.id}
-                        className={`hover:bg-gray-50 transition-colors ${i % 2 === 0 ? 'bg-indigo-50/20' : ''}`}
-                      >
-                        <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                          {formatDate(expense.date)}
-                        </td>
-                        <td className="px-6 py-4">
-                          <p className="text-sm text-gray-900 font-medium">
-                            {expense.description}
-                          </p>
-                          {expense.notes && (
-                            <p className="text-xs text-gray-400 mt-0.5">
-                              {expense.notes}
+                    {expenses.map((expense, i) => {
+                      const pending = isPending(expense);
+                      const rowKey = pending ? `outbox-${expense._outboxId}` : expense.id;
+                      return (
+                        <tr
+                          key={rowKey}
+                          className={`hover:bg-gray-50 transition-colors ${i % 2 === 0 ? 'bg-indigo-50/20' : ''} ${pending ? 'opacity-70' : ''}`}
+                        >
+                          <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                            {formatDate(expense.date)}
+                          </td>
+                          <td className="px-6 py-4">
+                            <p className="text-sm text-gray-900 font-medium flex items-center gap-2">
+                              {expense.description}
+                              {pending && (
+                                <PendingBadge online={isOnline} failed={expense._failed} />
+                              )}
                             </p>
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${CATEGORY_COLORS[expense.category]}`}
-                          >
-                            {EXPENSE_CATEGORY_LABELS[expense.category]}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-700">
-                          {expense.branchName ?? '—'}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-700">
-                          {expense.recordedByName ?? '—'}
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <span className="text-sm font-semibold text-gray-900">
-                            {formatCurrency(expense.amount)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => openEditModal(expense)}
-                              className="text-gray-300 hover:text-indigo-500 transition-colors cursor-pointer"
+                            {expense.notes && (
+                              <p className="text-xs text-gray-400 mt-0.5">
+                                {expense.notes}
+                              </p>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${CATEGORY_COLORS[expense.category]}`}
                             >
-                              <i className="fa-solid fa-pen text-sm" />
-                            </button>
-                            <button
-                              onClick={() => setPendingDelete(expense.id)}
-                              className="text-gray-300 hover:text-red-500 transition-colors cursor-pointer"
-                            >
-                              <i className="fa-solid fa-trash text-sm" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                              {EXPENSE_CATEGORY_LABELS[expense.category]}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-700">
+                            {expense.branchName ?? '—'}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-700">
+                            {expense.recordedByName ?? '—'}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <span className="text-sm font-semibold text-gray-900">
+                              {formatCurrency(expense.amount)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            {!pending && (
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  onClick={() => openEditModal(expense)}
+                                  className="text-gray-300 hover:text-indigo-500 transition-colors cursor-pointer"
+                                >
+                                  <i className="fa-solid fa-pen text-sm" />
+                                </button>
+                                <button
+                                  onClick={() => setPendingDelete(expense.id)}
+                                  className="text-gray-300 hover:text-red-500 transition-colors cursor-pointer"
+                                >
+                                  <i className="fa-solid fa-trash text-sm" />
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                   <tfoot>
                     <tr className="border-t border-gray-200 bg-gray-50">
@@ -393,12 +464,18 @@ function Expenses() {
 
               {/* Mobile cards */}
               <div className="md:hidden divide-y divide-gray-100">
-                {expenses.map((expense) => (
-                  <div key={expense.id} className="p-4">
+                {expenses.map((expense) => {
+                  const pending = isPending(expense);
+                  const cardKey = pending ? `outbox-${expense._outboxId}` : expense.id;
+                  return (
+                  <div key={cardKey} className={`p-4 ${pending ? 'opacity-70' : ''}`}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-gray-900 flex items-center gap-2">
                           {expense.description}
+                          {pending && (
+                            <PendingBadge online={isOnline} failed={expense._failed} />
+                          )}
                         </p>
                         <p className="text-xs text-gray-500 mt-0.5">
                           {expense.branchName} · {formatDate(expense.date)}
@@ -418,18 +495,21 @@ function Expenses() {
                         >
                           {EXPENSE_CATEGORY_LABELS[expense.category]}
                         </span>
-                        <div className="flex gap-2 mt-1">
-                          <button onClick={() => openEditModal(expense)} className="text-gray-400 hover:text-indigo-500 cursor-pointer">
-                            <i className="fa-solid fa-pen text-xs" />
-                          </button>
-                          <button onClick={() => setPendingDelete(expense.id)} className="text-gray-400 hover:text-red-500 cursor-pointer">
-                            <i className="fa-solid fa-trash text-xs" />
-                          </button>
-                        </div>
+                        {!pending && (
+                          <div className="flex gap-2 mt-1">
+                            <button onClick={() => openEditModal(expense)} className="text-gray-400 hover:text-indigo-500 cursor-pointer">
+                              <i className="fa-solid fa-pen text-xs" />
+                            </button>
+                            <button onClick={() => setPendingDelete(expense.id)} className="text-gray-400 hover:text-red-500 cursor-pointer">
+                              <i className="fa-solid fa-trash text-xs" />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           )}

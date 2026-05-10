@@ -61,6 +61,7 @@ export interface CreateExpenseRequest {
   branchId: number;
   date: string;
   notes?: string;
+  idempotencyKey?: string;
 }
 
 export interface ExpenseListResponse {

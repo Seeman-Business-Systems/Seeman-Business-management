@@ -11,6 +11,7 @@ class CreateExpenseCommand extends Command<Expense> {
     public readonly recordedBy: number,
     public readonly date: Date,
     public readonly notes: string | null,
+    public readonly idempotencyKey: string | null = null,
   ) {
     super();
   }
