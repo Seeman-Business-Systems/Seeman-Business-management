@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import usePageTitle from '../../hooks/usePageTitle';
 import { useGetCustomersQuery, useCreateCustomerMutation, useUpdateCustomerMutation, useDeleteCustomerMutation } from '../../store/api/customersApi';
 import { useToast } from '../../context/ToastContext';
 import type { Customer, CreateCustomerRequest, UpdateCustomerRequest } from '../../types/customer';
+
+const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
 function formatPrice(n: number | string) {
   return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(n));
@@ -115,14 +117,37 @@ function Customers() {
   const [showModal, setShowModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
-  const filters = {
+  useEffect(() => { setCurrentPage(1); }, [search, filterBalance, pageSize]);
+
+  const skip = (currentPage - 1) * pageSize;
+
+  const { data, isLoading, isFetching } = useGetCustomersQuery({
     ...(search.trim() ? { name: search.trim() } : {}),
     ...(filterBalance ? { hasOutstandingBalance: true } : {}),
+    take: pageSize,
+    skip,
+  });
+
+  const customers = data?.data ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.ceil(total / pageSize);
+
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else if (currentPage <= 3) {
+      pages.push(1, 2, 3, 4, '…', totalPages);
+    } else if (currentPage >= totalPages - 2) {
+      pages.push(1, '…', totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+    } else {
+      pages.push(1, '…', currentPage - 1, currentPage, currentPage + 1, '…', totalPages);
+    }
+    return pages;
   };
-  const { data: customers = [], isLoading } = useGetCustomersQuery(
-    Object.keys(filters).length > 0 ? filters : undefined
-  );
   const [createCustomer, { isLoading: isCreating }] = useCreateCustomerMutation();
   const [updateCustomer, { isLoading: isUpdating }] = useUpdateCustomerMutation();
   const [deleteCustomer, { isLoading: isDeleting }] = useDeleteCustomerMutation();
@@ -186,7 +211,7 @@ function Customers() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Customers</h1>
-            <p className="text-sm text-gray-500 mt-0.5">{customers.length} customer{customers.length !== 1 ? 's' : ''}</p>
+            <p className="text-sm text-gray-500 mt-0.5">{total} customer{total !== 1 ? 's' : ''}</p>
           </div>
           <button
             onClick={() => { setEditingCustomer(null); setShowModal(true); }}
@@ -209,6 +234,11 @@ function Customers() {
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent"
               />
+              {isFetching && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600" />
+                </div>
+              )}
             </div>
             <button
               onClick={() => setFilterBalance((v) => !v)}
@@ -228,8 +258,20 @@ function Customers() {
         {/* Table */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {customers.length > 0 && (
-            <div className="px-4 sm:px-6 py-3 border-b border-gray-200">
-              <p className="text-sm text-gray-600">Showing {customers.length} customer{customers.length !== 1 ? 's' : ''}</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+              <p className="text-sm text-gray-600">
+                Showing {total > 0 ? skip + 1 : 0}–{Math.min(skip + pageSize, total)} of {total} customer{total !== 1 ? 's' : ''}
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Results per page:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  className="appearance-none px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white cursor-pointer"
+                >
+                  {PAGE_SIZE_OPTIONS.map((n) => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </div>
             </div>
           )}
           {customers.length === 0 ? (
@@ -297,6 +339,47 @@ function Customers() {
             </div>
           )}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+            <div className="flex items-center justify-between gap-4">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <i className="fa-solid fa-arrow-left" />
+                Previous
+              </button>
+              <div className="flex items-center gap-1">
+                {getPageNumbers().map((page, index) =>
+                  typeof page === 'number' ? (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                        currentPage === page ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ) : (
+                    <span key={index} className="px-2 text-gray-400">{page}</span>
+                  )
+                )}
+              </div>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages || totalPages === 0}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+                <i className="fa-solid fa-arrow-right" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Create / Edit modal */}

@@ -90,8 +90,11 @@ class AnalyticsSummaryQuery {
 
       this.dataSource.query(
         `SELECT COUNT(*)::int AS count
-         FROM inventory
-         WHERE minimum_quantity > 0 AND total_quantity <= minimum_quantity`,
+         FROM inventory i
+         JOIN warehouses w ON w.id = i.warehouse_id
+         WHERE i.minimum_quantity > 0 AND i.total_quantity <= i.minimum_quantity
+           AND ($1::int IS NULL OR w.branch_id = $1::int)`,
+        [bp],
       ),
 
       this.dataSource.query(

@@ -21,6 +21,8 @@ const TYPE_ICONS: Record<ActivityType, string> = {
   STAFF_TRANSFERRED:      'fa-right-left',
   EXPENSE_RECORDED:       'fa-money-bill-trend-up',
   CONTAINER_OFFLOADED:    'fa-box-open',
+  STOCK_ADDED:            'fa-square-plus',
+  STOCK_DEDUCTED:         'fa-square-minus',
 };
 
 // Maps entityType → base path for building entity links
@@ -42,21 +44,23 @@ function getEntityUrl(activity: Activity): string | null {
 
 // ── Type label ────────────────────────────────────────────────────────────────
 const TYPE_LABELS: Record<ActivityType, string> = {
-  SALE_CREATED:           'Sale Created',
-  SALE_CANCELLED:         'Sale Cancelled',
-  PAYMENT_RECORDED:       'Payment Recorded',
-  INVENTORY_ADJUSTED:     'Inventory Adjusted',
-  INVENTORY_TRANSFERRED:  'Inventory Transferred',
-  PRODUCT_CREATED:        'Product Created',
-  BRANCH_CREATED:         'Branch Created',
-  WAREHOUSE_CREATED:      'Warehouse Created',
-  CUSTOMER_CREATED:       'Customer Created',
-  STAFF_REGISTERED:       'Staff Registered',
-  SUPPLY_CREATED:         'Supply Created',
-  SUPPLY_FULFILLED:       'Supply Fulfilled',
-  STAFF_TRANSFERRED:      'Staff Transferred',
-  EXPENSE_RECORDED:       'Expense Recorded',
-  CONTAINER_OFFLOADED:    'Container Offloaded',
+  SALE_CREATED: 'Sale Created',
+  SALE_CANCELLED: 'Sale Cancelled',
+  PAYMENT_RECORDED: 'Payment Recorded',
+  INVENTORY_ADJUSTED: 'Inventory Adjusted',
+  INVENTORY_TRANSFERRED: 'Inventory Transferred',
+  PRODUCT_CREATED: 'Product Created',
+  BRANCH_CREATED: 'Branch Created',
+  WAREHOUSE_CREATED: 'Warehouse Created',
+  CUSTOMER_CREATED: 'Customer Created',
+  STAFF_REGISTERED: 'Staff Registered',
+  SUPPLY_CREATED: 'Supply Created',
+  SUPPLY_FULFILLED: 'Supply Fulfilled',
+  STAFF_TRANSFERRED: 'Staff Transferred',
+  EXPENSE_RECORDED: 'Expense Recorded',
+  CONTAINER_OFFLOADED: 'Container Offloaded',
+  STOCK_ADDED: 'Stock Added',
+  STOCK_DEDUCTED: 'Stock Deducted',
 };
 
 // ── Single activity row ───────────────────────────────────────────────────────

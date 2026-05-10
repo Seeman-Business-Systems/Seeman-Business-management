@@ -23,7 +23,7 @@ export class RoleSeed {
       },
       {
         name: 'Branch Manager',
-        isManagement: true,
+        isManagement: false,
         createdBy: ActorType.SYSTEM_ACTOR,
       },
       {

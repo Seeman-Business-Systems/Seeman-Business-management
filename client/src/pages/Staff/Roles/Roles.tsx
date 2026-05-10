@@ -13,12 +13,15 @@ import type { Role } from '../../../types/auth';
 import CreateRoleModal from './CreateRoleModal';
 import EditRoleModal from './EditRoleModal';
 import { useToast } from '../../../context/ToastContext';
+import { useAuth } from '../../../context/AuthContext';
 
 function Roles() {
   usePageTitle('Roles');
   const navigate = useNavigate();
 
   const { showToast } = useToast();
+  const { can } = useAuth();
+  const canManage = can('role:manage');
 
   // RTK Query hooks
   const { data: roles = [], isLoading: loading } = useGetRolesQuery();
@@ -181,13 +184,15 @@ function Roles() {
               Manage Roles
             </h1>
           </div>
-          <button
-            onClick={() => setAddModalOpen(true)}
-            className="flex-shrink-0 flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium cursor-pointer text-sm sm:text-base"
-          >
-            <i className="fa-solid fa-plus" />
-            <span className=" sm:inline">Add Role</span>
-          </button>
+          {canManage && (
+            <button
+              onClick={() => setAddModalOpen(true)}
+              className="flex-shrink-0 flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium cursor-pointer text-sm sm:text-base"
+            >
+              <i className="fa-solid fa-plus" />
+              <span className=" sm:inline">Add Role</span>
+            </button>
+          )}
         </div>
 
         {/* Filters / Actions Bar */}
@@ -208,13 +213,13 @@ function Roles() {
                 className="w-full appearance-none pl-10 pr-8 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-transparent bg-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <option value="">Actions</option>
-                {selectedIds.size === 1 && (
+                {canManage && selectedIds.size === 1 && (
                   <option value="edit">Edit Role</option>
                 )}
                 {selectedIds.size === 1 && (
                   <option value="view-staff">View Staff</option>
                 )}
-                <option value="delete">Delete</option>
+                {canManage && <option value="delete">Delete</option>}
               </select>
               <i className="fa-solid fa-sliders absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />

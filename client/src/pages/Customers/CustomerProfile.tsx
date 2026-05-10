@@ -5,6 +5,7 @@ import usePageTitle from '../../hooks/usePageTitle';
 import { useGetCustomerQuery, useUpdateCustomerMutation, useDeleteCustomerMutation } from '../../store/api/customersApi';
 import { useGetSalesQuery } from '../../store/api/salesApi';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import { SaleStatus, PaymentStatus } from '../../types/sale';
 import type { Customer, UpdateCustomerRequest } from '../../types/customer';
 
@@ -50,6 +51,9 @@ function CustomerProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { can } = useAuth();
+  const canEdit = can('customer:update');
+  const canDelete = can('customer:delete');
   const customerId = Number(id);
 
   usePageTitle('Customer');
@@ -145,19 +149,23 @@ function CustomerProfile() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => openEdit(customer)}
-              className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer"
-            >
-              <i className="fa-solid fa-pen text-xs" />
-              Edit
-            </button>
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 border border-red-200 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 cursor-pointer"
-            >
-              <i className="fa-solid fa-trash text-xs" />
-            </button>
+            {canEdit && (
+              <button
+                onClick={() => openEdit(customer)}
+                className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer"
+              >
+                <i className="fa-solid fa-pen text-xs" />
+                Edit
+              </button>
+            )}
+            {canDelete && (
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 border border-red-200 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 cursor-pointer"
+              >
+                <i className="fa-solid fa-trash text-xs" />
+              </button>
+            )}
           </div>
         </div>
 

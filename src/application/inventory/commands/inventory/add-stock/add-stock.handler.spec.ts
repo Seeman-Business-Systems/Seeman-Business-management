@@ -3,11 +3,13 @@ import AddStockHandler from './add-stock.handler';
 import AddStockCommand from './add-stock.command';
 import Inventory from 'src/domain/inventory/inventory';
 import InventoryRepository from 'src/infrastructure/database/repositories/inventory/inventory.repository';
+import ProductVariantRepository from 'src/infrastructure/database/repositories/product/product-variant.repository';
 import StockAdded from 'src/domain/inventory/events/stock-added.event';
 
 describe('AddStockHandler', () => {
   let handler: AddStockHandler;
   let inventories: jest.Mocked<InventoryRepository>;
+  let variants: jest.Mocked<ProductVariantRepository>;
   let eventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -21,8 +23,11 @@ describe('AddStockHandler', () => {
       commit: jest.fn(),
       toDomain: jest.fn(),
     } as unknown as jest.Mocked<InventoryRepository>;
+    variants = {
+      findById: jest.fn().mockResolvedValue(null),
+    } as unknown as jest.Mocked<ProductVariantRepository>;
     eventBus = { publish: jest.fn() } as unknown as jest.Mocked<EventBus>;
-    handler = new AddStockHandler(inventories, eventBus);
+    handler = new AddStockHandler(inventories, variants, eventBus);
   });
 
   it('increases existing inventory totalQuantity by the added amount', async () => {

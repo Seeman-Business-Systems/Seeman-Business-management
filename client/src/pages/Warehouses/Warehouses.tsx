@@ -3,6 +3,7 @@ import Layout from '../../components/layout/Layout';
 import usePageTitle from '../../hooks/usePageTitle';
 import { useGetWarehousesQuery } from '../../store/api/warehousesApi';
 import { useGetBranchQuery } from '../../store/api/branchesApi';
+import { useAuth } from '../../context/AuthContext';
 
 const warehouseTypeLabels: Record<number, string> = {
   1: 'Main Warehouse',
@@ -19,6 +20,9 @@ const warehouseStatusStyles: Record<string, string> = {
 
 function Warehouses() {
   usePageTitle('Warehouses');
+  const { can } = useAuth();
+  const canCreate = can('warehouse:create');
+  const canUpdate = can('warehouse:update');
 
   const [searchParams] = useSearchParams();
   const branchIdParam = searchParams.get('branchId');
@@ -73,13 +77,15 @@ function Warehouses() {
               </p>
             )}
           </div>
-          <Link
-            to={branchId ? `/warehouses/new?branchId=${branchId}` : '/warehouses/new'}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
-          >
-            <i className="fa-solid fa-plus" />
-            Add Warehouse
-          </Link>
+          {canCreate && (
+            <Link
+              to={branchId ? `/warehouses/new?branchId=${branchId}` : '/warehouses/new'}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+            >
+              <i className="fa-solid fa-plus" />
+              Add Warehouse
+            </Link>
+          )}
         </div>
 
         {/* Warehouse Grid */}
@@ -89,13 +95,15 @@ function Warehouses() {
               <i className="fa-solid fa-warehouse text-2xl text-gray-400" />
             </div>
             <p className="text-gray-500 mb-4">No warehouses found</p>
-            <Link
-              to={branchId ? `/warehouses/new?branchId=${branchId}` : '/warehouses/new'}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
-            >
-              <i className="fa-solid fa-plus" />
-              Add Warehouse
-            </Link>
+            {canCreate && (
+              <Link
+                to={branchId ? `/warehouses/new?branchId=${branchId}` : '/warehouses/new'}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+              >
+                <i className="fa-solid fa-plus" />
+                Add Warehouse
+              </Link>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -149,12 +157,14 @@ function Warehouses() {
                   >
                     <i className="fa-solid fa-eye" />
                   </Link>
-                  <Link
-                    to={`/warehouses/${w.id}/edit`}
-                    className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium"
-                  >
-                    <i className="fa-solid fa-pen-to-square" />
-                  </Link>
+                  {canUpdate && (
+                    <Link
+                      to={`/warehouses/${w.id}/edit`}
+                      className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium"
+                    >
+                      <i className="fa-solid fa-pen-to-square" />
+                    </Link>
+                  )}
                 </div>
               </div>
             ))}

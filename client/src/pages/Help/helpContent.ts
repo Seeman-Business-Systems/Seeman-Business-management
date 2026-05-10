@@ -218,7 +218,7 @@ const helpContent: HelpModule[] = [
       },
       {
         q: 'Can I filter reports by branch?',
-        a: 'Yes, if you have a global role (CEO or Super Admin). A branch dropdown appears in the filter bar. Branch-level staff only see data for their own branch.',
+        a: 'Yes, if you have a management role. A branch dropdown appears in the filter bar. Branch-level staff only see data for their own branch.',
       },
     ],
   },

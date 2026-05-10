@@ -7,6 +7,7 @@ import { useGetSupplyQuery, useFulfilSupplyMutation, useCancelSupplyMutation, us
 import { useGetWarehousesQuery } from '../../store/api/warehousesApi';
 import type { SupplyStatus } from '../../types/supply';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 
 const statusStyles: Record<SupplyStatus, string> = {
   DRAFT:      'bg-yellow-100 text-yellow-800',
@@ -26,6 +27,9 @@ function SupplyDetail() {
   const supplyId = id ? Number(id) : undefined;
 
   const { showToast } = useToast();
+  const { can } = useAuth();
+  const canFulfil = can('supply:fulfil');
+  const canCancel = can('supply:cancel');
 
   const { data: supply, isLoading, error } = useGetSupplyQuery(supplyId!, { skip: !supplyId });
   const [fulfilSupply, { isLoading: isFulfilling }] = useFulfilSupplyMutation();
@@ -134,20 +138,24 @@ function SupplyDetail() {
               <div className="flex items-center gap-2">
                 {supply.status === 'DRAFT' && (
                   <>
-                    <button
-                      onClick={() => setShowFulfilModal(true)}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
-                    >
-                      <i className="fa-solid fa-circle-check" />
-                      Mark Fulfilled
-                    </button>
-                    <button
-                      onClick={() => setShowCancelModal(true)}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
-                    >
-                      <i className="fa-solid fa-ban" />
-                      Cancel
-                    </button>
+                    {canFulfil && (
+                      <button
+                        onClick={() => setShowFulfilModal(true)}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                      >
+                        <i className="fa-solid fa-circle-check" />
+                        Mark Fulfilled
+                      </button>
+                    )}
+                    {canCancel && (
+                      <button
+                        onClick={() => setShowCancelModal(true)}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                      >
+                        <i className="fa-solid fa-ban" />
+                        Cancel
+                      </button>
+                    )}
                   </>
                 )}
                 <Link

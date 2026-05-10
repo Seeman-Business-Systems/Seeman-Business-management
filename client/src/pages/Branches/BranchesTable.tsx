@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import type { Branch } from '../../types/auth';
 import { BranchStatus } from '../../types/auth';
+import { useAuth } from '../../context/AuthContext';
 
 interface BranchesTableProps {
   branches: Branch[];
@@ -38,6 +39,8 @@ function BranchesTable({
   onResultsPerPageChange,
   onDelete,
 }: BranchesTableProps) {
+  const { can } = useAuth();
+  const canEdit = can('branch:update');
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -173,20 +176,24 @@ function BranchesTable({
                           <i className="fa-solid fa-users text-gray-400 w-4" />
                           View Staff
                         </Link>
-                        <Link
-                          to={`/branches/${branch.id}/edit`}
-                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                        >
-                          <i className="fa-solid fa-pen text-gray-400 w-4" />
-                          Edit
-                        </Link>
-                        <button
-                          onClick={() => handleDelete(branch.id)}
-                          className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                        >
-                          <i className="fa-solid fa-trash text-red-400 w-4" />
-                          Delete
-                        </button>
+                        {canEdit && (
+                          <>
+                            <Link
+                              to={`/branches/${branch.id}/edit`}
+                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                            >
+                              <i className="fa-solid fa-pen text-gray-400 w-4" />
+                              Edit
+                            </Link>
+                            <button
+                              onClick={() => handleDelete(branch.id)}
+                              className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                            >
+                              <i className="fa-solid fa-trash text-red-400 w-4" />
+                              Delete
+                            </button>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
@@ -343,20 +350,24 @@ function BranchesTable({
                             <i className="fa-solid fa-users text-gray-400 w-4" />
                             View Staff
                           </Link>
-                          <Link
-                            to={`/branches/${branch.id}/edit`}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                          >
-                            <i className="fa-solid fa-pen text-gray-400 w-4" />
-                            Edit
-                          </Link>
-                          <button
-                            onClick={() => handleDelete(branch.id)}
-                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                          >
-                            <i className="fa-solid fa-trash text-red-400 w-4" />
-                            Delete
-                          </button>
+                          {canEdit && (
+                            <>
+                              <Link
+                                to={`/branches/${branch.id}/edit`}
+                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                              >
+                                <i className="fa-solid fa-pen text-gray-400 w-4" />
+                                Edit
+                              </Link>
+                              <button
+                                onClick={() => handleDelete(branch.id)}
+                                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                              >
+                                <i className="fa-solid fa-trash text-red-400 w-4" />
+                                Delete
+                              </button>
+                            </>
+                          )}
                         </div>
                       )}
                     </div>

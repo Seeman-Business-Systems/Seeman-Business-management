@@ -27,6 +27,7 @@ import { Permission } from 'src/domain/permission/permission';
 import Actor from 'src/modules/auth/decorators/actor.decorator';
 import Staff from 'src/domain/staff/staff';
 import { StaffSerialiser } from 'src/presentation/serialisers/staff.serialiser';
+import BranchScope from 'src/modules/auth/services/branch-scope.service';
 
 @Controller('staff')
 @UseGuards(JwtAuthGuard)
@@ -36,6 +37,7 @@ class StaffController {
     private readonly staff: StaffRepository,
     private readonly staffQuery: StaffQuery,
     private readonly staffSerialiser: StaffSerialiser,
+    private readonly branchScope: BranchScope,
   ) {}
 
   @Put(':id')
@@ -67,6 +69,12 @@ class StaffController {
   async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
     const command = new DeleteStaffCommand(id);
     await this.commandBus.execute(command);
+  }
+
+  @Get('me')
+  @HttpCode(HttpStatus.OK)
+  async getMe(@Actor() actor: Staff) {
+    return this.staffSerialiser.serialise(actor);
   }
 
   @Get(':id')
@@ -107,8 +115,15 @@ class StaffController {
   @Get()
   @HttpCode(HttpStatus.OK)
   @RequirePermission(Permission.STAFF_READ)
-  async getAllStaff(@Query() filters: StaffFilters) {
-    const result = await this.staffQuery.findBy(filters);
+  async getAllStaff(@Query() filters: StaffFilters, @Actor() actor: Staff) {
+    const requested = Array.isArray(filters.branchId)
+      ? undefined
+      : filters.branchId
+        ? Number(filters.branchId)
+        : undefined;
+    const branchId = await this.branchScope.resolve(actor, requested);
+
+    const result = await this.staffQuery.findBy({ ...filters, branchId });
     return {
       data: await this.staffSerialiser.serialiseMany(result.data),
       total: result.total,

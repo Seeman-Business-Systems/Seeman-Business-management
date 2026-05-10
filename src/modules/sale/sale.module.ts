@@ -23,6 +23,8 @@ import { StaffModule } from '../staff/staff.module';
 import { BranchModule } from '../branch/branch.module';
 import { CustomerModule } from '../customer/customer.module';
 import { AuthModule } from '../auth/auth.module';
+import { InventoryModule } from '../inventory/inventory.module';
+import { ProductModule } from '../product/product.module';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { AuthModule } from '../auth/auth.module';
     BranchModule,
     CustomerModule,
     AuthModule,
+    InventoryModule,
+    ProductModule,
   ],
   controllers: [SaleController],
   providers: [

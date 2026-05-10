@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import type { Role, BaseStaff } from '../../../types/auth';
+import { useAuth } from '../../../context/AuthContext';
 
 interface RolesTableProps {
   roles: Role[];
@@ -30,6 +31,8 @@ function RolesTable({
   endIndex,
   totalCount,
 }: RolesTableProps) {
+  const { can } = useAuth();
+  const canManage = can('role:manage');
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -140,13 +143,15 @@ function RolesTable({
                     </button>
                     {openMenuId === role.id && (
                       <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                        <button
-                          onClick={() => handleEdit(role)}
-                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
-                        >
-                          <i className="fa-solid fa-pen text-gray-400 w-4" />
-                          Edit Role
-                        </button>
+                        {canManage && (
+                          <button
+                            onClick={() => handleEdit(role)}
+                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
+                          >
+                            <i className="fa-solid fa-pen text-gray-400 w-4" />
+                            Edit Role
+                          </button>
+                        )}
                         <button
                           onClick={() => handleViewStaff(role.id)}
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
@@ -154,13 +159,15 @@ function RolesTable({
                           <i className="fa-solid fa-users text-gray-400 w-4" />
                           View Staff
                         </button>
-                        <button
-                          onClick={() => handleDelete(role)}
-                          className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer"
-                        >
-                          <i className="fa-solid fa-trash text-red-400 w-4" />
-                          Delete Role
-                        </button>
+                        {canManage && (
+                          <button
+                            onClick={() => handleDelete(role)}
+                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer"
+                          >
+                            <i className="fa-solid fa-trash text-red-400 w-4" />
+                            Delete Role
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
@@ -261,13 +268,15 @@ function RolesTable({
                       </button>
                       {openMenuId === role.id && (
                         <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                          <button
-                            onClick={() => handleEdit(role)}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
-                          >
-                            <i className="fa-solid fa-pen text-gray-400 w-4" />
-                            Edit Role
-                          </button>
+                          {canManage && (
+                            <button
+                              onClick={() => handleEdit(role)}
+                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
+                            >
+                              <i className="fa-solid fa-pen text-gray-400 w-4" />
+                              Edit Role
+                            </button>
+                          )}
                           <button
                             onClick={() => handleViewStaff(role.id)}
                             className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
@@ -275,13 +284,15 @@ function RolesTable({
                             <i className="fa-solid fa-users text-gray-400 w-4" />
                             View Staff
                           </button>
-                          <button
-                            onClick={() => handleDelete(role)}
-                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer"
-                          >
-                            <i className="fa-solid fa-trash text-red-400 w-4" />
-                            Delete Role
-                          </button>
+                          {canManage && (
+                            <button
+                              onClick={() => handleDelete(role)}
+                              className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer"
+                            >
+                              <i className="fa-solid fa-trash text-red-400 w-4" />
+                              Delete Role
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>

@@ -19,6 +19,7 @@ import {
   useDeleteProductVariantMutation,
 } from '../../store/api/productsApi';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 
 const statusStyles: Record<ProductStatus, string> = {
   [ProductStatus.ACTIVE]: 'bg-green-100 text-green-800',
@@ -44,6 +45,9 @@ function ProductProfile() {
   const navigate = useNavigate();
   const productId = Number(id);
   const { showToast } = useToast();
+  const { can } = useAuth();
+  const canEdit = can('product:update');
+  const canDelete = can('product:delete');
 
   const {
     data: product,
@@ -232,13 +236,15 @@ function ProductProfile() {
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2 sm:gap-3">
-              <Link
-                to={`/products/${product.id}/edit`}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
-              >
-                <i className="fa-solid fa-pen-to-square" />
-                Edit
-              </Link>
+              {canEdit && (
+                <Link
+                  to={`/products/${product.id}/edit`}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                >
+                  <i className="fa-solid fa-pen-to-square" />
+                  Edit
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -343,13 +349,15 @@ function ProductProfile() {
               <i className="fa-solid fa-boxes-stacked text-indigo-500" />
               Sizes ({product.variants?.length || 0})
             </h2>
-            <button
-              onClick={openAddVariant}
-              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors cursor-pointer"
-            >
-              <i className="fa-solid fa-plus" />
-              Add Size
-            </button>
+            {canEdit && (
+              <button
+                onClick={openAddVariant}
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors cursor-pointer"
+              >
+                <i className="fa-solid fa-plus" />
+                Add Size
+              </button>
+            )}
           </div>
 
           {!product.variants || product.variants.length === 0 ? (
@@ -396,18 +404,22 @@ function ProductProfile() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => openEditVariant(variant)}
-                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 cursor-pointer"
-                          >
-                            <i className="fa-solid fa-pen text-sm" />
-                          </button>
-                          <button
-                            onClick={() => setVariantToDelete(variant.id)}
-                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600 cursor-pointer"
-                          >
-                            <i className="fa-solid fa-trash text-sm" />
-                          </button>
+                          {canEdit && (
+                            <button
+                              onClick={() => openEditVariant(variant)}
+                              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 cursor-pointer"
+                            >
+                              <i className="fa-solid fa-pen text-sm" />
+                            </button>
+                          )}
+                          {canDelete && (
+                            <button
+                              onClick={() => setVariantToDelete(variant.id)}
+                              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600 cursor-pointer"
+                            >
+                              <i className="fa-solid fa-trash text-sm" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -419,19 +431,21 @@ function ProductProfile() {
         </div>
 
         {/* Danger Zone */}
-        <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6">
-          <h2 className="text-lg font-semibold text-red-600 mb-2">Danger Zone</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Permanently delete this product and all its variants. This action cannot be undone.
-          </p>
-          <button
-            onClick={() => setShowDeleteModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium cursor-pointer"
-          >
-            <i className="fa-solid fa-trash" />
-            Delete Product
-          </button>
-        </div>
+        {canDelete && (
+          <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6">
+            <h2 className="text-lg font-semibold text-red-600 mb-2">Danger Zone</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Permanently delete this product and all its variants. This action cannot be undone.
+            </p>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium cursor-pointer"
+            >
+              <i className="fa-solid fa-trash" />
+              Delete Product
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Add/Edit Variant Modal */}

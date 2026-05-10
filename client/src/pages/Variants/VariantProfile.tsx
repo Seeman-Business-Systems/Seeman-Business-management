@@ -8,6 +8,7 @@ import { useGetInventoryQuery, useSetReorderLevelsMutation, useAdjustInventoryMu
 import { useGetProductQuery, useUpdateProductVariantMutation } from '../../store/api/productsApi';
 import { useGetWarehousesQuery } from '../../store/api/warehousesApi';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import type { InventoryRecord } from '../../types/inventory';
 
 const typeStyles: Record<ProductType, string> = {
@@ -45,6 +46,9 @@ function VariantProfile() {
   const { id } = useParams<{ id: string }>();
   const variantId = Number(id);
   const { showToast } = useToast();
+  const { can } = useAuth();
+  const canAdjust = can('inventory:adjust');
+  const canEditProduct = can('product:update');
 
   const { data: inventoryRecords = [], isLoading: inventoryLoading } = useGetInventoryQuery({ variantId });
   const variantData = inventoryRecords[0]?.variant ?? null;
@@ -94,6 +98,7 @@ function VariantProfile() {
 
   const totalQuantity = inventoryRecords.reduce((s, r) => s + r.totalQuantity, 0);
   const availableQuantity = inventoryRecords.reduce((s, r) => s + r.availableQuantity, 0);
+  const pendingQuantity = inventoryRecords.reduce((s, r) => s + (r.pendingQuantity ?? 0), 0);
 
   const handleSaveReorderLevels = async () => {
     if (!reorderRecord) return;
@@ -243,13 +248,15 @@ function VariantProfile() {
               <span className="text-xl font-bold text-gray-900">
                 {variantData.sellingPrice != null ? formatPrice(variantData.sellingPrice) : '—'}
               </span>
-              <button
-                onClick={() => { setNewPrice(variantData.sellingPrice?.toString() ?? ''); setEditPriceOpen(true); }}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                title="Edit price"
-              >
-                <i className="fa-solid fa-pen text-xs" />
-              </button>
+              {canEditProduct && (
+                <button
+                  onClick={() => { setNewPrice(variantData.sellingPrice?.toString() ?? ''); setEditPriceOpen(true); }}
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                  title="Edit price"
+                >
+                  <i className="fa-solid fa-pen text-xs" />
+                </button>
+              )}
               <Link
                 to={`/variants/${variantId}/activities`}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium ml-2"
@@ -268,7 +275,7 @@ function VariantProfile() {
               <i className="fa-solid fa-boxes-stacked text-indigo-500" />
               Stock Summary
             </h2>
-            {availableWarehouses.length > 0 && (
+            {canAdjust && availableWarehouses.length > 0 && (
               <button
                 onClick={() => { setAddToWarehouseOpen(true); setNewWarehouseId(''); setNewStockQty(''); setNewStockNotes(''); }}
                 className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors text-sm font-medium cursor-pointer"
@@ -278,11 +285,17 @@ function VariantProfile() {
               </button>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className={`grid gap-3 mb-6 ${pendingQuantity > 0 ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <div className="text-center p-3 sm:p-4 bg-green-50 rounded-lg">
               <p className="text-lg sm:text-2xl font-bold text-green-700">{availableQuantity}</p>
               <p className="text-xs text-green-600 mt-1">Available</p>
             </div>
+            {pendingQuantity > 0 && (
+              <div className="text-center p-3 sm:p-4 bg-amber-50 rounded-lg">
+                <p className="text-lg sm:text-2xl font-bold text-amber-700">{pendingQuantity}</p>
+                <p className="text-xs text-amber-600 mt-1">Pending supply</p>
+              </div>
+            )}
             <div className="text-center p-3 sm:p-4 bg-indigo-50 rounded-lg">
               <p className="text-lg sm:text-2xl font-bold text-indigo-700">{totalQuantity}</p>
               <p className="text-xs text-indigo-600 mt-1">Total</p>
@@ -324,32 +337,43 @@ function VariantProfile() {
                             {record.availableQuantity}
                           </span>
                         )}
+                        {record.pendingQuantity > 0 && (
+                          <p className="text-[11px] text-amber-600 mt-1">
+                            {record.pendingQuantity} pending supply
+                          </p>
+                        )}
                       </td>
                       <td className="py-3 pr-4 hidden md:table-cell text-gray-700">{record.totalQuantity}</td>
                       <td className="py-3 pr-4 hidden md:table-cell text-gray-500">{record.minimumQuantity}</td>
                       <td className="py-3 pr-4">
                         <div className="flex items-center gap-2 whitespace-nowrap">
-                          <button
-                            onClick={() => { setAddStockRecord(record); setStockQty(''); setStockNotes(''); }}
-                            className="text-xs px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 font-medium cursor-pointer"
-                          >
-                            <i className="fa-solid fa-plus mr-1" />
-                            Add Stock
-                          </button>
-                          <button
-                            onClick={() => { setReorderRecord(record); setMinQty(record.minimumQuantity.toString()); setMaxQty(record.maximumQuantity?.toString() ?? ''); }}
-                            className="text-xs px-2.5 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium cursor-pointer"
-                          >
-                            <i className="fa-solid fa-sliders mr-1" />
-                            Reorder
-                          </button>
-                          <button
-                            onClick={() => { setAdjustRecord(record); setAdjustType('add'); setAdjustQty(''); setAdjustReason('Physical count correction'); setAdjustNotes(''); }}
-                            className="text-xs px-2.5 py-1 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100 font-medium cursor-pointer"
-                          >
-                            <i className="fa-solid fa-arrows-up-down mr-1" />
-                            Adjust
-                          </button>
+                          {canAdjust ? (
+                            <>
+                              <button
+                                onClick={() => { setAddStockRecord(record); setStockQty(''); setStockNotes(''); }}
+                                className="text-xs px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 font-medium cursor-pointer"
+                              >
+                                <i className="fa-solid fa-plus mr-1" />
+                                Add Stock
+                              </button>
+                              <button
+                                onClick={() => { setReorderRecord(record); setMinQty(record.minimumQuantity.toString()); setMaxQty(record.maximumQuantity?.toString() ?? ''); }}
+                                className="text-xs px-2.5 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium cursor-pointer"
+                              >
+                                <i className="fa-solid fa-sliders mr-1" />
+                                Reorder
+                              </button>
+                              <button
+                                onClick={() => { setAdjustRecord(record); setAdjustType('add'); setAdjustQty(''); setAdjustReason('Physical count correction'); setAdjustNotes(''); }}
+                                className="text-xs px-2.5 py-1 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100 font-medium cursor-pointer"
+                              >
+                                <i className="fa-solid fa-arrows-up-down mr-1" />
+                                Adjust
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-xs text-gray-400">—</span>
+                          )}
                         </div>
                       </td>
                     </tr>

@@ -10,11 +10,14 @@ import {
 import { useGetProductsQuery } from '../../store/api/productsApi';
 import { useGetWarehousesQuery } from '../../store/api/warehousesApi';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 
 function ContainerDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { can } = useAuth();
+  const canAdjust = can('inventory:adjust');
   const batchId = Number(id);
 
   const { data: container, isLoading } = useGetContainerQuery(batchId);
@@ -119,7 +122,7 @@ function ContainerDetail() {
           </div>
         </div>
 
-        {!container.isOffloaded && (
+        {!container.isOffloaded && canAdjust && (
           <button
             onClick={() => setShowOffloadConfirm(true)}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors shadow-sm"
@@ -162,7 +165,7 @@ function ContainerDetail() {
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h2 className="font-semibold text-gray-900">Contents</h2>
-          {!container.isOffloaded && (
+          {!container.isOffloaded && canAdjust && (
             <button
               onClick={() => setShowAddItem(true)}
               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
@@ -206,12 +209,14 @@ function ContainerDetail() {
                   <td className="px-6 py-4 text-right font-semibold text-gray-800">{item.quantity.toLocaleString()}</td>
                   {!container.isOffloaded && (
                     <td className="px-4 py-4">
-                      <button
-                        onClick={() => setConfirmRemoveItem({ id: item.id, name: item.variant?.variantName ?? `Item #${item.id}` })}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors"
-                      >
-                        <i className="fa-solid fa-trash text-sm" />
-                      </button>
+                      {canAdjust && (
+                        <button
+                          onClick={() => setConfirmRemoveItem({ id: item.id, name: item.variant?.variantName ?? `Item #${item.id}` })}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors"
+                        >
+                          <i className="fa-solid fa-trash text-sm" />
+                        </button>
+                      )}
                     </td>
                   )}
                 </tr>

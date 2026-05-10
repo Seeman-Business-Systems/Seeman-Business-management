@@ -26,7 +26,14 @@ function CreateStaff() {
         branchId: Number(data.branchId),
         joinedAt: data.joinedAt ? new Date(data.joinedAt).toISOString() : undefined,
       });
-      navigate('/staff');
+      const fullName = [data.firstName, data.middleName, data.lastName]
+        .filter(Boolean)
+        .join(' ');
+      const params = new URLSearchParams({
+        name: fullName,
+        email: data.email,
+      });
+      navigate(`/staff/created?${params.toString()}`);
     } catch (err: unknown) {
       const errorMessage =
         err && typeof err === 'object' && 'response' in err

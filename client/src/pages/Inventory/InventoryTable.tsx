@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import type { EnrichedInventoryRecord } from '../../types/inventory';
+import { useAuth } from '../../context/AuthContext';
 
 interface InventoryTableProps {
   records: EnrichedInventoryRecord[];
@@ -53,6 +54,8 @@ function InventoryTable({
   onAddStock,
   onAdjustStock,
 }: InventoryTableProps) {
+  const { can } = useAuth();
+  const canAdjust = can('inventory:adjust');
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -120,6 +123,11 @@ function InventoryTable({
                       <span className="text-gray-500 flex items-center gap-1">
                         Available: <AvailableBadge value={record.availableQuantity} low={record.isLowInventory} />
                       </span>
+                      {record.pendingQuantity > 0 && (
+                        <span className="text-amber-600">
+                          Pending: <span className="font-medium">{record.pendingQuantity}</span>
+                        </span>
+                      )}
                       <span className="text-gray-500">
                         Total: <span className="font-medium text-gray-700">{record.totalQuantity}</span>
                       </span>
@@ -141,27 +149,31 @@ function InventoryTable({
                           <i className="fa-solid fa-eye text-gray-400 w-4" />
                           View size
                         </Link>
-                        <button
-                          onClick={() => { setOpenMenuId(null); onAddStock(record); }}
-                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                        >
-                          <i className="fa-solid fa-plus text-gray-400 w-4" />
-                          Add Stock
-                        </button>
-                        <button
-                          onClick={() => { setOpenMenuId(null); onAdjustStock(record); }}
-                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                        >
-                          <i className="fa-solid fa-pen-to-square text-gray-400 w-4" />
-                          Adjust Stock
-                        </button>
-                        <button
-                          onClick={() => { setOpenMenuId(null); onSetReorderLevels(record); }}
-                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                        >
-                          <i className="fa-solid fa-sliders text-gray-400 w-4" />
-                          Set Reorder Levels
-                        </button>
+                        {canAdjust && (
+                          <>
+                            <button
+                              onClick={() => { setOpenMenuId(null); onAddStock(record); }}
+                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                            >
+                              <i className="fa-solid fa-plus text-gray-400 w-4" />
+                              Add Stock
+                            </button>
+                            <button
+                              onClick={() => { setOpenMenuId(null); onAdjustStock(record); }}
+                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                            >
+                              <i className="fa-solid fa-pen-to-square text-gray-400 w-4" />
+                              Adjust Stock
+                            </button>
+                            <button
+                              onClick={() => { setOpenMenuId(null); onSetReorderLevels(record); }}
+                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                            >
+                              <i className="fa-solid fa-sliders text-gray-400 w-4" />
+                              Set Reorder Levels
+                            </button>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
@@ -223,6 +235,11 @@ function InventoryTable({
                   </td>
                   <td className="px-6 py-4">
                     <AvailableBadge value={record.availableQuantity} low={record.isLowInventory} />
+                    {record.pendingQuantity > 0 && (
+                      <p className="text-[11px] text-amber-600 mt-1">
+                        {record.pendingQuantity} pending
+                      </p>
+                    )}
                   </td>
                   <td className="px-6 py-4 hidden xl:table-cell">
                     <span className="text-gray-700">{record.totalQuantity}</span>
@@ -265,27 +282,31 @@ function InventoryTable({
                             <i className="fa-solid fa-eye text-gray-400 w-4" />
                             View size
                           </Link>
-                          <button
-                            onClick={() => { setOpenMenuId(null); onAddStock(record); }}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                          >
-                            <i className="fa-solid fa-plus text-gray-400 w-4" />
-                            Add Stock
-                          </button>
-                          <button
-                            onClick={() => { setOpenMenuId(null); onAdjustStock(record); }}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                          >
-                            <i className="fa-solid fa-pen-to-square text-gray-400 w-4" />
-                            Adjust Stock
-                          </button>
-                          <button
-                            onClick={() => { setOpenMenuId(null); onSetReorderLevels(record); }}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                          >
-                            <i className="fa-solid fa-sliders text-gray-400 w-4" />
-                            Set Reorder Levels
-                          </button>
+                          {canAdjust && (
+                            <>
+                              <button
+                                onClick={() => { setOpenMenuId(null); onAddStock(record); }}
+                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                              >
+                                <i className="fa-solid fa-plus text-gray-400 w-4" />
+                                Add Stock
+                              </button>
+                              <button
+                                onClick={() => { setOpenMenuId(null); onAdjustStock(record); }}
+                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                              >
+                                <i className="fa-solid fa-pen-to-square text-gray-400 w-4" />
+                                Adjust Stock
+                              </button>
+                              <button
+                                onClick={() => { setOpenMenuId(null); onSetReorderLevels(record); }}
+                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                              >
+                                <i className="fa-solid fa-sliders text-gray-400 w-4" />
+                                Set Reorder Levels
+                              </button>
+                            </>
+                          )}
                         </div>
                       )}
                     </div>

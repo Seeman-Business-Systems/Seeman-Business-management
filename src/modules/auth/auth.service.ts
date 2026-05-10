@@ -87,14 +87,14 @@ class AuthService {
       throw new UnauthorizedException('Staff not found. Please check your credentials and try again.');
     }
 
-    if (!await this.passwordsMatch(password, staff.getPassword())) {
-      throw new UnauthorizedException('Invalid email/phone or password');
-    }
-
-    if (!staff.initialPasswordChanged) {
+    if (!staff.getInitialPasswordChanged()) {
       throw new UnauthorizedException(
         'Account setup incomplete. Please check your email for the setup link.',
       );
+    }
+
+    if (!await this.passwordsMatch(password, staff.getPassword())) {
+      throw new UnauthorizedException('Invalid email/phone or password');
     }
 
     const tokens = await this.generateTokens(staff);

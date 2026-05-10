@@ -1,4 +1,14 @@
-import { Controller, HttpCode, HttpStatus, Get, Post, Put, Body, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Get,
+  Post,
+  Put,
+  Body,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import InventoryQuery from 'src/application/inventory/queries/inventory.query';
 import InventorySerialiser from 'src/presentation/serialisers/inventory.serialiser';
@@ -30,7 +40,9 @@ class InventoryController {
   async findAll(@Query() filters: InventoryFilters) {
     const inventory = await this.inventoryQuery.findBy({
       variantId: filters.variantId ? Number(filters.variantId) : undefined,
-      warehouseId: filters.warehouseId ? Number(filters.warehouseId) : undefined,
+      warehouseId: filters.warehouseId
+        ? Number(filters.warehouseId)
+        : undefined,
       lowInventory: String(filters.lowInventory) === 'true',
     });
     return this.inventorySerialiser.serialiseMany(inventory);
@@ -70,7 +82,10 @@ class InventoryController {
   @Put('adjust')
   @HttpCode(HttpStatus.OK)
   @RequirePermission(Permission.INVENTORY_ADJUST)
-  async adjustInventory(@Body() dto: AdjustInventoryValidator, @Actor() actor: Staff) {
+  async adjustInventory(
+    @Body() dto: AdjustInventoryValidator,
+    @Actor() actor: Staff,
+  ) {
     const inventory = await this.commandBus.execute(
       new AdjustInventoryCommand(
         dto.variantId,

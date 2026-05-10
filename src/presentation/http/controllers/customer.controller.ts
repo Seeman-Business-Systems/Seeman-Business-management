@@ -27,6 +27,7 @@ import Actor from 'src/modules/auth/decorators/actor.decorator';
 import JwtAuthGuard from 'src/modules/auth/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/modules/auth/decorators/role-guard.decorator';
 import { Permission } from 'src/domain/permission/permission';
+import BranchScope from 'src/modules/auth/services/branch-scope.service';
 import CustomerQuery from 'src/application/customer/queries/customer.query';
 import type { CustomerFilters } from 'src/application/customer/queries/customer.filters';
 import CustomerSerialiser from 'src/presentation/serialisers/customer.serialiser';
@@ -39,6 +40,7 @@ class CustomerController {
     private readonly customers: CustomerRepository,
     private readonly customerQuery: CustomerQuery,
     private readonly customerSerialiser: CustomerSerialiser,
+    private readonly branchScope: BranchScope,
   ) {}
 
   @Post()
@@ -112,10 +114,23 @@ class CustomerController {
   @Get()
   @HttpCode(HttpStatus.OK)
   @RequirePermission(Permission.CUSTOMER_READ)
-  async findAll(@Query() filters: CustomerFilters) {
-    const customers = await this.customerQuery.findBy(filters);
+  async findAll(@Query() filters: CustomerFilters, @Actor() actor: Staff) {
+    const branchId = await this.branchScope.resolve(
+      actor,
+      filters.branchId ? Number(filters.branchId) : undefined,
+    );
 
-    return this.customerSerialiser.serialiseMany(customers);
+    const result = await this.customerQuery.findBy({
+      ...filters,
+      branchId,
+      take: filters.take ? Number(filters.take) : 20,
+      skip: filters.skip ? Number(filters.skip) : 0,
+    });
+
+    return {
+      data: await this.customerSerialiser.serialiseMany(result.data),
+      total: result.total,
+    };
   }
 
   @Put(':id/credit-limit')

@@ -22,7 +22,7 @@ class AnalyticsController {
   }
 
   @Get('summary')
-  @RequirePermission(Permission.ANALYTICS_READ)
+  @RequirePermission(Permission.DASHBOARD_VIEW)
   async getSummary(@Query() query: any, @Actor() actor: Staff) {
     const today = new Date();
     const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)

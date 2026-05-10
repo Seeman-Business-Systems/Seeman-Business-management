@@ -83,9 +83,11 @@ const PERMISSION_GROUPS = [
   {
     label: 'Reports & Activities',
     permissions: [
+      { key: 'dashboard:view', label: 'View Dashboard' },
       { key: 'analytics:read', label: 'View Reports' },
       { key: 'activity:read', label: 'View Activities' },
       { key: 'filter:by-branch', label: 'Filter by Branch' },
+      { key: 'branch:select-on-create', label: 'Select Branch on Create' },
     ],
   },
   {
@@ -99,10 +101,21 @@ const PERMISSION_GROUPS = [
 ];
 
 const EXCLUDED_ROLES = ['Super Admin'];
+const ROLE_ORDER = ['CEO', 'Branch Manager', 'Sales Rep', 'Apprentice'] as const;
+const ROLE_ORDER_INDEX = Object.fromEntries(
+  ROLE_ORDER.map((name, index) => [name, index]),
+);
 
 function PermissionsTab() {
   const { data: allRoles = [] } = useGetRolesQuery();
-  const managedRoles = allRoles.filter((r) => !EXCLUDED_ROLES.includes(r.name));
+  const managedRoles = allRoles
+    .filter((r) => !EXCLUDED_ROLES.includes(r.name))
+    .sort((a, b) => {
+      const left = ROLE_ORDER_INDEX[a.name] ?? Number.MAX_SAFE_INTEGER;
+      const right = ROLE_ORDER_INDEX[b.name] ?? Number.MAX_SAFE_INTEGER;
+      if (left !== right) return left - right;
+      return a.name.localeCompare(b.name);
+    });
 
   return (
     <div className="overflow-x-auto">

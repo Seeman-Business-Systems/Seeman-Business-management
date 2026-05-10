@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { Staff } from '../../types/auth';
 import useRoles from '../../hooks/useRoles';
 import useBranches from '../../hooks/useBranches';
+import { useAuth } from '../../context/AuthContext';
 
 export interface StaffFormData {
   firstName: string;
@@ -24,6 +25,8 @@ interface StaffFormProps {
 function StaffForm({ initialData, onSubmit, submitLabel, isSubmitting }: StaffFormProps) {
   const { roles, isLoading: rolesLoading } = useRoles();
   const { branches, isLoading: branchesLoading } = useBranches();
+  const { user, can } = useAuth();
+  const canSelectBranch = can('branch:select-on-create');
   const loadingOptions = rolesLoading || branchesLoading;
 
   const [formData, setFormData] = useState<StaffFormData>({
@@ -33,7 +36,7 @@ function StaffForm({ initialData, onSubmit, submitLabel, isSubmitting }: StaffFo
     phoneNumber: '',
     email: '',
     roleId: '',
-    branchId: '',
+    branchId: !canSelectBranch && user?.branch?.id ? user.branch.id : '',
     joinedAt: '',
   });
 
@@ -224,7 +227,7 @@ function StaffForm({ initialData, onSubmit, submitLabel, isSubmitting }: StaffFo
             }`}
           >
             <option value="">Select a role</option>
-            {roles.map((role) => (
+            {roles.filter((role) => !role.isManagement).map((role) => (
               <option key={role.id} value={role.id}>
                 {role.name}
               </option>
@@ -235,29 +238,44 @@ function StaffForm({ initialData, onSubmit, submitLabel, isSubmitting }: StaffFo
           )}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Branch <span className="text-red-500">*</span>
-          </label>
-          <select
-            name="branchId"
-            value={formData.branchId}
-            onChange={handleChange}
-            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 bg-white ${
-              errors.branchId ? 'border-red-300' : 'border-gray-300'
-            }`}
-          >
-            <option value="">Select a branch</option>
-            {branches.map((branch) => (
-              <option key={branch.id} value={branch.id}>
-                {branch.name}
-              </option>
-            ))}
-          </select>
-          {errors.branchId && (
-            <p className="mt-1 text-sm text-red-500">{errors.branchId}</p>
-          )}
-        </div>
+        {canSelectBranch ? (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Branch <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="branchId"
+              value={formData.branchId}
+              onChange={handleChange}
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 bg-white ${
+                errors.branchId ? 'border-red-300' : 'border-gray-300'
+              }`}
+            >
+              <option value="">Select a branch</option>
+              {branches.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+            {errors.branchId && (
+              <p className="mt-1 text-sm text-red-500">{errors.branchId}</p>
+            )}
+          </div>
+        ) : (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Branch
+            </label>
+            {user?.branch ? (
+              <p className="text-xs text-gray-500 py-2">
+                Branch: <span className="font-medium text-gray-700">{user.branch.name}</span>
+              </p>
+            ) : (
+              <p className="text-xs text-gray-400 py-2">No branch assigned</p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Join Date */}

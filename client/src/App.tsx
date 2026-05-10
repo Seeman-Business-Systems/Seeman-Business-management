@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Link, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import ToastContainer from './components/ui/ToastContainer';
@@ -9,6 +9,7 @@ import ResetPassword from './pages/ResetPassword/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Staff from './pages/Staff/Staff';
 import CreateStaff from './pages/Staff/CreateStaff';
+import StaffCreated from './pages/Staff/StaffCreated';
 import EditStaff from './pages/Staff/EditStaff';
 import StaffProfile from './pages/Staff/StaffProfile';
 import StaffActivities from './pages/Staff/StaffActivities';
@@ -45,6 +46,45 @@ function NotFound() {
   );
 }
 
+function Forbidden() {
+  const location = useLocation();
+  const attemptedPath =
+    (location.state as { from?: string } | null)?.from ?? null;
+
+  return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
+      <div className="text-center max-w-md">
+        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-100 flex items-center justify-center">
+          <i className="fa-solid fa-lock text-2xl text-amber-600" />
+        </div>
+        <h1 className="text-3xl font-bold text-gray-900">Access denied</h1>
+        <p className="text-gray-600 mt-2">
+          You&apos;re not allowed to access this page.
+        </p>
+        {attemptedPath && (
+          <p className="text-sm text-gray-400 mt-2 break-all">
+            Attempted: {attemptedPath}
+          </p>
+        )}
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            Go to dashboard
+          </Link>
+          <Link
+            to="/help"
+            className="text-indigo-600 hover:underline font-medium"
+          >
+            Get help
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
@@ -55,6 +95,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/forbidden" element={<Forbidden />} />
         <Route
           path="/"
           element={
@@ -66,7 +107,7 @@ function App() {
         <Route
           path="/staff"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="staff:read">
               <Staff />
             </ProtectedRoute>
           }
@@ -74,15 +115,23 @@ function App() {
         <Route
           path="/staff/new"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="staff:create">
               <CreateStaff />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/staff/created"
+          element={
+            <ProtectedRoute permission="staff:create">
+              <StaffCreated />
             </ProtectedRoute>
           }
         />
         <Route
           path="/staff/:id/edit"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="staff:create">
               <EditStaff />
             </ProtectedRoute>
           }
@@ -90,7 +139,7 @@ function App() {
         <Route
           path="/staff/roles/manage"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="role:manage">
               <Roles />
             </ProtectedRoute>
           }
@@ -98,7 +147,7 @@ function App() {
         <Route
           path="/staff/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="staff:read">
               <StaffProfile />
             </ProtectedRoute>
           }
@@ -106,7 +155,7 @@ function App() {
         <Route
           path="/staff/:id/activities"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="staff:read">
               <StaffActivities />
             </ProtectedRoute>
           }
@@ -122,7 +171,7 @@ function App() {
         <Route
           path="/branches"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="branch:read">
               <Branches />
             </ProtectedRoute>
           }
@@ -130,7 +179,7 @@ function App() {
         <Route
           path="/branches/new"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="branch:create">
               <CreateBranch />
             </ProtectedRoute>
           }
@@ -138,7 +187,7 @@ function App() {
         <Route
           path="/branches/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="branch:read">
               <BranchProfile />
             </ProtectedRoute>
           }
@@ -146,7 +195,7 @@ function App() {
         <Route
           path="/branches/:id/edit"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="branch:update">
               <EditBranch />
             </ProtectedRoute>
           }
@@ -154,7 +203,7 @@ function App() {
         <Route
           path="/branches/:id/activities"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="branch:read">
               <BranchActivities />
             </ProtectedRoute>
           }
@@ -162,7 +211,7 @@ function App() {
         <Route
           path="/products"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="product:read">
               <Products />
             </ProtectedRoute>
           }
@@ -170,7 +219,7 @@ function App() {
         <Route
           path="/products/new"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="product:create">
               <CreateProduct />
             </ProtectedRoute>
           }
@@ -178,7 +227,7 @@ function App() {
         <Route
           path="/products/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="product:read">
               <ProductProfile />
             </ProtectedRoute>
           }
@@ -186,7 +235,7 @@ function App() {
         <Route
           path="/products/:id/edit"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="product:update">
               <EditProduct />
             </ProtectedRoute>
           }
@@ -194,7 +243,7 @@ function App() {
         <Route
           path="/inventory"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="inventory:read">
               <Inventory />
             </ProtectedRoute>
           }
@@ -202,7 +251,7 @@ function App() {
         <Route
           path="/inventory/containers"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="inventory:read">
               <Containers />
             </ProtectedRoute>
           }
@@ -210,7 +259,7 @@ function App() {
         <Route
           path="/inventory/containers/new"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="inventory:adjust">
               <CreateContainer />
             </ProtectedRoute>
           }
@@ -218,7 +267,7 @@ function App() {
         <Route
           path="/inventory/containers/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="inventory:read">
               <ContainerDetail />
             </ProtectedRoute>
           }
@@ -226,7 +275,7 @@ function App() {
         <Route
           path="/variants/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="product:read">
               <VariantProfile />
             </ProtectedRoute>
           }
@@ -234,7 +283,7 @@ function App() {
         <Route
           path="/variants/:id/activities"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="product:read">
               <VariantActivities />
             </ProtectedRoute>
           }
@@ -242,7 +291,7 @@ function App() {
         <Route
           path="/warehouses"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="warehouse:read">
               <Warehouses />
             </ProtectedRoute>
           }
@@ -250,7 +299,7 @@ function App() {
         <Route
           path="/warehouses/new"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="warehouse:create">
               <CreateWarehouse />
             </ProtectedRoute>
           }
@@ -258,7 +307,7 @@ function App() {
         <Route
           path="/warehouses/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="warehouse:read">
               <WarehouseProfile />
             </ProtectedRoute>
           }
@@ -266,7 +315,7 @@ function App() {
         <Route
           path="/warehouses/:id/edit"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="warehouse:update">
               <EditWarehouse />
             </ProtectedRoute>
           }
@@ -274,7 +323,7 @@ function App() {
         <Route
           path="/warehouses/:id/activities"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="warehouse:read">
               <WarehouseActivities />
             </ProtectedRoute>
           }
@@ -282,7 +331,7 @@ function App() {
         <Route
           path="/sales"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="sale:read">
               <Sales />
             </ProtectedRoute>
           }
@@ -290,7 +339,7 @@ function App() {
         <Route
           path="/sales/new"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="sale:create">
               <CreateSale />
             </ProtectedRoute>
           }
@@ -298,7 +347,7 @@ function App() {
         <Route
           path="/sales/:id/receipt"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="sale:read">
               <SaleReceipt />
             </ProtectedRoute>
           }
@@ -306,7 +355,7 @@ function App() {
         <Route
           path="/sales/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="sale:read">
               <SaleDetail />
             </ProtectedRoute>
           }
@@ -314,7 +363,7 @@ function App() {
         <Route
           path="/customers"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="customer:read">
               <Customers />
             </ProtectedRoute>
           }
@@ -322,7 +371,7 @@ function App() {
         <Route
           path="/customers/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="customer:read">
               <CustomerProfile />
             </ProtectedRoute>
           }
@@ -330,7 +379,7 @@ function App() {
         <Route
           path="/supplies"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="supply:read">
               <Supplies />
             </ProtectedRoute>
           }
@@ -338,7 +387,7 @@ function App() {
         <Route
           path="/supplies/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="supply:read">
               <SupplyDetail />
             </ProtectedRoute>
           }
@@ -346,7 +395,7 @@ function App() {
         <Route
           path="/expenses"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="expense:read">
               <Expenses />
             </ProtectedRoute>
           }
@@ -354,7 +403,7 @@ function App() {
         <Route
           path="/activities"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="activity:read">
               <Activities />
             </ProtectedRoute>
           }
@@ -378,7 +427,7 @@ function App() {
         <Route
           path="/reports"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="analytics:read">
               <Reports />
             </ProtectedRoute>
           }
@@ -402,7 +451,7 @@ function App() {
         <Route
           path="/system-settings"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="settings:manage">
               <SystemSettings />
             </ProtectedRoute>
           }

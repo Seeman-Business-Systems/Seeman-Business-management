@@ -14,8 +14,15 @@ class CustomerQuery {
     public readonly customerRepo: CustomerRepository,
   ) {}
 
-  async findBy(filters: CustomerFilters): Promise<Customer[]> {
-    const query = this.customers.createQueryBuilder('customer');
+  async findBy(filters: CustomerFilters): Promise<{ data: Customer[]; total: number }> {
+    const take = filters.take ?? 20;
+    const skip = filters.skip ?? 0;
+
+    const query = this.customers
+      .createQueryBuilder('customer')
+      .orderBy('customer.createdAt', 'DESC')
+      .take(take)
+      .skip(skip);
 
     // Handle filters
     if (filters.name) {
@@ -68,9 +75,12 @@ class CustomerQuery {
       ) > 0`);
     }
 
-    const records = await query.getMany();
+    const [records, total] = await query.getManyAndCount();
 
-    return records.map((entity) => this.customerRepo.toDomain(entity));
+    return {
+      data: records.map((entity) => this.customerRepo.toDomain(entity)),
+      total,
+    };
   }
 }
 

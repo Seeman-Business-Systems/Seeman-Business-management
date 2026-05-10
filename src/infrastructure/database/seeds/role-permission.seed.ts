@@ -10,6 +10,7 @@ const DEFAULTS: Record<string, string[]> = {
     Permission.SUPPLY_READ,
     Permission.CUSTOMER_READ,
     Permission.EXPENSE_READ,
+    Permission.DASHBOARD_VIEW,
     Permission.ANALYTICS_READ,
     Permission.ACTIVITY_READ,
     Permission.BRANCH_READ,
@@ -30,6 +31,8 @@ const DEFAULTS: Record<string, string[]> = {
     Permission.BRANCH_READ,
     Permission.WAREHOUSE_READ, Permission.WAREHOUSE_CREATE, Permission.WAREHOUSE_UPDATE,
     Permission.ROLE_READ,
+    Permission.DASHBOARD_VIEW,
+    Permission.ANALYTICS_READ,
     Permission.ACTIVITY_READ,
     Permission.BRAND_MANAGE, Permission.CATEGORY_MANAGE,
   ],
@@ -41,6 +44,7 @@ const DEFAULTS: Record<string, string[]> = {
     Permission.INVENTORY_READ,
     Permission.SUPPLY_READ, Permission.SUPPLY_FULFIL,
     Permission.CUSTOMER_READ, Permission.CUSTOMER_CREATE, Permission.CUSTOMER_UPDATE,
+    Permission.DASHBOARD_VIEW,
     Permission.ACTIVITY_READ,
   ],
 
@@ -49,6 +53,7 @@ const DEFAULTS: Record<string, string[]> = {
     Permission.INVENTORY_READ,
     Permission.SALE_READ,
     Permission.SUPPLY_READ, Permission.SUPPLY_FULFIL,
+    Permission.DASHBOARD_VIEW,
     Permission.ACTIVITY_READ,
   ],
 };

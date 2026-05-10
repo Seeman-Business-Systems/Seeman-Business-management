@@ -30,6 +30,7 @@ import type { WarehouseFilters } from 'src/application/warehouse/queries/warehou
 import WarehouseSerialiser from 'src/presentation/serialisers/warehouse.serialiser';
 import { RequirePermission } from 'src/modules/auth/decorators/role-guard.decorator';
 import { Permission } from 'src/domain/permission/permission';
+import BranchScope from 'src/modules/auth/services/branch-scope.service';
 
 @Controller('warehouses')
 @UseGuards(JwtAuthGuard)
@@ -39,6 +40,7 @@ class WarehouseController {
     private readonly warehouses: WarehouseRepository,
     private readonly warehouseQuery: WarehouseQuery,
     private readonly warehouseSerialiser: WarehouseSerialiser,
+    private readonly branchScope: BranchScope,
   ) {}
 
   @Post()
@@ -130,8 +132,15 @@ class WarehouseController {
   @Get()
   @HttpCode(HttpStatus.OK)
   @RequirePermission(Permission.WAREHOUSE_READ)
-  async findAll(@Query() filters: WarehouseFilters) {
-    const warehouses = await this.warehouseQuery.findBy(filters);
+  async findAll(@Query() filters: WarehouseFilters, @Actor() actor: Staff) {
+    const requested = Array.isArray(filters.branchId)
+      ? undefined
+      : filters.branchId
+        ? Number(filters.branchId)
+        : undefined;
+    const branchId = await this.branchScope.resolve(actor, requested);
+
+    const warehouses = await this.warehouseQuery.findBy({ ...filters, branchId });
 
     return this.warehouseSerialiser.serialiseMany(warehouses);
   }

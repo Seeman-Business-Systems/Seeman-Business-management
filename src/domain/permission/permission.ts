@@ -57,7 +57,10 @@ export const Permission = {
   ROLE_READ:   'role:read',
   ROLE_MANAGE: 'role:manage',
 
-  // Analytics / Reports
+  // Dashboard summary (KPIs, recent sales, low-stock list shown on /)
+  DASHBOARD_VIEW: 'dashboard:view',
+
+  // Analytics / Reports — gates the dedicated /reports page only
   ANALYTICS_READ: 'analytics:read',
 
   // Activities
@@ -72,6 +75,10 @@ export const Permission = {
 
   // Cross-branch filtering — granted to roles that should see data across branches
   FILTER_BY_BRANCH: 'filter:by-branch',
+
+  // Cross-branch create — granted to roles that should choose a branch when creating
+  // records (otherwise the actor's own branch is auto-applied).
+  BRANCH_SELECT_ON_CREATE: 'branch:select-on-create',
 } as const;
 
 export type PermissionKey = (typeof Permission)[keyof typeof Permission];

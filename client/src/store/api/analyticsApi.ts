@@ -9,6 +9,12 @@ export const analyticsApi = baseApi.injectEndpoints({
         if (branchId) params.append('branchId', branchId.toString());
         return `/analytics/summary?${params.toString()}`;
       },
+      providesTags: [
+        { type: 'Sale', id: 'LIST' },
+        { type: 'Expense', id: 'LIST' },
+        { type: 'Inventory', id: 'LIST' },
+        { type: 'Supply', id: 'LIST' },
+      ],
     }),
   }),
 });
