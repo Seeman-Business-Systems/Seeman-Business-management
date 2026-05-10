@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, IsISO8601, IsOptional, IsPositive, IsString } from 'class-validator';
+import { IsEnum, IsInt, IsISO8601, IsOptional, IsPositive, IsString, MaxLength } from 'class-validator';
 import { Type } from 'class-transformer';
 import ExpenseCategory from 'src/domain/expense/expense-category';
 
@@ -24,6 +24,11 @@ class CreateExpenseValidator {
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(64)
+  idempotencyKey?: string;
 }
 
 export default CreateExpenseValidator;

@@ -34,6 +34,7 @@ import { Help } from './pages/Help';
 import { ReportIssue } from './pages/ReportIssue';
 import { SystemSettings } from './pages/SystemSettings';
 import ImpersonationBanner from './components/ImpersonationBanner';
+import OfflineBanner from './components/OfflineBanner';
 
 function NotFound() {
   return (
@@ -90,6 +91,7 @@ function App() {
     <AuthProvider>
       <ToastProvider>
         <ToastContainer />
+        <OfflineBanner />
         <ImpersonationBanner />
         <Routes>
         <Route path="/login" element={<Login />} />

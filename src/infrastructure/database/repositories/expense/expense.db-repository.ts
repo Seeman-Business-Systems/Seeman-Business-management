@@ -19,6 +19,14 @@ class ExpenseDBRepository extends ExpenseRepository {
     return record ? this.toDomain(record) : null;
   }
 
+  async findByIdempotencyKey(key: string): Promise<Expense | null> {
+    const record = await this.repository.findOne({
+      where: { idempotencyKey: key },
+      relations: ['recorder'],
+    });
+    return record ? this.toDomain(record) : null;
+  }
+
   async commit(expense: Expense): Promise<Expense> {
     const entity = new ExpenseEntity();
     if (expense.getId()) entity.id = expense.getId()!;
@@ -29,6 +37,7 @@ class ExpenseDBRepository extends ExpenseRepository {
     entity.recordedBy = expense.getRecordedBy();
     entity.date = expense.getDate();
     entity.notes = expense.getNotes();
+    entity.idempotencyKey = expense.getIdempotencyKey();
 
     const saved = await this.repository.save(entity);
     const withRelations = await this.repository.findOne({ where: { id: saved.id }, relations: ['recorder'] });
@@ -56,6 +65,7 @@ class ExpenseDBRepository extends ExpenseRepository {
       entity.notes,
       entity.createdAt,
       entity.updatedAt,
+      entity.idempotencyKey,
     );
   }
 }

@@ -14,10 +14,14 @@ import StaffEntity from './staff.entity';
 
 @Index(['branchId', 'date']) // composite — analytics always filters both
 @Index(['category'])
+@Index(['idempotencyKey'], { unique: true, where: '"idempotency_key" IS NOT NULL' })
 @Entity({ name: 'expenses' })
 class ExpenseEntity {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ name: 'idempotency_key', type: 'varchar', length: 64, nullable: true })
+  idempotencyKey: string | null;
 
   @Column({ type: 'decimal', precision: 15, scale: 2 })
   amount: number;
