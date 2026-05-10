@@ -5,6 +5,7 @@ import Modal from '../../components/ui/Modal';
 import usePageTitle from '../../hooks/usePageTitle';
 import { useGetSaleQuery, useRecordPaymentMutation, useCancelSaleMutation, useUpdateSaleMutation } from '../../store/api/salesApi';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import { SaleStatus, PaymentStatus, PaymentMethod } from '../../types/sale';
 
 function formatPrice(price: number): string {
@@ -56,6 +57,10 @@ function SaleDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { can } = useAuth();
+  const canEdit = can('sale:update');
+  const canRecordPayment = can('payment:record');
+  const canCancel = can('sale:cancel');
   usePageTitle('Sale Detail');
 
   const { data: sale, isLoading } = useGetSaleQuery(Number(id));
@@ -205,14 +210,16 @@ function SaleDetail() {
             </Link>
             {sale.status !== SaleStatus.CANCELLED && (
               <>
-                <button
-                  onClick={openEditModal}
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
-                >
-                  <i className="fa-solid fa-pen" />
-                  Edit
-                </button>
-                {sale.status === SaleStatus.DRAFT && (
+                {canEdit && (
+                  <button
+                    onClick={openEditModal}
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                  >
+                    <i className="fa-solid fa-pen" />
+                    Edit
+                  </button>
+                )}
+                {canEdit && sale.status === SaleStatus.DRAFT && (
                   <button
                     onClick={() => setShowFulfilModal(true)}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors cursor-pointer"
@@ -221,7 +228,7 @@ function SaleDetail() {
                     Fulfil
                   </button>
                 )}
-                {sale.status === SaleStatus.FULFILLED && sale.paymentStatus !== PaymentStatus.PAID && (
+                {canRecordPayment && sale.status === SaleStatus.FULFILLED && sale.paymentStatus !== PaymentStatus.PAID && (
                   <button
                     onClick={() => setShowPaymentModal(true)}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors cursor-pointer"
@@ -230,13 +237,15 @@ function SaleDetail() {
                     Record Payment
                   </button>
                 )}
-                <button
-                  onClick={() => setShowCancelModal(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-red-200 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                >
-                  <i className="fa-solid fa-ban" />
-                  Cancel
-                </button>
+                {canCancel && (
+                  <button
+                    onClick={() => setShowCancelModal(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-red-200 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                  >
+                    <i className="fa-solid fa-ban" />
+                    Cancel
+                  </button>
+                )}
               </>
             )}
           </div>

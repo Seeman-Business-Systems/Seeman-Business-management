@@ -295,7 +295,9 @@ export class ReportsQuery {
         `SELECT COUNT(*)::int AS total_customers,
                 COALESCE(SUM(outstanding_balance), 0)::numeric AS total_outstanding
          FROM customers
-         WHERE deleted_at IS NULL`,
+         WHERE deleted_at IS NULL
+           AND ($1::int IS NULL OR branch_id = $1::int)`,
+        [bp],
       ),
       this.dataSource.query(
         `SELECT

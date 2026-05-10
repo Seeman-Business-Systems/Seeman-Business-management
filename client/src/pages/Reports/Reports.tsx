@@ -191,7 +191,7 @@ function DownloadBar({
 
 function Reports() {
   usePageTitle('Reports');
-  const { can } = useAuth();
+  const { can, user } = useAuth();
 
   const isGlobalView = can('filter:by-branch');
 
@@ -228,7 +228,11 @@ function Reports() {
 
   const title = `${reportLabel} Report`;
   const period = periodLabel ?? `${dateFrom} to ${dateTo}`;
-  const branchName = branchId ? (branches.find((b) => b.id === branchId)?.name ?? '') : 'All Branches';
+  const branchName = branchId
+    ? (branches.find((b) => b.id === branchId)?.name ?? '')
+    : isGlobalView
+      ? 'All Branches'
+      : (user?.branch?.name ?? '');
 
   // --- helpers ---
   const th = (cols: string[]) => `<tr>${cols.map((c) => `<th>${c}</th>`).join('')}</tr>`;

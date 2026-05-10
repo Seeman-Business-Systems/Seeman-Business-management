@@ -1,6 +1,7 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { CqrsModule } from "@nestjs/cqrs";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { AuthModule } from "../auth/auth.module";
 import UpdateStaffHandler from "src/application/staff/commands/update/update-staff";
 import DeleteStaffHandler from "src/application/staff/commands/delete/delete-staff";
 import TransferStaffHandler from "src/application/staff/commands/transfer/transfer-staff.handler";
@@ -24,6 +25,7 @@ import { RoleSerialiser } from "src/presentation/serialisers/role.serialiser";
   imports: [
     CqrsModule,
     TypeOrmModule.forFeature([StaffEntity, BranchEntity, RoleEntity]),
+    forwardRef(() => AuthModule),
   ],
   controllers: [StaffController],
   providers: [

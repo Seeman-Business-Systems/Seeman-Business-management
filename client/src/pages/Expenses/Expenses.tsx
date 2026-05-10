@@ -564,25 +564,33 @@ function Expenses() {
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Branch <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={form.branchId || ''}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, branchId: Number(e.target.value) }))
-              }
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="">Select branch…</option>
-              {branches.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {can('branch:select-on-create') ? (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Branch <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={form.branchId || ''}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, branchId: Number(e.target.value) }))
+                }
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">Select branch…</option>
+                {branches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            user?.branch && (
+              <p className="text-xs text-gray-500">
+                Branch: <span className="font-medium text-gray-700">{user.branch.name}</span>
+              </p>
+            )
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

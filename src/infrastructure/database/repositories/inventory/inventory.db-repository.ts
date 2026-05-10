@@ -5,6 +5,8 @@ import Inventory from 'src/domain/inventory/inventory';
 import TransactionContext from 'src/application/shared/transactions/transaction-context';
 import TypeOrmTransactionContext from '../../transactions/typeorm-transaction-context';
 import InventoryEntity from '../../entities/inventory.entity';
+import SupplyItemEntity from '../../entities/supply-item.entity';
+import SupplyStatus from 'src/domain/supply/supply-status';
 import InventoryRepository from './inventory.repository';
 
 @Injectable()
@@ -12,6 +14,8 @@ class InventoryDBRepository extends InventoryRepository {
   constructor(
     @InjectRepository(InventoryEntity)
     private readonly repository: Repository<InventoryEntity>,
+    @InjectRepository(SupplyItemEntity)
+    private readonly supplyItems: Repository<SupplyItemEntity>,
   ) {
     super();
   }
@@ -19,6 +23,36 @@ class InventoryDBRepository extends InventoryRepository {
   private repoFor(tx?: TransactionContext): Repository<InventoryEntity> {
     const manager = TypeOrmTransactionContext.unwrap(tx);
     return manager ? manager.getRepository(InventoryEntity) : this.repository;
+  }
+
+  private async attachPendingQuantities(inventories: Inventory[]): Promise<void> {
+    if (inventories.length === 0) return;
+
+    const variantIds = Array.from(new Set(inventories.map((i) => i.getVariantId())));
+    const warehouseIds = Array.from(new Set(inventories.map((i) => i.getWarehouseId())));
+
+    const rows = await this.supplyItems
+      .createQueryBuilder('item')
+      .innerJoin('item.supply', 'supply')
+      .select('item.variant_id', 'variantId')
+      .addSelect('item.warehouse_id', 'warehouseId')
+      .addSelect('SUM(item.quantity)', 'pending')
+      .where('supply.status = :status', { status: SupplyStatus.DRAFT })
+      .andWhere('item.variant_id IN (:...variantIds)', { variantIds })
+      .andWhere('item.warehouse_id IN (:...warehouseIds)', { warehouseIds })
+      .groupBy('item.variant_id')
+      .addGroupBy('item.warehouse_id')
+      .getRawMany<{ variantId: number; warehouseId: number; pending: string }>();
+
+    const pendingMap = new Map<string, number>();
+    for (const row of rows) {
+      pendingMap.set(`${row.variantId}:${row.warehouseId}`, Number(row.pending));
+    }
+
+    for (const inv of inventories) {
+      const key = `${inv.getVariantId()}:${inv.getWarehouseId()}`;
+      inv.setPendingQuantity(pendingMap.get(key) ?? 0);
+    }
   }
 
   async findById(id: number): Promise<Inventory | null> {
@@ -31,7 +65,9 @@ class InventoryDBRepository extends InventoryRepository {
       return null;
     }
 
-    return this.toDomain(record);
+    const inventory = this.toDomain(record);
+    await this.attachPendingQuantities([inventory]);
+    return inventory;
   }
 
   async findByVariantAndWarehouse(
@@ -81,7 +117,9 @@ class InventoryDBRepository extends InventoryRepository {
       relations: ['variant', 'warehouse'],
     });
 
-    return records.map((entity: InventoryEntity) => this.toDomain(entity));
+    const inventories = records.map((entity: InventoryEntity) => this.toDomain(entity));
+    await this.attachPendingQuantities(inventories);
+    return inventories;
   }
 
   async findByVariant(variantId: number): Promise<Inventory[]> {
@@ -90,7 +128,9 @@ class InventoryDBRepository extends InventoryRepository {
       relations: ['variant', 'warehouse'],
     });
 
-    return records.map((entity: InventoryEntity) => this.toDomain(entity));
+    const inventories = records.map((entity: InventoryEntity) => this.toDomain(entity));
+    await this.attachPendingQuantities(inventories);
+    return inventories;
   }
 
   async findLowInventory(warehouseId?: number): Promise<Inventory[]> {
@@ -105,7 +145,9 @@ class InventoryDBRepository extends InventoryRepository {
     }
 
     const records = await queryBuilder.getMany();
-    return records.map((entity: InventoryEntity) => this.toDomain(entity));
+    const inventories = records.map((entity: InventoryEntity) => this.toDomain(entity));
+    await this.attachPendingQuantities(inventories);
+    return inventories;
   }
 
   async findAll(): Promise<Inventory[]> {
@@ -113,7 +155,9 @@ class InventoryDBRepository extends InventoryRepository {
       relations: ['variant', 'warehouse'],
     });
 
-    return records.map((entity: InventoryEntity) => this.toDomain(entity));
+    const inventories = records.map((entity: InventoryEntity) => this.toDomain(entity));
+    await this.attachPendingQuantities(inventories);
+    return inventories;
   }
 
   async commit(inventory: Inventory, tx?: TransactionContext): Promise<Inventory> {

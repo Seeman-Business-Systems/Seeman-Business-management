@@ -2,26 +2,30 @@ import { baseApi } from './baseApi';
 import type {
   Customer,
   CustomerFilters,
+  CustomerListResponse,
   CreateCustomerRequest,
   UpdateCustomerRequest,
 } from '../../types/customer';
 
 export const customersApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getCustomers: builder.query<Customer[], CustomerFilters | void>({
+    getCustomers: builder.query<CustomerListResponse, CustomerFilters | void>({
       query: (filters) => {
         const params = new URLSearchParams();
         if (filters?.name) params.append('name', filters.name);
         if (filters?.phoneNumber) params.append('phoneNumber', filters.phoneNumber);
         if (filters?.email) params.append('email', filters.email);
         if (filters?.hasOutstandingBalance) params.append('hasOutstandingBalance', 'true');
+        if (filters?.branchId) params.append('branchId', String(filters.branchId));
+        if (filters?.take !== undefined) params.append('take', String(filters.take));
+        if (filters?.skip !== undefined) params.append('skip', String(filters.skip));
         const qs = params.toString();
         return `/customers${qs ? `?${qs}` : ''}`;
       },
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: 'Customer' as const, id })),
+              ...result.data.map(({ id }) => ({ type: 'Customer' as const, id })),
               { type: 'Customer', id: 'LIST' },
             ]
           : [{ type: 'Customer', id: 'LIST' }],

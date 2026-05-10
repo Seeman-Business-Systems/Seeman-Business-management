@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import InventoryEntity from 'src/infrastructure/database/entities/inventory.entity';
@@ -7,6 +7,7 @@ import InventoryBatchItemEntity from 'src/infrastructure/database/entities/inven
 import ProductVariantEntity from 'src/infrastructure/database/entities/product-variant.entity';
 import WarehouseEntity from 'src/infrastructure/database/entities/warehouse.entity';
 import StaffEntity from 'src/infrastructure/database/entities/staff.entity';
+import SupplyItemEntity from 'src/infrastructure/database/entities/supply-item.entity';
 
 // Controllers
 import InventoryController from 'src/presentation/http/controllers/inventory.controller';
@@ -39,6 +40,7 @@ import { StaffModule } from '../staff/staff.module';
 import { RoleModule } from '../role/role.module';
 import { ProductModule } from '../product/product.module';
 import { WarehouseModule } from '../warehouse/warehouse.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -50,11 +52,13 @@ import { WarehouseModule } from '../warehouse/warehouse.module';
       ProductVariantEntity,
       WarehouseEntity,
       StaffEntity,
+      SupplyItemEntity,
     ]),
     StaffModule,
     RoleModule,
-    ProductModule,
+    forwardRef(() => ProductModule),
     WarehouseModule,
+    AuthModule,
   ],
   controllers: [InventoryController, InventoryBatchController],
   providers: [

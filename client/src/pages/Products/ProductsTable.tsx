@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import type { Product } from '../../types/product';
 import { ProductStatus, ProductStatusLabels, ProductType, ProductTypeLabels } from '../../types/product';
+import { useAuth } from '../../context/AuthContext';
 
 interface ProductsTableProps {
   products: Product[];
@@ -63,6 +64,9 @@ function ProductsTable({
   onResultsPerPageChange,
   onDelete,
 }: ProductsTableProps) {
+  const { can } = useAuth();
+  const canEdit = can('product:update');
+  const canDelete = can('product:delete');
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -160,20 +164,24 @@ function ProductsTable({
                           <i className="fa-solid fa-eye text-gray-400 w-4" />
                           View Product
                         </Link>
-                        <Link
-                          to={`/products/${product.id}/edit`}
-                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                        >
-                          <i className="fa-solid fa-pen text-gray-400 w-4" />
-                          Edit Product
-                        </Link>
-                        <button
-                          onClick={() => { setOpenMenuId(null); onDelete(product.id); }}
-                          className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                        >
-                          <i className="fa-solid fa-trash text-red-400 w-4" />
-                          Delete Product
-                        </button>
+                        {canEdit && (
+                          <Link
+                            to={`/products/${product.id}/edit`}
+                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                          >
+                            <i className="fa-solid fa-pen text-gray-400 w-4" />
+                            Edit Product
+                          </Link>
+                        )}
+                        {canDelete && (
+                          <button
+                            onClick={() => { setOpenMenuId(null); onDelete(product.id); }}
+                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                          >
+                            <i className="fa-solid fa-trash text-red-400 w-4" />
+                            Delete Product
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>

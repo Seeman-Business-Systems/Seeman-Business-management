@@ -8,6 +8,7 @@ class Inventory {
     private maximumQuantity: number | null,
     private createdAt: Date,
     private updatedAt: Date,
+    private pendingQuantity: number = 0,
   ) {}
 
   getId(): number | undefined {
@@ -70,8 +71,16 @@ class Inventory {
     this.updatedAt = updatedAt;
   }
 
+  getPendingQuantity(): number {
+    return this.pendingQuantity;
+  }
+
+  setPendingQuantity(pendingQuantity: number): void {
+    this.pendingQuantity = Math.max(0, pendingQuantity);
+  }
+
   getAvailableQuantity(): number {
-    return this.totalQuantity;
+    return Math.max(0, this.totalQuantity - this.pendingQuantity);
   }
 
   isLowInventory(): boolean {

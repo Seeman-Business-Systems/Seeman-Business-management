@@ -36,4 +36,12 @@ export interface CustomerFilters {
   phoneNumber?: string;
   email?: string;
   hasOutstandingBalance?: boolean;
+  branchId?: number;
+  take?: number;
+  skip?: number;
+}
+
+export interface CustomerListResponse {
+  data: Customer[];
+  total: number;
 }

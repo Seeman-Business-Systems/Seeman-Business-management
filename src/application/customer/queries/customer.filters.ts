@@ -6,4 +6,6 @@ export interface CustomerFilters {
   companyName?: string;
   branchId?: number | string;
   hasOutstandingBalance?: boolean | string;
+  take?: number;
+  skip?: number;
 }

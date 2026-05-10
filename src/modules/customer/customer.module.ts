@@ -15,6 +15,7 @@ import CustomerSerialiser from "src/presentation/serialisers/customer.serialiser
 import { CustomerSeed } from "src/infrastructure/database/seeds/customer.seed";
 import { StaffModule } from "../staff/staff.module";
 import { RoleModule } from "../role/role.module";
+import { AuthModule } from "../auth/auth.module";
 
 @Module({
     imports: [
@@ -22,6 +23,7 @@ import { RoleModule } from "../role/role.module";
         TypeOrmModule.forFeature([CustomerEntity, SaleEntity]),
         StaffModule,
         RoleModule,
+        AuthModule,
     ],
     controllers: [CustomerController],
     providers: [

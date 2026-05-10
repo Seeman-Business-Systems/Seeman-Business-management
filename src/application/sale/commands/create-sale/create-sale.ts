@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -10,6 +11,8 @@ import SaleRepository from 'src/infrastructure/database/repositories/sale/sale.r
 import SaleLineItemRepository from 'src/infrastructure/database/repositories/sale/sale-line-item.repository';
 import SaleEntity from 'src/infrastructure/database/entities/sale.entity';
 import SaleCreated from 'src/domain/sale/events/sale-created.event';
+import InventoryRepository from 'src/infrastructure/database/repositories/inventory/inventory.repository';
+import ProductVariantRepository from 'src/infrastructure/database/repositories/product/product-variant.repository';
 
 @CommandHandler(CreateSaleCommand)
 class CreateSaleHandler implements ICommandHandler<CreateSaleCommand> {
@@ -19,9 +22,14 @@ class CreateSaleHandler implements ICommandHandler<CreateSaleCommand> {
     @InjectRepository(SaleEntity)
     private readonly saleEntityRepository: Repository<SaleEntity>,
     private readonly eventBus: EventBus,
+    private readonly inventoryRepository: InventoryRepository,
+    private readonly productVariantRepository: ProductVariantRepository,
   ) {}
 
   async execute(command: CreateSaleCommand): Promise<Sale> {
+    // Validate stock availability across all warehouses before creating the sale
+    await this.assertStockAvailable(command.lineItems);
+
     // 1. Generate sale number
     const saleNumber = await this.generateSaleNumber();
 
@@ -106,6 +114,31 @@ class CreateSaleHandler implements ICommandHandler<CreateSaleCommand> {
     );
 
     return finalSale;
+  }
+
+  private async assertStockAvailable(
+    lineItems: CreateSaleCommand['lineItems'],
+  ): Promise<void> {
+    const totals = new Map<number, number>();
+    for (const item of lineItems) {
+      totals.set(item.variantId, (totals.get(item.variantId) ?? 0) + item.quantity);
+    }
+
+    for (const [variantId, requested] of totals) {
+      const inventories = await this.inventoryRepository.findByVariant(variantId);
+      const available = inventories.reduce(
+        (sum, inv) => sum + inv.getAvailableQuantity(),
+        0,
+      );
+
+      if (available < requested) {
+        const variant = await this.productVariantRepository.findById(variantId);
+        const label = variant?.getVariantName() ?? `Variant #${variantId}`;
+        throw new BadRequestException(
+          `Not enough stock for "${label}". Requested ${requested}, only ${available} available across all warehouses.`,
+        );
+      }
+    }
   }
 
   private async generateSaleNumber(): Promise<string> {

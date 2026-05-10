@@ -4,6 +4,7 @@ import Layout from '../../components/layout/Layout';
 import Modal from '../../components/ui/Modal';
 import usePageTitle from '../../hooks/usePageTitle';
 import { useGetWarehouseQuery, useDeleteWarehouseMutation } from '../../store/api/warehousesApi';
+import { useAuth } from '../../context/AuthContext';
 
 const warehouseTypeLabels: Record<number, string> = {
   1: 'Main Warehouse',
@@ -27,6 +28,8 @@ function WarehouseProfile() {
   const { data: warehouse, isLoading, error } = useGetWarehouseQuery(warehouseId, { skip: !warehouseId });
   const [deleteWarehouse, { isLoading: isDeleting }] = useDeleteWarehouseMutation();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const { can } = useAuth();
+  const canManage = can('warehouse:update');
 
   const handleDelete = async () => {
     try {
@@ -106,13 +109,15 @@ function WarehouseProfile() {
                 <i className="fa-solid fa-clock-rotate-left" />
                 <span className="hidden sm:inline">View Activities</span>
               </Link>
-              <Link
-                to={`/warehouses/${warehouse.id}/edit`}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
-              >
-                <i className="fa-solid fa-pen-to-square" />
-                Edit
-              </Link>
+              {canManage && (
+                <Link
+                  to={`/warehouses/${warehouse.id}/edit`}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                >
+                  <i className="fa-solid fa-pen-to-square" />
+                  Edit
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -176,17 +181,19 @@ function WarehouseProfile() {
         </div>
 
         {/* Danger Zone */}
-        <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6">
-          <h2 className="text-lg font-semibold text-red-600 mb-2">Danger Zone</h2>
-          <p className="text-sm text-gray-500 mb-4">Permanently delete this warehouse. This action cannot be undone.</p>
-          <button
-            onClick={() => setShowDeleteModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium cursor-pointer"
-          >
-            <i className="fa-solid fa-trash" />
-            Delete Warehouse
-          </button>
-        </div>
+        {canManage && (
+          <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6">
+            <h2 className="text-lg font-semibold text-red-600 mb-2">Danger Zone</h2>
+            <p className="text-sm text-gray-500 mb-4">Permanently delete this warehouse. This action cannot be undone.</p>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium cursor-pointer"
+            >
+              <i className="fa-solid fa-trash" />
+              Delete Warehouse
+            </button>
+          </div>
+        )}
       </div>
 
       <Modal

@@ -14,6 +14,7 @@ import WarehouseSerialiser from 'src/presentation/serialisers/warehouse.serialis
 import { StaffModule } from '../staff/staff.module';
 import { RoleModule } from '../role/role.module';
 import { BranchModule } from '../branch/branch.module';
+import { AuthModule } from '../auth/auth.module';
 import { WarehouseSeed } from 'src/infrastructure/database/seeds/warehouse.seed';
 
 @Module({
@@ -23,6 +24,7 @@ import { WarehouseSeed } from 'src/infrastructure/database/seeds/warehouse.seed'
     StaffModule,
     RoleModule,
     BranchModule,
+    AuthModule,
   ],
   controllers: [WarehouseController],
   providers: [

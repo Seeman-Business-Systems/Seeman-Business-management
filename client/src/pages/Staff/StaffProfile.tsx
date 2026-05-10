@@ -3,9 +3,14 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import Modal from '../../components/ui/Modal';
 import usePageTitle from '../../hooks/usePageTitle';
-import { useGetStaffQuery, useTransferStaffMutation } from '../../store/api/staffApi';
+import {
+  useGetMyStaffQuery,
+  useGetStaffQuery,
+  useTransferStaffMutation,
+} from '../../store/api/staffApi';
 import { useGetBranchesQuery } from '../../store/api/branchesApi';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import api from '../../lib/api';
 
 interface StaffProfileProps {
@@ -17,13 +22,32 @@ function StaffProfile({ staffId: propStaffId, isMyprofile }: StaffProfileProps) 
   usePageTitle('Staff Profile');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user, can } = useAuth();
+  const canEditStaff = can('staff:create');
+  const canTransfer = can('staff:transfer');
+  const canDelete = can('staff:delete');
 
   // Use prop staffId if provided, otherwise use URL param
   const staffId = propStaffId ?? (id ? Number(id) : undefined);
+  const isSelfProfile = Boolean(user && staffId && user.id === staffId);
 
-  const { data: staff, isLoading, error } = useGetStaffQuery(staffId!, {
-    skip: !staffId,
+  const {
+    data: myStaff,
+    isLoading: isLoadingSelf,
+    error: selfError,
+  } = useGetMyStaffQuery(undefined, {
+    skip: !isSelfProfile,
   });
+  const {
+    data: otherStaff,
+    isLoading: isLoadingOther,
+    error: otherError,
+  } = useGetStaffQuery(staffId!, {
+    skip: !staffId || isSelfProfile,
+  });
+  const staff = isSelfProfile ? myStaff : otherStaff;
+  const isLoading = isSelfProfile ? isLoadingSelf : isLoadingOther;
+  const error = isSelfProfile ? selfError : otherError;
 
   const { showToast } = useToast();
   const { data: branches = [] } = useGetBranchesQuery();
@@ -166,14 +190,16 @@ function StaffProfile({ staffId: propStaffId, isMyprofile }: StaffProfileProps) 
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2 sm:gap-3">
-              <Link
-                to={`/staff/${staff.id}/edit`}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
-              >
-                <i className="fa-solid fa-pen-to-square" />
-                Edit
-              </Link>
-              {!isMyprofile && (
+              {(isSelfProfile || canEditStaff) && (
+                <Link
+                  to={`/staff/${staff.id}/edit`}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                >
+                  <i className="fa-solid fa-pen-to-square" />
+                  Edit
+                </Link>
+              )}
+              {!isMyprofile && canTransfer && (
                 <button
                   onClick={() => setShowTransferModal(true)}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors text-sm font-medium"
@@ -327,7 +353,7 @@ function StaffProfile({ staffId: propStaffId, isMyprofile }: StaffProfileProps) 
         </div>
 
         {/* Danger Zone */}
-        {!isMyprofile && (
+        {!isMyprofile && canDelete && (
           <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6">
             <h2 className="text-lg font-semibold text-red-600 mb-2">
               Danger Zone

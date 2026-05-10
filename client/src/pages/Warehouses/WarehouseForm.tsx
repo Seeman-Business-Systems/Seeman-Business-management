@@ -6,6 +6,7 @@ import type { Warehouse } from '../../types/inventory';
 import type { CreateWarehouseRequest } from '../../store/api/warehousesApi';
 import { useGetBranchesQuery } from '../../store/api/branchesApi';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 
 interface WarehouseFormProps {
   title: string;
@@ -32,6 +33,8 @@ const warehouseStatusOptions = [
 function WarehouseFormPage({ title, initialData, onSubmit, isSubmitting, backUrl }: WarehouseFormProps) {
   usePageTitle(title);
   const { showToast } = useToast();
+  const { user, can } = useAuth();
+  const canSelectBranch = can('branch:select-on-create');
 
   const [searchParams] = useSearchParams();
   const preselectedBranchId = searchParams.get('branchId');
@@ -44,7 +47,9 @@ function WarehouseFormPage({ title, initialData, onSubmit, isSubmitting, backUrl
   const [warehouseType, setWarehouseType] = useState<number>(initialData?.warehouseType ?? 1);
   const [status, setStatus] = useState(initialData?.status ?? 'ACTIVE');
   const [branchId, setBranchId] = useState<string>(
-    initialData?.branchId?.toString() ?? preselectedBranchId ?? ''
+    initialData?.branchId?.toString()
+      ?? preselectedBranchId
+      ?? (!canSelectBranch && user?.branch?.id ? String(user.branch.id) : '')
   );
   const [capacity, setCapacity] = useState<string>(initialData?.capacity?.toString() ?? '');
 
@@ -132,15 +137,28 @@ function WarehouseFormPage({ title, initialData, onSubmit, isSubmitting, backUrl
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={labelClass}>Branch <span className="text-gray-400 font-normal">(optional)</span></label>
-                <select value={branchId} onChange={(e) => setBranchId(e.target.value)} className={inputClass}>
-                  <option value="">No branch</option>
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
-                  ))}
-                </select>
-              </div>
+              {canSelectBranch ? (
+                <div>
+                  <label className={labelClass}>Branch <span className="text-gray-400 font-normal">(optional)</span></label>
+                  <select value={branchId} onChange={(e) => setBranchId(e.target.value)} className={inputClass}>
+                    <option value="">No branch</option>
+                    {branches.map((b) => (
+                      <option key={b.id} value={b.id}>{b.name}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div>
+                  <label className={labelClass}>Branch</label>
+                  {user?.branch ? (
+                    <p className="text-xs text-gray-500 py-2">
+                      Branch: <span className="font-medium text-gray-700">{user.branch.name}</span>
+                    </p>
+                  ) : (
+                    <p className="text-xs text-gray-400 py-2">No branch assigned</p>
+                  )}
+                </div>
+              )}
               <div>
                 <label className={labelClass}>Capacity <span className="text-gray-400 font-normal">(units, optional)</span></label>
                 <input type="number" min="0" value={capacity} onChange={(e) => setCapacity(e.target.value)} placeholder="e.g. 5000" className={inputClass} />

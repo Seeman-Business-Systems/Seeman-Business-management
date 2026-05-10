@@ -38,6 +38,18 @@ const generators: Record<ActivityType, Generator> = {
   PAYMENT_RECORDED: (meta) =>
     `Recorded payment of ${formatAmount(meta.amount)} on sale ${meta.saleNumber}`,
 
+  STOCK_ADDED: (meta) => {
+    const qty = Number(meta.quantity ?? 0);
+    const variant = meta.variantName ? `"${meta.variantName}"` : `variant #${meta.variantId}`;
+    return `Added ${qty} unit(s) of ${variant} to warehouse #${meta.warehouseId}`;
+  },
+
+  STOCK_DEDUCTED: (meta) => {
+    const qty = Number(meta.quantity ?? 0);
+    const variant = meta.variantName ? `"${meta.variantName}"` : `variant #${meta.variantId}`;
+    return `Deducted ${qty} unit(s) of ${variant} from warehouse #${meta.warehouseId}`;
+  },
+
   INVENTORY_ADJUSTED: (meta) => {
     const qty = Number(meta.adjustmentQuantity ?? 0);
     const direction = qty >= 0 ? `+${qty}` : `${qty}`;

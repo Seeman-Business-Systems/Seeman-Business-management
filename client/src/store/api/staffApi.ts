@@ -14,6 +14,11 @@ interface StaffListFilters {
 
 export const staffApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getMyStaff: builder.query<Staff, void>({
+      query: () => '/staff/me',
+      providesTags: [{ type: 'Staff' as const, id: 'ME' }],
+    }),
+
     getStaff: builder.query<Staff, number>({
       query: (id) => `/staff/${id}`,
       providesTags: (_result, _error, id) => [{ type: 'Staff' as const, id }],
@@ -51,4 +56,9 @@ export const staffApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useGetStaffQuery, useGetStaffListQuery, useTransferStaffMutation } = staffApi;
+export const {
+  useGetMyStaffQuery,
+  useGetStaffQuery,
+  useGetStaffListQuery,
+  useTransferStaffMutation,
+} = staffApi;

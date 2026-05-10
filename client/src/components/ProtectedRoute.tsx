@@ -1,12 +1,14 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  permission?: string;
 }
 
-function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+function ProtectedRoute({ children, permission }: ProtectedRouteProps) {
+  const { isAuthenticated, isLoading, can } = useAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -18,6 +20,16 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (permission && !can(permission)) {
+    return (
+      <Navigate
+        to="/forbidden"
+        replace
+        state={{ from: `${location.pathname}${location.search}` }}
+      />
+    );
   }
 
   return <>{children}</>;

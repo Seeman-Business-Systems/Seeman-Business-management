@@ -37,7 +37,8 @@ function CreateSale() {
   usePageTitle('New Sale');
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const { user } = useAuth();
+  const { user, can } = useAuth();
+  const canSelectBranch = can('branch:select-on-create');
 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string>(() => user?.branch?.id ? String(user.branch.id) : '');
@@ -54,9 +55,10 @@ function CreateSale() {
 
   const { data: products = [] } = useGetProductsQuery({ includeRelations: true });
   const { data: branches = [] } = useGetBranchesQuery();
-  const { data: customers = [] } = useGetCustomersQuery(
-    customerSearch.trim() ? { name: customerSearch.trim() } : undefined
+  const { data: customersResponse } = useGetCustomersQuery(
+    customerSearch.trim() ? { name: customerSearch.trim(), take: 50 } : { take: 50 }
   );
+  const customers = customersResponse?.data ?? [];
   const [createSale, { isLoading }] = useCreateSaleMutation();
   const [fetchInventory] = useLazyGetInventoryQuery();
 
@@ -414,25 +416,33 @@ function CreateSale() {
               </div>
 
               {/* Branch */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Branch <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <select
-                    value={selectedBranch}
-                    onChange={(e) => setSelectedBranch(e.target.value)}
-                    className="w-full appearance-none pl-9 pr-8 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white cursor-pointer"
-                  >
-                    <option value="">Select branch</option>
-                    {branches.map((b: any) => (
-                      <option key={b.id} value={b.id}>{b.name}</option>
-                    ))}
-                  </select>
-                  <i className="fa-solid fa-code-branch absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
-                  <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
+              {canSelectBranch ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Branch <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={selectedBranch}
+                      onChange={(e) => setSelectedBranch(e.target.value)}
+                      className="w-full appearance-none pl-9 pr-8 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white cursor-pointer"
+                    >
+                      <option value="">Select branch</option>
+                      {branches.map((b: any) => (
+                        <option key={b.id} value={b.id}>{b.name}</option>
+                      ))}
+                    </select>
+                    <i className="fa-solid fa-code-branch absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                    <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
+                  </div>
                 </div>
-              </div>
+              ) : (
+                user?.branch && (
+                  <p className="text-xs text-gray-500">
+                    Branch: <span className="font-medium text-gray-700">{user.branch.name}</span>
+                  </p>
+                )
+              )}
 
               {/* Payment method */}
               <div>
