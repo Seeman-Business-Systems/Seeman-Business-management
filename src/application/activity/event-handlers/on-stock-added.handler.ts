@@ -24,6 +24,7 @@ class OnStockAddedActivityHandler implements IEventHandler<StockAdded> {
         variantId: event.variantId,
         variantName: event.variantName,
         warehouseId: event.warehouseId,
+        warehouseName: event.warehouseName,
         quantity: event.quantity,
         notes: event.notes,
       },

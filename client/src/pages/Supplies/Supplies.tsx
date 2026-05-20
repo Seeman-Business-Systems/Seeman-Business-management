@@ -3,7 +3,10 @@ import { Link, useSearchParams } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import Modal from '../../components/ui/Modal';
 import usePageTitle from '../../hooks/usePageTitle';
-import { useGetSuppliesQuery, useFulfilSupplyMutation } from '../../store/api/suppliesApi';
+import {
+  useGetSuppliesQuery,
+  useFulfilSupplyMutation,
+} from '../../store/api/suppliesApi';
 import { useGetBranchesQuery } from '../../store/api/branchesApi';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
@@ -19,9 +22,9 @@ const tabs: { key: TabKey; label: string }[] = [
 ];
 
 const statusStyles: Record<SupplyStatus, string> = {
-  DRAFT:      'bg-yellow-100 text-yellow-800',
-  FULFILLED:  'bg-green-100 text-green-800',
-  CANCELLED:  'bg-red-100 text-red-800',
+  DRAFT: 'bg-yellow-100 text-yellow-800',
+  FULFILLED: 'bg-green-100 text-green-800',
+  CANCELLED: 'bg-red-100 text-red-800',
 };
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
@@ -41,7 +44,7 @@ function Supplies() {
       searchParams.delete('status');
       setSearchParams(searchParams, { replace: true });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [dateFrom, setDateFrom] = useState('');
@@ -49,7 +52,9 @@ function Supplies() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  useEffect(() => { setCurrentPage(1); }, [activeTab, selectedBranch, dateFrom, dateTo]);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, selectedBranch, dateFrom, dateTo]);
 
   const { showToast } = useToast();
   const [fulfilSupply, { isLoading: isFulfilling }] = useFulfilSupplyMutation();
@@ -60,15 +65,26 @@ function Supplies() {
     if (!pendingFulfil) return;
     try {
       const fulfilled = pendingFulfil;
-      await fulfilSupply({ id: fulfilled.id, notes: fulfilNotes || undefined }).unwrap();
+      await fulfilSupply({
+        id: fulfilled.id,
+        notes: fulfilNotes || undefined,
+      }).unwrap();
       setPendingFulfil(null);
       setFulfilNotes('');
       showToast('success', 'Supply marked as fulfilled');
       if (fulfilled.saleId) {
-        showToast('info', `Sale ${fulfilled.saleNumber} has been fulfilled automatically`);
+        showToast(
+          'info',
+          `Sale ${fulfilled.saleNumber} has been fulfilled automatically`,
+        );
       }
     } catch (error) {
-      showToast('error', error instanceof Error ? error.message : 'Failed to mark supply as fulfilled');
+      showToast(
+        'error',
+        error instanceof Error
+          ? error.message
+          : 'Failed to mark supply as fulfilled',
+      );
     }
   };
 
@@ -90,7 +106,11 @@ function Supplies() {
   const totalPages = Math.ceil(total / pageSize);
 
   const formatDate = (s: string) =>
-    new Date(s).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    new Date(s).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
 
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
@@ -99,9 +119,24 @@ function Supplies() {
     } else if (currentPage <= 3) {
       pages.push(1, 2, 3, 4, '...', totalPages);
     } else if (currentPage >= totalPages - 2) {
-      pages.push(1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+      pages.push(
+        1,
+        '...',
+        totalPages - 3,
+        totalPages - 2,
+        totalPages - 1,
+        totalPages,
+      );
     } else {
-      pages.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
+      pages.push(
+        1,
+        '...',
+        currentPage - 1,
+        currentPage,
+        currentPage + 1,
+        '...',
+        totalPages,
+      );
     }
     return pages;
   };
@@ -111,7 +146,9 @@ function Supplies() {
       <div className="space-y-4">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Supplies</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+            Supplies
+          </h1>
         </div>
 
         {/* Tabs */}
@@ -143,7 +180,9 @@ function Supplies() {
                 >
                   <option value="all">All branches</option>
                   {branches.map((b) => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
                   ))}
                 </select>
                 <i className="fa-solid fa-building absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
@@ -167,7 +206,10 @@ function Supplies() {
               />
               {(dateFrom || dateTo) && (
                 <button
-                  onClick={() => { setDateFrom(''); setDateTo(''); }}
+                  onClick={() => {
+                    setDateFrom('');
+                    setDateTo('');
+                  }}
                   className="px-3 py-2.5 text-sm text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Clear
@@ -187,22 +229,34 @@ function Supplies() {
                 <i className="fa-solid fa-truck-fast text-gray-400 text-xl" />
               </div>
               <p className="text-gray-500 font-medium">No supplies found</p>
-              <p className="text-sm text-gray-400 mt-1">Supplies are created automatically when a sale is recorded.</p>
+              <p className="text-sm text-gray-400 mt-1">
+                Supplies are created automatically when a sale is recorded.
+              </p>
             </div>
           ) : (
             <>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
                 <p className="text-sm text-gray-600">
-                  Showing {total > 0 ? skip + 1 : 0}–{Math.min(skip + pageSize, total)} of {total} supplies
+                  Showing {total > 0 ? skip + 1 : 0}–
+                  {Math.min(skip + pageSize, total)} of {total} supplies
                 </p>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Results per page:</span>
+                  <span className="text-sm text-gray-600">
+                    Results per page:
+                  </span>
                   <select
                     value={pageSize}
-                    onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
                     className="appearance-none px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white cursor-pointer"
                   >
-                    {PAGE_SIZE_OPTIONS.map((n) => <option key={n} value={n}>{n}</option>)}
+                    {PAGE_SIZE_OPTIONS.map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -211,11 +265,21 @@ function Supplies() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-100">
-                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Supply #</th>
-                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Sale</th>
-                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
-                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Supply #
+                      </th>
+                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Sale
+                      </th>
+                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Items
+                      </th>
+                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date
+                      </th>
                       <th className="w-10 px-6 py-3" />
                     </tr>
                   </thead>
@@ -244,18 +308,26 @@ function Supplies() {
                         <td className="px-6 py-4">
                           <div className="flex flex-col gap-0.5">
                             {supply.items.slice(0, 2).map((item) => (
-                              <span key={item.id} className="text-sm text-gray-700">
+                              <span
+                                key={item.id}
+                                className="text-sm text-gray-700"
+                              >
                                 {item.quantity}× {item.variantName ?? '—'}
                               </span>
                             ))}
                             {supply.items.length > 2 && (
-                              <span className="text-xs text-gray-400">+{supply.items.length - 2} more</span>
+                              <span className="text-xs text-gray-400">
+                                +{supply.items.length - 2} more
+                              </span>
                             )}
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusStyles[supply.status]}`}>
-                            {supply.status.charAt(0) + supply.status.slice(1).toLowerCase()}
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusStyles[supply.status]}`}
+                          >
+                            {supply.status.charAt(0) +
+                              supply.status.slice(1).toLowerCase()}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500">
@@ -263,20 +335,21 @@ function Supplies() {
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap">
                           <div className="flex items-center justify-end gap-2">
-                            {supply.status === 'DRAFT' && (
-                              <div className="relative group inline-flex">
-                                <button
-                                  onClick={() => setPendingFulfil(supply)}
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors text-xs font-medium cursor-pointer"
-                                >
-                                  <i className="fa-solid fa-circle-check" />
-                                  Fulfil
-                                </button>
-                                <div className="absolute bottom-full right-0 mb-1.5 bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
-                                  Mark as Fulfilled
+                            {supply.status === 'DRAFT' &&
+                              can('fulfil:supply') && (
+                                <div className="relative group inline-flex">
+                                  <button
+                                    onClick={() => setPendingFulfil(supply)}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors text-xs font-medium cursor-pointer"
+                                  >
+                                    <i className="fa-solid fa-circle-check" />
+                                    Fulfil
+                                  </button>
+                                  <div className="absolute bottom-full right-0 mb-1.5 bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                                    Mark as Fulfilled
+                                  </div>
                                 </div>
-                              </div>
-                            )}
+                              )}
                             <div className="relative group inline-flex">
                               <Link
                                 to={`/supplies/${supply.id}`}
@@ -301,17 +374,30 @@ function Supplies() {
                 {supplies.map((supply) => (
                   <div key={supply.id} className="p-4">
                     <div className="flex items-start justify-between gap-3">
-                      <Link to={`/supplies/${supply.id}`} className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 font-mono text-sm">{supply.supplyNumber}</p>
-                        <p className="text-sm text-indigo-600 mt-0.5">{supply.saleNumber}</p>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {supply.items.length} item{supply.items.length !== 1 ? 's' : ''}
+                      <Link
+                        to={`/supplies/${supply.id}`}
+                        className="flex-1 min-w-0"
+                      >
+                        <p className="font-medium text-gray-900 font-mono text-sm">
+                          {supply.supplyNumber}
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">{formatDate(supply.createdAt)}</p>
+                        <p className="text-sm text-indigo-600 mt-0.5">
+                          {supply.saleNumber}
+                        </p>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {supply.items.length} item
+                          {supply.items.length !== 1 ? 's' : ''}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {formatDate(supply.createdAt)}
+                        </p>
                       </Link>
                       <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusStyles[supply.status]}`}>
-                          {supply.status.charAt(0) + supply.status.slice(1).toLowerCase()}
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusStyles[supply.status]}`}
+                        >
+                          {supply.status.charAt(0) +
+                            supply.status.slice(1).toLowerCase()}
                         </span>
                         {supply.status === 'DRAFT' && (
                           <button
@@ -349,18 +435,24 @@ function Supplies() {
                       key={i}
                       onClick={() => setCurrentPage(page)}
                       className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                        currentPage === page ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+                        currentPage === page
+                          ? 'bg-indigo-600 text-white'
+                          : 'text-gray-600 hover:bg-gray-100'
                       }`}
                     >
                       {page}
                     </button>
                   ) : (
-                    <span key={i} className="px-2 text-gray-400">{page}</span>
-                  )
+                    <span key={i} className="px-2 text-gray-400">
+                      {page}
+                    </span>
+                  ),
                 )}
               </div>
               <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
                 disabled={currentPage === totalPages || totalPages === 0}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -372,17 +464,35 @@ function Supplies() {
       </div>
       <Modal
         isOpen={!!pendingFulfil}
-        onClose={() => { setPendingFulfil(null); setFulfilNotes(''); }}
+        onClose={() => {
+          setPendingFulfil(null);
+          setFulfilNotes('');
+        }}
         title="Mark Supply as Fulfilled"
-        leftButton={{ text: 'Cancel', onClick: () => { setPendingFulfil(null); setFulfilNotes(''); }, variant: 'secondary' }}
-        rightButton={{ text: isFulfilling ? 'Saving…' : 'Mark Fulfilled', onClick: handleFulfilConfirm, variant: 'primary' }}
+        leftButton={{
+          text: 'Cancel',
+          onClick: () => {
+            setPendingFulfil(null);
+            setFulfilNotes('');
+          },
+          variant: 'secondary',
+        }}
+        rightButton={{
+          text: isFulfilling ? 'Saving…' : 'Mark Fulfilled',
+          onClick: handleFulfilConfirm,
+          variant: 'primary',
+        }}
       >
         <p className="text-gray-600 mb-4">
           Confirm that{' '}
-          <span className="font-semibold text-gray-900">{pendingFulfil?.supplyNumber}</span>{' '}
+          <span className="font-semibold text-gray-900">
+            {pendingFulfil?.supplyNumber}
+          </span>{' '}
           has been waybilled to the customer.
         </p>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Notes (optional)
+        </label>
         <textarea
           value={fulfilNotes}
           onChange={(e) => setFulfilNotes(e.target.value)}

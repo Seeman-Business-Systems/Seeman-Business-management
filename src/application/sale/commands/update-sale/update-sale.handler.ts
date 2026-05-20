@@ -18,6 +18,11 @@ class UpdateSaleHandler implements ICommandHandler<UpdateSaleCommand> {
     if (command.notes !== undefined) sale.setNotes(command.notes);
     if (command.paymentMethod !== undefined) sale.setPaymentMethod(command.paymentMethod);
     if (command.status !== undefined) sale.setStatus(command.status);
+    // Customer can only be assigned to a sale that originally had no customer (walk-in).
+    // Once linked, it cannot be changed via this endpoint.
+    if (command.customerId !== undefined && sale.getCustomerId() === null) {
+      sale.setCustomerId(command.customerId);
+    }
 
     return this.saleRepository.commit(sale);
   }

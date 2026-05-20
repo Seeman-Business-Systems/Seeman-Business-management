@@ -4,11 +4,15 @@ import AdjustInventoryCommand from './adjust-inventory.command';
 import Inventory from 'src/domain/inventory/inventory';
 import InventoryRepository from 'src/infrastructure/database/repositories/inventory/inventory.repository';
 import InventoryAdjusted from 'src/domain/inventory/events/inventory-adjusted.event';
+import ProductVariantRepository from 'src/infrastructure/database/repositories/product/product-variant.repository';
+import WarehouseRepository from 'src/infrastructure/database/repositories/warehouse/warehouse.repository';
 
 @CommandHandler(AdjustInventoryCommand)
 class AdjustInventoryHandler implements ICommandHandler<AdjustInventoryCommand> {
   constructor(
     private readonly inventories: InventoryRepository,
+    private readonly variants: ProductVariantRepository,
+    private readonly warehouses: WarehouseRepository,
     private readonly eventBus: EventBus,
   ) {}
 
@@ -35,11 +39,19 @@ class AdjustInventoryHandler implements ICommandHandler<AdjustInventoryCommand> 
 
     const saved = await this.inventories.commit(inventory);
 
+    const variant = await this.variants.findById(command.variantId);
+    const variantName = variant?.getVariantName() ?? null;
+
+    const warehouse = await this.warehouses.findById(command.warehouseId);
+    const warehouseName = warehouse?.getName() ?? null;
+
     this.eventBus.publish(
       new InventoryAdjusted(
         saved.getId()!,
         command.warehouseId,
+        warehouseName,
         command.variantId,
+        variantName,
         command.adjustmentQuantity,
         command.actorId,
         command.notes,

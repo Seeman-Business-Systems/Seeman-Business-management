@@ -4,6 +4,7 @@ class StockAdded {
     public readonly variantId: number,
     public readonly variantName: string | null,
     public readonly warehouseId: number,
+    public readonly warehouseName: string | null,
     public readonly quantity: number,
     public readonly actorId: number,
     public readonly notes: string | null,

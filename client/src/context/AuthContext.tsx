@@ -3,6 +3,43 @@ import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import type { Staff, LoginResponse } from '../types/auth';
+import { prefetchOfflineData } from '../lib/offline/prefetch';
+
+const CACHED_USER_KEY = 'cachedUser';
+const CACHED_PERMISSIONS_KEY = 'cachedPermissions';
+
+function readCachedUser(): Staff | null {
+  try {
+    const raw = localStorage.getItem(CACHED_USER_KEY);
+    return raw ? (JSON.parse(raw) as Staff) : null;
+  } catch {
+    return null;
+  }
+}
+
+function readCachedPermissions(): string[] {
+  try {
+    const raw = localStorage.getItem(CACHED_PERMISSIONS_KEY);
+    return raw ? (JSON.parse(raw) as string[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeAuthCache(user: Staff | null, permissions: string[]) {
+  if (user) {
+    localStorage.setItem(CACHED_USER_KEY, JSON.stringify(user));
+    localStorage.setItem(CACHED_PERMISSIONS_KEY, JSON.stringify(permissions));
+  } else {
+    localStorage.removeItem(CACHED_USER_KEY);
+    localStorage.removeItem(CACHED_PERMISSIONS_KEY);
+  }
+}
+
+function isTransportError(err: unknown): boolean {
+  // axios: no response received = transport-level (network down, CORS preflight, etc.)
+  return Boolean(err && typeof err === 'object' && (err as { response?: unknown }).response === undefined);
+}
 
 interface AuthContextType {
   user: Staff | null;
@@ -31,31 +68,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return permissions.includes('*') || permissions.includes(permission);
   };
 
-  // Check if user is already logged in on mount
+  // Check if user is already logged in on mount.
+  // Strategy: hydrate immediately from cache (offline-safe), then verify with the
+  // server in the background. Only clear tokens if the server explicitly rejects
+  // the session — never on network errors, so an offline reload keeps the user in.
   useEffect(() => {
-    const checkAuth = async () => {
-      const accessToken = localStorage.getItem('accessToken');
+    const accessToken = localStorage.getItem('accessToken');
 
-      if (!accessToken) {
-        setIsLoading(false);
-        return;
-      }
+    if (!accessToken) {
+      setIsLoading(false);
+      return;
+    }
 
+    const cachedUser = readCachedUser();
+    if (cachedUser) {
+      setUser(cachedUser);
+      setPermissions(readCachedPermissions());
+      setIsImpersonating(!!localStorage.getItem('originalToken'));
+      setIsLoading(false);
+    }
+
+    (async () => {
       try {
         const { data } = await api.post('/auth/me');
         setUser(data.staff);
         setPermissions(data.permissions ?? []);
         setIsImpersonating(!!localStorage.getItem('originalToken'));
-      } catch {
+        writeAuthCache(data.staff, data.permissions ?? []);
+        prefetchOfflineData();
+      } catch (err) {
+        if (isTransportError(err)) {
+          // Offline / unreachable — keep cached session as-is.
+          return;
+        }
+        // Server actually rejected us (401/403). Clear the session.
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('originalToken');
+        writeAuthCache(null, []);
+        setUser(null);
+        setPermissions([]);
       } finally {
         setIsLoading(false);
       }
-    };
-
-    checkAuth();
+    })();
   }, []);
 
   const login = async (identifier: string, password: string) => {
@@ -69,12 +125,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.staff);
 
     // Fetch permissions after login
+    let perms: string[] = [];
     try {
       const { data: meData } = await api.post('/auth/me');
-      setPermissions(meData.permissions ?? []);
+      perms = meData.permissions ?? [];
+      setPermissions(perms);
     } catch {
       setPermissions([]);
     }
+    writeAuthCache(data.staff, perms);
+    prefetchOfflineData();
 
     navigate('/');
   };
@@ -92,6 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('originalToken');
+      writeAuthCache(null, []);
       setUser(null);
       setPermissions([]);
       setIsImpersonating(false);

@@ -63,10 +63,17 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh failed - clear tokens and redirect to login
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
+        // Only clear tokens when the server actually rejected us. A network
+        // failure during refresh (no response received) is transient — keep
+        // the session so the user can stay in the app while offline.
+        const isTransport = !(refreshError as { response?: unknown })?.response;
+        if (!isTransport) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('cachedUser');
+          localStorage.removeItem('cachedPermissions');
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       }
     }

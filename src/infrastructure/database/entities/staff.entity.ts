@@ -64,6 +64,9 @@ class StaffEntity {
   @Column({ nullable: true })
   lastLoginAt: Date;
 
+  @Column({ name: 'session_id', type: 'varchar', length: 64, nullable: true })
+  sessionId?: string | null;
+
   @CreateDateColumn()
   createdAt: Date;
 

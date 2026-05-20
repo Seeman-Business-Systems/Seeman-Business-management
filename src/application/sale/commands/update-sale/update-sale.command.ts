@@ -9,6 +9,7 @@ class UpdateSaleCommand extends Command<Sale> {
     public readonly notes: string | null | undefined,
     public readonly paymentMethod: PaymentMethod | null | undefined,
     public readonly status: SaleStatus | undefined,
+    public readonly customerId: number | undefined,
   ) {
     super();
   }

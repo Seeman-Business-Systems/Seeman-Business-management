@@ -3,6 +3,7 @@ class SupplyCreated {
     public readonly supplyId: number,
     public readonly supplyNumber: string,
     public readonly saleId: number,
+    public readonly saleNumber: string,
     public readonly branchId: number,
     public readonly itemCount: number,
   ) {}

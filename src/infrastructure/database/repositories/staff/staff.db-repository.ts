@@ -89,6 +89,7 @@ class StaffDBRepository extends StaffRepository {
     if (staff.lastLoginAt) {
       entity.lastLoginAt = staff.lastLoginAt;
     }
+    entity.sessionId = staff.sessionId ?? null;
     entity.deletedAt = staff.deletedAt;
 
     const savedEntity = await this.repository.save(entity);
@@ -114,6 +115,7 @@ class StaffDBRepository extends StaffRepository {
       entity.email,
       entity.joinedAt,
       entity.deletedAt,
+      entity.sessionId,
     );
   }
 }

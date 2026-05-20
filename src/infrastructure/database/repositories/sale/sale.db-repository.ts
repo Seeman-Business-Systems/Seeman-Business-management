@@ -39,6 +39,22 @@ class SaleDBRepository extends SaleRepository {
     return this.toDomain(record);
   }
 
+  async findByIdempotencyKey(key: string): Promise<Sale | null> {
+    const record = await this.repository.findOne({
+      where: { idempotencyKey: key },
+      relations: [
+        'customer',
+        'soldByStaff',
+        'branch',
+        'lineItems',
+        'lineItems.variant',
+        'payments',
+        'payments.recordedByStaff',
+      ],
+    });
+    return record ? this.toDomain(record) : null;
+  }
+
   async findAll(): Promise<Sale[]> {
     const records = await this.repository.find({
       relations: [
@@ -71,6 +87,7 @@ class SaleDBRepository extends SaleRepository {
     entity.totalAmount = sale.getTotalAmount();
     entity.notes = sale.getNotes();
     entity.soldAt = sale.getSoldAt();
+    entity.idempotencyKey = sale.getIdempotencyKey();
 
     const savedEntity = await this.repository.save(entity);
     const fullEntity = await this.repository.findOne({
@@ -150,6 +167,7 @@ class SaleDBRepository extends SaleRepository {
       entity.deletedAt,
       lineItems,
       payments,
+      entity.idempotencyKey,
     );
   }
 }

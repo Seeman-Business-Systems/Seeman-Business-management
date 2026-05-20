@@ -5,10 +5,14 @@ import AdjustInventoryCommand from './adjust-inventory.command';
 import Inventory from 'src/domain/inventory/inventory';
 import InventoryRepository from 'src/infrastructure/database/repositories/inventory/inventory.repository';
 import InventoryAdjusted from 'src/domain/inventory/events/inventory-adjusted.event';
+import ProductVariantRepository from 'src/infrastructure/database/repositories/product/product-variant.repository';
+import WarehouseRepository from 'src/infrastructure/database/repositories/warehouse/warehouse.repository';
 
 describe('AdjustInventoryHandler', () => {
   let handler: AdjustInventoryHandler;
   let inventories: jest.Mocked<InventoryRepository>;
+  let variants: jest.Mocked<ProductVariantRepository>;
+  let warehouses: jest.Mocked<WarehouseRepository>;
   let eventBus: jest.Mocked<EventBus>;
 
   beforeEach(() => {
@@ -22,8 +26,14 @@ describe('AdjustInventoryHandler', () => {
       commit: jest.fn(),
       toDomain: jest.fn(),
     } as unknown as jest.Mocked<InventoryRepository>;
+    variants = {
+      findById: jest.fn().mockResolvedValue(null),
+    } as unknown as jest.Mocked<ProductVariantRepository>;
+    warehouses = {
+      findById: jest.fn().mockResolvedValue(null),
+    } as unknown as jest.Mocked<WarehouseRepository>;
     eventBus = { publish: jest.fn() } as unknown as jest.Mocked<EventBus>;
-    handler = new AdjustInventoryHandler(inventories, eventBus);
+    handler = new AdjustInventoryHandler(inventories, variants, warehouses, eventBus);
   });
 
   it('rejects an adjustment that would produce negative stock', async () => {
