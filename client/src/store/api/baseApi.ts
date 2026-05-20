@@ -55,10 +55,17 @@ const baseQueryWithReauth: BaseQueryFn<
         // Retry original request
         result = await baseQuery(args, api, extraOptions);
       } else {
-        // Refresh failed - clear tokens and redirect to login
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
+        // Only clear tokens when refresh genuinely failed (server response).
+        // Transport errors (offline, timeout) are transient — keep the session.
+        const refreshStatus = refreshResult.error?.status;
+        const isTransport = typeof refreshStatus === 'string';
+        if (!isTransport) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('cachedUser');
+          localStorage.removeItem('cachedPermissions');
+          window.location.href = '/login';
+        }
       }
     }
   }

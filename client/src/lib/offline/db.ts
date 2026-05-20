@@ -14,6 +14,12 @@ export type OutboxEntry = {
   invalidatesTags: string[];
 };
 
+export type CacheEntry = {
+  key: string;
+  data: unknown;
+  updatedAt: number;
+};
+
 interface OfflineDB extends DBSchema {
   outbox: {
     key: string;
@@ -24,21 +30,30 @@ interface OfflineDB extends DBSchema {
       'by-createdAt': number;
     };
   };
+  cache: {
+    key: string;
+    value: CacheEntry;
+  };
 }
 
 const DB_NAME = 'seeman-offline';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBPDatabase<OfflineDB>> | null = null;
 
 export function getDB(): Promise<IDBPDatabase<OfflineDB>> {
   if (!dbPromise) {
     dbPromise = openDB<OfflineDB>(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        const store = db.createObjectStore('outbox', { keyPath: 'id' });
-        store.createIndex('by-status', 'status');
-        store.createIndex('by-resource', 'resource');
-        store.createIndex('by-createdAt', 'createdAt');
+      upgrade(db, oldVersion) {
+        if (oldVersion < 1) {
+          const store = db.createObjectStore('outbox', { keyPath: 'id' });
+          store.createIndex('by-status', 'status');
+          store.createIndex('by-resource', 'resource');
+          store.createIndex('by-createdAt', 'createdAt');
+        }
+        if (oldVersion < 2) {
+          db.createObjectStore('cache', { keyPath: 'key' });
+        }
       },
     });
   }

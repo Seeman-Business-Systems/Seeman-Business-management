@@ -22,6 +22,7 @@ class OnSupplyCreatedActivityHandler implements IEventHandler<SupplyCreated> {
       {
         supplyNumber: event.supplyNumber,
         saleId: event.saleId,
+        saleNumber: event.saleNumber,
         itemCount: event.itemCount,
       },
       new Date(),

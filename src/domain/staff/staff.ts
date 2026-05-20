@@ -16,6 +16,7 @@ class Staff {
     public email?: string,
     public joinedAt?: Date,
     public deletedAt?: Date,
+    public sessionId?: string | null,
   ) {}
 
   getId(): number {
@@ -144,6 +145,14 @@ class Staff {
 
   setInitialPasswordChanged(initialPasswordChanged: boolean): void {
     this.initialPasswordChanged = initialPasswordChanged;
+  }
+
+  getSessionId(): string | null | undefined {
+    return this.sessionId;
+  }
+
+  setSessionId(sessionId: string | null): void {
+    this.sessionId = sessionId;
   }
 }
 

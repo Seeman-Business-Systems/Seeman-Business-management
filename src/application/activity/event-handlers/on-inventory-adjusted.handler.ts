@@ -22,7 +22,9 @@ class OnInventoryAdjustedActivityHandler implements IEventHandler<InventoryAdjus
       {
         inventoryId: event.inventoryId,
         variantId: event.variantId,
+        variantName: event.variantName,
         warehouseId: event.warehouseId,
+        warehouseName: event.warehouseName,
         adjustmentQuantity: event.adjustmentQuantity,
         notes: event.notes,
       },

@@ -97,10 +97,13 @@ class AuthService {
       throw new UnauthorizedException('Invalid email/phone or password');
     }
 
-    const tokens = await this.generateTokens(staff);
-
+    // Rotate session id so any token issued to a prior device is invalidated
+    // on its next request — enforces one active session per user.
+    staff.setSessionId(crypto.randomBytes(32).toString('hex'));
     staff.setLastLoginAt(new Date());
     await this.staff.commit(staff);
+
+    const tokens = await this.generateTokens(staff);
 
     return {
       ...tokens,
@@ -122,12 +125,20 @@ class AuthService {
         throw new BadRequestException('Invalid refresh token');
       }
 
+      // Reject refresh from a device whose session was superseded by a newer login.
+      const staff = await this.staff.findById(decoded.sub);
+      if (!staff || !staff.getSessionId() || staff.getSessionId() !== decoded.sessionId) {
+        await this.refreshTokens.revoke(refreshToken);
+        throw new BadRequestException('Session no longer active');
+      }
+
       await this.refreshTokens.revoke(refreshToken);
 
       const payload = {
         sub: decoded.sub,
         phoneNumber: decoded.phoneNumber,
         email: decoded.email,
+        sessionId: decoded.sessionId,
       };
 
       const accessToken = this.jwtService.sign(payload);
@@ -307,6 +318,7 @@ class AuthService {
       sub: staff.getId(),
       phoneNumber: staff.getPhoneNumber(),
       email: staff.getEmail(),
+      sessionId: staff.getSessionId(),
     };
 
     // Generate access token

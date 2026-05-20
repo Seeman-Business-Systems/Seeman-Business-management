@@ -40,21 +40,24 @@ export async function flushOutbox(options: SyncOptions = {}): Promise<SyncResult
 type ReplayOutcome = 'synced' | 'transient-failure' | 'permanent-failure';
 
 async function replay(entry: OutboxEntry): Promise<ReplayOutcome> {
-  const token = localStorage.getItem('accessToken');
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    'Idempotency-Key': entry.id,
-  };
-  if (token) headers.Authorization = `Bearer ${token}`;
-
   const body = entry.body ? { ...entry.body, idempotencyKey: entry.id } : null;
+  const serialisedBody = body ? JSON.stringify(body) : null;
 
   try {
-    const response = await fetch(`${API_BASE_URL}${entry.endpoint}`, {
-      method: entry.method,
-      headers,
-      body: body ? JSON.stringify(body) : null,
-    });
+    let response = await sendWithToken(entry, serialisedBody);
+
+    if (response.status === 401) {
+      const refreshed = await tryRefreshToken();
+      if (refreshed === 'refreshed') {
+        response = await sendWithToken(entry, serialisedBody);
+      } else if (refreshed === 'rejected') {
+        await outbox.markFailed(entry.id, 'Session expired — sign in again');
+        return 'permanent-failure';
+      } else {
+        await outbox.incrementAttempt(entry.id, 'refresh failed (offline)');
+        return 'transient-failure';
+      }
+    }
 
     if (response.ok) {
       return 'synced';
@@ -67,13 +70,59 @@ async function replay(entry: OutboxEntry): Promise<ReplayOutcome> {
       return 'permanent-failure';
     }
 
-    // 401 / 5xx / network — transient
+    // 401 still / 5xx / network-ish — transient
     await outbox.incrementAttempt(entry.id, `${response.status}`);
     return 'transient-failure';
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     await outbox.incrementAttempt(entry.id, message);
     return 'transient-failure';
+  }
+}
+
+async function sendWithToken(entry: OutboxEntry, serialisedBody: string | null): Promise<Response> {
+  const token = localStorage.getItem('accessToken');
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Idempotency-Key': entry.id,
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  return fetch(`${API_BASE_URL}${entry.endpoint}`, {
+    method: entry.method,
+    headers,
+    body: serialisedBody,
+  });
+}
+
+type RefreshOutcome = 'refreshed' | 'rejected' | 'transient';
+
+async function tryRefreshToken(): Promise<RefreshOutcome> {
+  const refreshToken = localStorage.getItem('refreshToken');
+  if (!refreshToken) return 'rejected';
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (response.ok) {
+      const data = (await response.json()) as { accessToken: string; refreshToken: string };
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      return 'refreshed';
+    }
+
+    if (response.status >= 400 && response.status < 500) {
+      // Server rejected the refresh token — session is dead.
+      return 'rejected';
+    }
+
+    return 'transient';
+  } catch {
+    return 'transient';
   }
 }
 

@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Layout from '../../components/layout/Layout';
 import SalesTable from './SalesTable';
+import PendingSalesCard from './PendingSalesCard';
 import usePageTitle from '../../hooks/usePageTitle';
 import { useGetSalesQuery } from '../../store/api/salesApi';
 import { useGetBranchesQuery } from '../../store/api/branchesApi';
@@ -214,6 +215,8 @@ function Sales() {
             </div>
           </div>
         </div>
+
+        <PendingSalesCard />
 
         {/* Table */}
         <SalesTable

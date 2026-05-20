@@ -40,24 +40,30 @@ const generators: Record<ActivityType, Generator> = {
 
   STOCK_ADDED: (meta) => {
     const qty = Number(meta.quantity ?? 0);
-    const variant = meta.variantName ? `"${meta.variantName}"` : `variant #${meta.variantId}`;
-    return `Added ${qty} unit(s) of ${variant} to warehouse #${meta.warehouseId}`;
+    const variant = meta.variantName ? `"${meta.variantName}"` : 'item';
+    const warehouse = meta.warehouseName ? `"${meta.warehouseName}"` : 'warehouse';
+    return `Added ${qty} unit(s) of ${variant} to ${warehouse}`;
   },
 
   STOCK_DEDUCTED: (meta) => {
     const qty = Number(meta.quantity ?? 0);
-    const variant = meta.variantName ? `"${meta.variantName}"` : `variant #${meta.variantId}`;
-    return `Deducted ${qty} unit(s) of ${variant} from warehouse #${meta.warehouseId}`;
+    const variant = meta.variantName ? `"${meta.variantName}"` : 'item';
+    const warehouse = meta.warehouseName ? `"${meta.warehouseName}"` : 'warehouse';
+    return `Deducted ${qty} unit(s) of ${variant} from ${warehouse}`;
   },
 
   INVENTORY_ADJUSTED: (meta) => {
     const qty = Number(meta.adjustmentQuantity ?? 0);
     const direction = qty >= 0 ? `+${qty}` : `${qty}`;
-    return `Adjusted inventory batch #${meta.batchId} by ${direction} units`;
+    const variant = meta.variantName ? `"${meta.variantName}"` : 'item';
+    return `Adjusted ${variant} by ${direction} units`;
   },
 
-  INVENTORY_TRANSFERRED: (meta) =>
-    `Transferred ${meta.quantity} unit(s) from warehouse #${meta.fromWarehouseId} to warehouse #${meta.toWarehouseId}`,
+  INVENTORY_TRANSFERRED: (meta) => {
+    const from = meta.fromWarehouseName ? `"${meta.fromWarehouseName}"` : 'warehouse';
+    const to = meta.toWarehouseName ? `"${meta.toWarehouseName}"` : 'warehouse';
+    return `Transferred ${meta.quantity} unit(s) from ${from} to ${to}`;
+  },
 
   PRODUCT_CREATED: (meta) =>
     `Added new product "${meta.name}"`,
@@ -72,10 +78,12 @@ const generators: Record<ActivityType, Generator> = {
     `Added new customer "${meta.name}"`,
 
   STAFF_REGISTERED: (meta) =>
-    `Registered new staff member "${meta.name ?? `#${meta.staffId}`}"`,
+    `Registered new staff member${meta.name ? ` "${meta.name}"` : ''}`,
 
-  SUPPLY_CREATED: (meta) =>
-    `Supply ${meta.supplyNumber} opened as draft for sale ${meta.saleId} (${meta.itemCount} item(s))`,
+  SUPPLY_CREATED: (meta) => {
+    const sale = meta.saleNumber ?? meta.saleId;
+    return `Supply ${meta.supplyNumber} opened as draft for sale ${sale} (${meta.itemCount} item(s))`;
+  },
 
   SUPPLY_FULFILLED: (meta) =>
     `Marked supply ${meta.supplyNumber} as fulfilled`,

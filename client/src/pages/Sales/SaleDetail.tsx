@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import Modal from '../../components/ui/Modal';
 import usePageTitle from '../../hooks/usePageTitle';
 import { useGetSaleQuery, useRecordPaymentMutation, useCancelSaleMutation, useUpdateSaleMutation } from '../../store/api/salesApi';
+import { useGetCustomersQuery } from '../../store/api/customersApi';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { SaleStatus, PaymentStatus, PaymentMethod } from '../../types/sale';
+import type { Customer } from '../../types/customer';
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat('en-NG', {
@@ -79,6 +81,26 @@ function SaleDetail() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editNotes, setEditNotes] = useState('');
   const [editPaymentMethod, setEditPaymentMethod] = useState<PaymentMethod | ''>('');
+  const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const customerSearchRef = useRef<HTMLDivElement>(null);
+
+  const { data: customersResponse } = useGetCustomersQuery(
+    customerSearch.trim() ? { name: customerSearch.trim(), take: 50 } : { take: 50 },
+    { skip: !showEditModal || (sale?.customer != null) },
+  );
+  const customers = customersResponse?.data ?? [];
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (customerSearchRef.current && !customerSearchRef.current.contains(event.target as Node)) {
+        setShowCustomerDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Fulfil confirmation modal state
   const [showFulfilModal, setShowFulfilModal] = useState(false);
@@ -138,16 +160,21 @@ function SaleDetail() {
     if (!sale) return;
     setEditNotes(sale.notes ?? '');
     setEditPaymentMethod(sale.paymentMethod ?? '');
+    setEditCustomer(null);
+    setCustomerSearch('');
     setShowEditModal(true);
   };
 
   const handleSaveEdit = async () => {
+    if (!sale) return;
     try {
       await updateSale({
         id: Number(id),
         data: {
           notes: editNotes.trim() || null,
           paymentMethod: editPaymentMethod || null,
+          // Only send customerId if the sale was originally a walk-in and the user picked one.
+          ...(sale.customer == null && editCustomer ? { customerId: editCustomer.id } : {}),
         },
       }).unwrap();
       showToast('success', 'Sale updated');
@@ -413,9 +440,73 @@ function SaleDetail() {
         onClose={() => setShowEditModal(false)}
         title="Edit Sale"
         leftButton={{ text: 'Cancel', onClick: () => setShowEditModal(false), variant: 'secondary' }}
-        rightButton={{ text: isUpdating ? 'Saving...' : 'Save Changes', onClick: handleSaveEdit, variant: 'primary' }}
+        rightButton={{ text: isUpdating ? 'Saving…' : 'Save Changes', onClick: handleSaveEdit, variant: 'primary' }}
       >
         <div className="space-y-4">
+          {sale.customer == null && (
+            <div ref={customerSearchRef}>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Customer <span className="text-gray-400 font-normal">(optional, walk-in if blank)</span>
+              </label>
+              {editCustomer ? (
+                <div className="flex items-center justify-between px-3 py-2.5 border border-gray-200 rounded-lg bg-indigo-50">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{editCustomer.name}</p>
+                    {editCustomer.phoneNumber && (
+                      <p className="text-xs text-gray-500 truncate">{editCustomer.phoneNumber}</p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditCustomer(null);
+                      setCustomerSearch('');
+                    }}
+                    className="text-gray-400 hover:text-rose-500 cursor-pointer ml-2"
+                    title="Clear customer"
+                  >
+                    <i className="fa-solid fa-xmark" />
+                  </button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <i className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
+                  <input
+                    type="text"
+                    placeholder="Search customer by name…"
+                    value={customerSearch}
+                    onChange={(e) => {
+                      setCustomerSearch(e.target.value);
+                      setShowCustomerDropdown(true);
+                    }}
+                    onFocus={() => setShowCustomerDropdown(true)}
+                    className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                  />
+                  {showCustomerDropdown && customers.length > 0 && (
+                    <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {customers.map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => {
+                            setEditCustomer(c);
+                            setCustomerSearch('');
+                            setShowCustomerDropdown(false);
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                        >
+                          <p className="text-sm text-gray-900">{c.name}</p>
+                          {c.phoneNumber && (
+                            <p className="text-xs text-gray-500">{c.phoneNumber}</p>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Payment Method <span className="text-gray-400 font-normal">(optional)</span>

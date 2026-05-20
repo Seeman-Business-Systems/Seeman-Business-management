@@ -51,7 +51,9 @@ function Roles() {
   const paginatedRoles = roles.slice(startIndex, endIndex);
 
   // Selection handlers
-  const isAllSelected = paginatedRoles.length > 0 && paginatedRoles.every((r) => selectedIds.has(r.id));
+  const isAllSelected =
+    paginatedRoles.length > 0 &&
+    paginatedRoles.every((r) => selectedIds.has(r.id));
   const isSomeSelected = paginatedRoles.some((r) => selectedIds.has(r.id));
 
   const handleSelectAll = () => {
@@ -107,7 +109,10 @@ function Roles() {
   const handleBulkDelete = async () => {
     try {
       await deleteRoles(Array.from(selectedIds)).unwrap();
-      showToast('success', `${selectedIds.size} role${selectedIds.size > 1 ? 's' : ''} deleted successfully`);
+      showToast(
+        'success',
+        `${selectedIds.size} role${selectedIds.size > 1 ? 's' : ''} deleted successfully`,
+      );
       setSelectedIds(new Set());
       setBulkDeleteModalOpen(false);
       setActionValue('');
@@ -125,7 +130,10 @@ function Roles() {
       setDeleteModalOpen(false);
       setRoleToDelete(null);
     } catch (error) {
-      showToast('error', `Failed to delete role. Please try again. Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      showToast(
+        'error',
+        `Failed to delete role. Please try again. Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       console.error('Failed to delete role:', error);
     }
   };
@@ -150,9 +158,24 @@ function Roles() {
       if (currentPage <= 3) {
         pages.push(1, 2, 3, 4, '...', totalPages);
       } else if (currentPage >= totalPages - 2) {
-        pages.push(1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+        pages.push(
+          1,
+          '...',
+          totalPages - 3,
+          totalPages - 2,
+          totalPages - 1,
+          totalPages,
+        );
       } else {
-        pages.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
+        pages.push(
+          1,
+          '...',
+          currentPage - 1,
+          currentPage,
+          currentPage + 1,
+          '...',
+          totalPages,
+        );
       }
     }
     return pages;

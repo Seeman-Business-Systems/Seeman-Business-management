@@ -4,16 +4,21 @@ import Layout from '../../components/layout/Layout';
 import usePageTitle from '../../hooks/usePageTitle';
 import { useGetProductsQuery } from '../../store/api/productsApi';
 import { useGetBranchesQuery } from '../../store/api/branchesApi';
-import { useCreateSaleMutation } from '../../store/api/salesApi';
 import { useGetCustomersQuery } from '../../store/api/customersApi';
 import { useLazyGetInventoryQuery } from '../../store/api/inventoryApi';
 import type { InventoryRecord } from '../../types/inventory';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { PaymentMethod } from '../../types/sale';
-import type { CreateSaleLineItemRequest } from '../../types/sale';
+import type { CreateSaleLineItemRequest, CreateSaleRequest } from '../../types/sale';
 import type { ProductVariant, Product } from '../../types/product';
-import type { Customer } from '../../types/customer';
+import type { Customer, CustomerListResponse } from '../../types/customer';
+import type { Branch } from '../../types/auth';
+import { useCreateSaleOffline } from '../../lib/offline/useCreateSaleOffline';
+import { useCachedFallback } from '../../lib/offline/useCachedFallback';
+import { useOutboxEntries } from '../../lib/offline/useOutbox';
+import { useOnlineStatus } from '../../lib/offline/useOnlineStatus';
+import { CACHE_KEYS } from '../../lib/offline/cache';
 
 interface CartItem {
   variantId: number;
@@ -53,17 +58,26 @@ function CreateSale() {
   const [formError, setFormError] = useState<string | null>(null);
   const customerRef = useRef<HTMLDivElement>(null);
 
-  const { data: products = [] } = useGetProductsQuery({ includeRelations: true });
-  const { data: branches = [] } = useGetBranchesQuery();
-  const { data: customersResponse } = useGetCustomersQuery(
+  const productsQuery = useGetProductsQuery({ includeRelations: true });
+  const branchesQuery = useGetBranchesQuery();
+  const customersQuery = useGetCustomersQuery(
     customerSearch.trim() ? { name: customerSearch.trim(), take: 50 } : { take: 50 }
   );
+  const products = useCachedFallback<Product[]>(productsQuery.data, CACHE_KEYS.products) ?? [];
+  const branches = useCachedFallback<Branch[]>(branchesQuery.data, CACHE_KEYS.branches) ?? [];
+  const customersResponse = useCachedFallback<CustomerListResponse>(
+    customersQuery.data,
+    CACHE_KEYS.customers,
+  );
   const customers = customersResponse?.data ?? [];
-  const [createSale, { isLoading }] = useCreateSaleMutation();
+
+  const isOnline = useOnlineStatus();
+  const { submit: submitSale, isLoading } = useCreateSaleOffline();
   const [fetchInventory] = useLazyGetInventoryQuery();
 
   // variantId → total available quantity across all warehouses
   const [stockMap, setStockMap] = useState<Record<number, number>>({});
+  const [cachedInventory, setCachedInventory] = useState<InventoryRecord[] | null>(null);
 
   useEffect(() => {
     fetchInventory(undefined)
@@ -74,9 +88,62 @@ function CreateSale() {
           map[r.variantId] = (map[r.variantId] ?? 0) + r.availableQuantity;
         }
         setStockMap(map);
+        setCachedInventory(records);
       })
-      .catch(() => {});
+      .catch(() => {
+        // Offline: fall back to whatever was previously cached
+        import('../../lib/offline/cache').then(({ cache, CACHE_KEYS }) => {
+          cache.get<InventoryRecord[]>(CACHE_KEYS.inventory).then((records) => {
+            if (records) {
+              const map: Record<number, number> = {};
+              for (const r of records) {
+                map[r.variantId] = (map[r.variantId] ?? 0) + r.availableQuantity;
+              }
+              setStockMap(map);
+              setCachedInventory(records);
+            }
+          });
+        });
+      });
   }, [fetchInventory]);
+
+  // Persist fresh inventory to the offline cache whenever it loads
+  useEffect(() => {
+    if (cachedInventory) {
+      import('../../lib/offline/cache').then(({ cache, CACHE_KEYS }) => {
+        cache.put(CACHE_KEYS.inventory, cachedInventory);
+      });
+    }
+  }, [cachedInventory]);
+
+  // Subtract *only currently pending* sale quantities from displayed stock —
+  // failed entries didn't actually consume any stock, so deducting them would
+  // make variants look out-of-stock when they aren't.
+  const pendingSales = useOutboxEntries('sale');
+  const pendingQtyByVariant = useMemo(() => {
+    const map: Record<number, number> = {};
+    for (const entry of pendingSales) {
+      if (entry.status !== 'pending') continue;
+      const body = entry.body as unknown as CreateSaleRequest | null;
+      if (!body) continue;
+      for (const item of body.lineItems ?? []) {
+        map[item.variantId] = (map[item.variantId] ?? 0) + item.quantity;
+      }
+    }
+    return map;
+  }, [pendingSales]);
+
+  const effectiveStockMap = useMemo(() => {
+    const result: Record<number, number> = {};
+    const variantIds = new Set([
+      ...Object.keys(stockMap).map(Number),
+      ...Object.keys(pendingQtyByVariant).map(Number),
+    ]);
+    for (const id of variantIds) {
+      result[id] = Math.max(0, (stockMap[id] ?? 0) - (pendingQtyByVariant[id] ?? 0));
+    }
+    return result;
+  }, [stockMap, pendingQtyByVariant]);
 
   // Flatten all variants with product info
   const allVariants: (ProductVariant & { productName: string })[] = useMemo(() => {
@@ -103,11 +170,14 @@ function CreateSale() {
   }, [allVariants, variantSearch]);
 
   const addToCart = (variant: ProductVariant & { productName: string }) => {
-    const available = stockMap[variant.id] ?? 0;
+    const available = effectiveStockMap[variant.id] ?? 0;
     const inCart = cart.find((item) => item.variantId === variant.id)?.quantity ?? 0;
 
     if (available <= 0) {
-      showToast('error', `"${variant.variantName}" is out of stock.`);
+      const msg = isOnline
+        ? `"${variant.variantName}" is out of stock.`
+        : `"${variant.variantName}" is out of stock (offline data).`;
+      showToast('error', msg);
       setVariantSearch('');
       setShowVariantSearch(false);
       return;
@@ -195,15 +265,22 @@ function CreateSale() {
     }));
 
     try {
-      const sale = await createSale({
+      const result = await submitSale({
         branchId: Number(selectedBranch),
         paymentMethod: paymentMethod || null,
         lineItems,
         customerId: selectedCustomer?.id,
         discountAmount: discountAmount || undefined,
         notes: notes.trim() || undefined,
-      }).unwrap();
+      });
 
+      if (result.queued) {
+        showToast('success', 'Sale saved offline — will sync when reconnected');
+        navigate('/sales');
+        return;
+      }
+
+      const sale = result.sale;
       showToast('success', `Sale ${sale.saleNumber} recorded successfully`);
 
       const soldVariantIds = new Set(cart.map((item) => item.variantId));

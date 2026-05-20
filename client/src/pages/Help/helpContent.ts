@@ -200,6 +200,76 @@ const helpContent: HelpModule[] = [
     ],
   },
   {
+    id: 'install-app',
+    label: 'Install on Your Phone',
+    icon: 'fa-mobile-screen',
+    questions: [
+      {
+        q: 'Can I use Seeman like a normal app on my phone?',
+        a: 'Yes. You do not need to download it from the App Store or Play Store. You can add Seeman to your home screen from your browser, and it will open just like any other app — full screen, with its own icon, and no browser bars in the way.',
+      },
+      {
+        q: 'How do I install Seeman on Android (Chrome)?',
+        a: 'Open Seeman in Google Chrome on your Android phone. Tap the three-dot menu in the top-right corner. Tap "Add to Home screen" (or "Install app" if you see it). Give it a name if asked, then tap "Add" or "Install". A Seeman icon will appear on your home screen — tap it to open Seeman like a normal app.',
+      },
+      {
+        q: 'How do I install Seeman on iPhone or iPad (Safari)?',
+        a: 'You must use Safari for this — it will not work in Chrome on iPhone. Open Seeman in Safari. Tap the Share button (the square with an arrow pointing up) at the bottom of the screen. Scroll down and tap "Add to Home Screen". Give it a name if you want, then tap "Add" in the top-right corner. A Seeman icon will appear on your home screen.',
+      },
+      {
+        q: 'I do not see "Add to Home screen" — what do I do?',
+        a: 'On Android, make sure you are using Chrome and that you are signed in to Seeman. Refresh the page once, then open the three-dot menu again. On iPhone, make sure you are using Safari (not Chrome or another browser) and that you tapped the Share button, not the bookmark icon.',
+      },
+      {
+        q: 'Do I need to log in again after installing?',
+        a: 'Usually no. The installed app shares your login with the browser, so if you were already signed in when you installed it, you stay signed in. If you do get signed out, just log in once and it will stay logged in like any other app.',
+      },
+      {
+        q: 'How do I remove the app from my phone?',
+        a: 'Treat the Seeman icon like any other app. On Android, press and hold the icon, then tap "Uninstall" or drag it to the bin. On iPhone, press and hold the icon, tap "Remove App", then tap "Delete Bookmark". This does not delete your account or your data — it just removes the shortcut from your phone.',
+      },
+    ],
+  },
+  {
+    id: 'offline',
+    label: 'Offline Mode',
+    icon: 'fa-wifi',
+    questions: [
+      {
+        q: 'How does the app know when I am offline?',
+        a: 'The app continuously monitors your network connection. When it detects you are offline, a banner appears at the top of the page and certain actions switch to offline mode automatically. You do not need to toggle anything yourself.',
+      },
+      {
+        q: 'What can I do while offline?',
+        a: 'You can record new sales and expenses while offline. You can also view recently visited pages (sales list, sale details, inventory, customers, etc.) using cached data from your last online session. Actions that require live data — like running fresh reports — are not available offline.',
+      },
+      {
+        q: 'What happens when I record a sale or expense offline?',
+        a: 'The sale or expense is saved locally on your device and queued in a pending list. As soon as your connection is restored, the app automatically syncs each queued item to the server in the order it was recorded. You do not need to re-enter anything.',
+      },
+      {
+        q: 'How do I see my pending offline sales?',
+        a: 'On the Sales page, a "Pending sales" card appears at the top whenever you have offline sales waiting to sync. Each entry shows its status — Saved offline, Syncing, or Failed — and the time it was created.',
+      },
+      {
+        q: 'What if a pending sale fails to sync?',
+        a: 'If a pending sale fails (for example, because stock changed or a validation rule was hit), it stays in the pending list marked as Failed. You can remove it from the list and re-create it with corrected details. Failed entries are not silently lost.',
+      },
+      {
+        q: 'Will I lose my offline data if I close the browser?',
+        a: 'No. Offline data and the pending queue are stored in your browser\'s local database (IndexedDB), so they survive page refreshes and browser restarts. Clearing browser data for the site will erase them, so avoid doing that while you have unsynced items.',
+      },
+      {
+        q: 'Why does some data look stale while offline?',
+        a: 'When offline, the app shows the last data it cached while you were online. If a teammate made changes after you went offline, those changes will only appear once you reconnect and the app refreshes.',
+      },
+      {
+        q: 'Can two devices create offline sales at the same time?',
+        a: 'Yes. Each offline sale is tagged with a unique idempotency key, so even if two devices come back online together, the server records each sale exactly once and will not create duplicates.',
+      },
+    ],
+  },
+  {
     id: 'reports',
     label: 'Reports',
     icon: 'fa-chart-line',

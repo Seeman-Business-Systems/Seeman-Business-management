@@ -60,6 +60,10 @@ class CreateSaleValidator {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsOptional()
+  @IsString()
+  idempotencyKey?: string;
 }
 
 export default CreateSaleValidator;

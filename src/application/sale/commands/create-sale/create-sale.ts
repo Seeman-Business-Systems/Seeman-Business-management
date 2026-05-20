@@ -27,6 +27,13 @@ class CreateSaleHandler implements ICommandHandler<CreateSaleCommand> {
   ) {}
 
   async execute(command: CreateSaleCommand): Promise<Sale> {
+    if (command.idempotencyKey) {
+      const existing = await this.saleRepository.findByIdempotencyKey(
+        command.idempotencyKey,
+      );
+      if (existing) return existing;
+    }
+
     // Validate stock availability across all warehouses before creating the sale
     await this.assertStockAvailable(command.lineItems);
 
@@ -63,6 +70,7 @@ class CreateSaleHandler implements ICommandHandler<CreateSaleCommand> {
       null,
       [],
       [],
+      command.idempotencyKey ?? null,
     );
 
     // 5. Save sale

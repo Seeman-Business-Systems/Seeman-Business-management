@@ -10,6 +10,7 @@ interface JwtPayload {
   email: string | null;
   iat: number;
   exp: number;
+  sessionId?: string;
   isImpersonation?: boolean;
 }
 
@@ -40,6 +41,16 @@ class JwtStrategy extends PassportStrategy(Strategy) {
     // Re-checking it here breaks impersonation of seeded users (whose initial
     // password was never changed) and would silently invalidate live tokens
     // if an admin ever toggled the flag.
+
+    // Single-session enforcement: a fresh login on another device rotates the
+    // user's sessionId, so tokens minted before that login no longer match.
+    // Skip for impersonation tokens — those intentionally don't carry the
+    // impersonated user's sessionId and must not invalidate their real session.
+    if (!payload.isImpersonation) {
+      if (!payload.sessionId || payload.sessionId !== staff.getSessionId()) {
+        throw new UnauthorizedException();
+      }
+    }
 
     return staff; // This becomes req.user
   }

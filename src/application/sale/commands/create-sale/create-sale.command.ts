@@ -18,6 +18,7 @@ class CreateSaleCommand extends Command<Sale> {
     public readonly customerId?: number | null,
     public readonly discountAmount?: number,
     public readonly notes?: string | null,
+    public readonly idempotencyKey?: string | null,
   ) {
     super();
   }

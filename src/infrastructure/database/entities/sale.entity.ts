@@ -24,6 +24,7 @@ import PaymentMethod from 'src/domain/sale/payment-method';
 @Index(['status', 'soldAt'])
 @Index(['paymentStatus'])
 @Index(['soldAt'])
+@Index(['idempotencyKey'], { unique: true, where: '"idempotency_key" IS NOT NULL' })
 @Entity({ name: 'sales' })
 class SaleEntity {
   @PrimaryGeneratedColumn()
@@ -31,6 +32,9 @@ class SaleEntity {
 
   @Column({ type: 'varchar', length: 50, unique: true, name: 'sale_number' })
   saleNumber: string;
+
+  @Column({ name: 'idempotency_key', type: 'varchar', length: 64, nullable: true })
+  idempotencyKey: string | null;
 
   @Column({ name: 'customer_id', nullable: true })
   customerId: number | null;

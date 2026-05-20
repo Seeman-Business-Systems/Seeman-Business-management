@@ -59,6 +59,7 @@ class OnSaleCreatedSupplyHandler implements IEventHandler<SaleCreated> {
         savedSupply.getId()!,
         savedSupply.getSupplyNumber(),
         event.saleId,
+        event.saleNumber,
         event.branchId,
         savedItems.length,
       ),

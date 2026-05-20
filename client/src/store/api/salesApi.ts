@@ -12,6 +12,7 @@ interface UpdateSaleRequest {
   notes?: string | null;
   paymentMethod?: string | null;
   status?: string;
+  customerId?: number;
 }
 
 export const salesApi = baseApi.injectEndpoints({

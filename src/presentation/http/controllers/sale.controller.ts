@@ -56,6 +56,7 @@ class SaleController {
       dto.customerId ?? null,
       dto.discountAmount ?? 0,
       dto.notes ?? null,
+      dto.idempotencyKey ?? null,
     );
 
     const sale = await this.commandBus.execute(command);
@@ -129,6 +130,7 @@ class SaleController {
       dto.notes,
       dto.paymentMethod,
       dto.status,
+      dto.customerId,
     );
 
     const sale = await this.commandBus.execute(command);

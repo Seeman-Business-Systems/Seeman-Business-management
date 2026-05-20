@@ -23,7 +23,12 @@ class Sale {
     private deletedAt: Date | null,
     private lineItems: SaleLineItem[],
     private payments: SalePayment[],
+    private idempotencyKey: string | null = null,
   ) {}
+
+  getIdempotencyKey(): string | null {
+    return this.idempotencyKey;
+  }
 
   getId(): number | undefined {
     return this.id;

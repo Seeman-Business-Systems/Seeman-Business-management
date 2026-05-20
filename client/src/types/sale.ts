@@ -74,6 +74,7 @@ export interface CreateSaleRequest {
   discountAmount?: number;
   notes?: string;
   lineItems: CreateSaleLineItemRequest[];
+  idempotencyKey?: string;
 }
 
 export interface RecordPaymentRequest {
