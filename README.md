@@ -88,4 +88,4 @@ Paschal Ezenwobi
 
 BSc (Hons) Software Engineering, University of Portsmouth (2026)
 
-[GitHub](https://github.com/) | [LinkedIn](https://linkedin.com/)
+[GitHub](https://github.com/PaschalKen/) | [LinkedIn](https://www.linkedin.com/in/paschal-ezenwobi-828654230/)
