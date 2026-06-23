@@ -84,7 +84,7 @@ User acceptance testing was conducted with staff across all roles at all four br
 
 ## Author
 
-Paschal Okafor
+Paschal Ezenwobi
 
 BSc (Hons) Software Engineering, University of Portsmouth (2026)
 
