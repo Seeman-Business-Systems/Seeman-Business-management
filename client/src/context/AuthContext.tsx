@@ -49,6 +49,7 @@ interface AuthContextType {
   isImpersonating: boolean;
   can: (permission: string) => boolean;
   login: (identifier: string, password: string) => Promise<void>;
+  loginDemo: () => Promise<void>;
   logout: () => Promise<void>;
   impersonate: (accessToken: string, staff: Staff) => Promise<void>;
   exitImpersonation: () => Promise<void>;
@@ -139,6 +140,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     navigate('/');
   };
 
+  const loginDemo = async () => {
+    const { data } = await api.post<LoginResponse>('/auth/demo');
+
+    localStorage.removeItem('originalToken');
+    localStorage.setItem('accessToken', data.accessToken);
+    localStorage.setItem('refreshToken', data.refreshToken);
+    setUser(data.staff);
+    setIsImpersonating(false);
+
+    let perms: string[] = [];
+    try {
+      const { data: meData } = await api.post('/auth/me');
+      perms = meData.permissions ?? [];
+      setPermissions(perms);
+    } catch {
+      setPermissions([]);
+    }
+    writeAuthCache(data.staff, perms);
+    prefetchOfflineData();
+
+    navigate('/');
+  };
+
   const logout = async () => {
     const refreshToken = localStorage.getItem('refreshToken');
 
@@ -214,6 +238,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isImpersonating,
         can,
         login,
+        loginDemo,
         logout,
         impersonate,
         exitImpersonation,

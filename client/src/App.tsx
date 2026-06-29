@@ -4,6 +4,7 @@ import { ToastProvider } from './context/ToastContext';
 import ToastContainer from './components/ui/ToastContainer';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login/Login';
+import { Demo } from './pages/Demo';
 import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
 import ResetPassword from './pages/ResetPassword/ResetPassword';
 import Dashboard from './pages/Dashboard';
@@ -94,6 +95,7 @@ function App() {
         <OfflineBanner />
         <ImpersonationBanner />
         <Routes>
+        <Route path="/demo" element={<Demo />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />

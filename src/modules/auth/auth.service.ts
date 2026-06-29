@@ -111,6 +111,36 @@ class AuthService {
     };
   }
 
+  async demoLogin(): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    staff: Staff;
+  }> {
+    const demoIdentifier = this.configService.get<string>(
+      'DEMO_STAFF_IDENTIFIER',
+      'humblekez308@gmail.com',
+    );
+
+    const staff =
+      (await this.staff.findByEmail(demoIdentifier)) ||
+      (await this.staff.findByPhoneNumber(demoIdentifier));
+
+    if (!staff) {
+      throw new NotFoundException('Demo account is not configured');
+    }
+
+    staff.setSessionId(crypto.randomBytes(32).toString('hex'));
+    staff.setLastLoginAt(new Date());
+    await this.staff.commit(staff);
+
+    const tokens = await this.generateTokens(staff);
+
+    return {
+      ...tokens,
+      staff,
+    };
+  }
+
   async refresh(
     refreshToken: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
