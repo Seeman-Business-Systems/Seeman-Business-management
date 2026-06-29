@@ -69,6 +69,19 @@ class AuthController {
   }
 
   @Public()
+  @Post('demo')
+  @HttpCode(HttpStatus.OK)
+  async demoLogin() {
+    const result = await this.authService.demoLogin();
+
+    return {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      staff: await this.staffSerialiser.serialise(result.staff),
+    };
+  }
+
+  @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(@Body('refreshToken') refreshToken: string) {
