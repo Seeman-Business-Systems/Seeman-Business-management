@@ -74,7 +74,7 @@ The system was delivered across five increments with regular client feedback ses
 
 The system is live and deployed on Render:
 
-**https://seemanauto.onrender.com/login**
+**https://seemanauto.onrender.com/demo**
 
 > **Please note:** the system is restricted to internal users of Seeman Auto & Agro Industries and is not open for public access. Login credentials are not available to external visitors. The deployment link is provided to demonstrate that the system is production-ready and live rather than a prototype or mock-up.
 
